@@ -1,7 +1,11 @@
-import { useState } from 'react';
-
 import './App.css';
 
+import { Canvas } from '../Canvas';
+
 export function App() {
-  return <div>Hello</div>;
+  return (
+    <div>
+      <Canvas />
+    </div>
+  );
 }
