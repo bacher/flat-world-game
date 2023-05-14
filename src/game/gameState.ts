@@ -24,7 +24,13 @@ export type CellPath = {
 
 export enum ResourceType {
   LOG,
+  ROUTH_LUMBER,
 }
+
+export const resourceLocalization: Record<ResourceType, string> = {
+  [ResourceType.LOG]: 'Log',
+  [ResourceType.ROUTH_LUMBER]: 'Rough Lumber',
+};
 
 export type StorageItem = {
   resourceType: ResourceType;
@@ -61,9 +67,11 @@ export type Facility = {
     }
   | {
       type: FacilityType.LAMBERT;
+      inProcess: number;
     }
   | {
       type: FacilityType.CHOP_WOOD;
+      inProcess: number;
     }
 );
 
@@ -82,7 +90,7 @@ export function startGame(): GameState {
           {
             path: { from: [-2, -3], to: [3, -3] },
             resourceType: ResourceType.LOG,
-            people: 4,
+            people: 3,
           },
         ],
         workingPaths: [],
@@ -106,6 +114,7 @@ export function startGame(): GameState {
           position: [3, -3],
           input: [],
           output: [],
+          inProcess: 0,
         },
       ],
     },
@@ -115,7 +124,7 @@ export function startGame(): GameState {
 const MAX_BUILDING_PEOPLE = 4;
 
 type JobObject =
-  | { type: 'facility'; facility: Facility }
+  | { type: 'facility'; facility: Facility; distance: number }
   | {
       type: 'carrier';
       carrierPath: CarrierPath;
@@ -132,10 +141,14 @@ export function tick(gameState: GameState): void {
     let needPeople = 0;
     let maxRatio = -Infinity;
 
-    function registerJob(item: JobObject, count: number): void {
-      const nextRatio = (count - 1) / count;
-      jobs.push([nextRatio, count, count, item]);
-      needPeople += count;
+    function registerJob(
+      item: JobObject,
+      people: number,
+      maxPeople: number,
+    ): void {
+      const nextRatio = (people - 1) / maxPeople;
+      jobs.push([nextRatio, people, maxPeople, item]);
+      needPeople += people;
 
       if (nextRatio > maxRatio) {
         maxRatio = nextRatio;
@@ -143,15 +156,59 @@ export function tick(gameState: GameState): void {
     }
 
     for (const facility of facilities) {
+      const distance = calculateDistance(city.position, facility.position);
+
       switch (facility.type) {
-        case FacilityType.BUILDING:
-          registerJob({ type: 'facility', facility }, MAX_BUILDING_PEOPLE);
+        case FacilityType.BUILDING: {
+          registerJob(
+            { type: 'facility', facility, distance },
+            MAX_BUILDING_PEOPLE,
+            MAX_BUILDING_PEOPLE,
+          );
           break;
+        }
         case FacilityType.LAMBERT:
           if (getCountOf(facility.output, ResourceType.LOG) < 4) {
-            registerJob({ type: 'facility', facility }, 4);
+            registerJob({ type: 'facility', facility, distance }, 4, 4);
           }
           break;
+        case FacilityType.CHOP_WOOD: {
+          const PEOPLE_PER_ITERATION = 1;
+          const ITERATION_LOGS_NEED = 1;
+          const ITERATION_ROUGH_LUMBER_OUT = 2;
+
+          let needPeople = 0;
+          const isOverDone =
+            getCountOf(facility.output, ResourceType.ROUTH_LUMBER) >= 4;
+
+          if (facility.inProcess > 0) {
+            needPeople += (1 - facility.inProcess) * PEOPLE_PER_ITERATION;
+          }
+
+          if (!isOverDone) {
+            const resourcesForIterations = Math.floor(
+              getCountOf(facility.input, ResourceType.LOG) /
+                ITERATION_LOGS_NEED,
+            );
+            const iterationsUntilOverDone = Math.ceil(
+              (4 - getCountOf(facility.output, ResourceType.ROUTH_LUMBER)) /
+                ITERATION_ROUGH_LUMBER_OUT +
+                (facility.inProcess > 0 ? -1 : 0),
+            );
+
+            needPeople +=
+              Math.min(resourcesForIterations, iterationsUntilOverDone) *
+              PEOPLE_PER_ITERATION;
+          }
+
+          if (needPeople > 0) {
+            const onePersonWork = 1 - distance * 0.05;
+            const people = Math.min(4, Math.ceil(needPeople / onePersonWork));
+
+            registerJob({ type: 'facility', facility, distance }, people, 4);
+          }
+          break;
+        }
       }
     }
 
@@ -194,6 +251,7 @@ export function tick(gameState: GameState): void {
           toFacility,
         },
         carrierPath.people,
+        carrierPath.people,
       );
     }
 
@@ -220,8 +278,8 @@ export function tick(gameState: GameState): void {
     for (const [, people, , jobObject] of jobs) {
       switch (jobObject.type) {
         case 'facility': {
-          const { facility } = jobObject;
-          const distance = calculateDistance(city.position, facility.position);
+          const { facility, distance } = jobObject;
+
           const peopleAfterWalk = people * (1 - distance * 0.05);
 
           switch (facility.type) {
@@ -237,6 +295,7 @@ export function tick(gameState: GameState): void {
                   position: facility.position,
                   input: [],
                   output: [],
+                  inProcess: 0,
                 };
               }
               break;
@@ -250,6 +309,65 @@ export function tick(gameState: GameState): void {
                 resourceType: ResourceType.LOG,
                 quantity: logsCount,
               });
+              break;
+            }
+            case FacilityType.CHOP_WOOD: {
+              const PEOPLE_PER_ITERATION = 1;
+              const ITERATION_LOGS_NEED = 1;
+              const ITERATION_ROUGH_LUMBER_OUT = 2;
+
+              const wasInProcess = facility.inProcess > 0;
+
+              facility.inProcess += peopleAfterWalk / PEOPLE_PER_ITERATION;
+
+              let inprogressDone = 0;
+
+              if (wasInProcess && facility.inProcess >= 1) {
+                facility.inProcess -= 1;
+                inprogressDone += 1;
+              }
+
+              const resourceForIterations = Math.floor(
+                getCountOf(facility.input, ResourceType.LOG) /
+                  ITERATION_LOGS_NEED,
+              );
+
+              const peopleForIterations = Math.ceil(facility.inProcess);
+
+              const iterationsUntilOverDone = Math.ceil(
+                (4 - getCountOf(facility.output, ResourceType.ROUTH_LUMBER)) /
+                  ITERATION_ROUGH_LUMBER_OUT -
+                  inprogressDone,
+              );
+
+              const resourceIterations = Math.min(
+                iterationsUntilOverDone,
+                resourceForIterations,
+                peopleForIterations,
+              );
+
+              if (resourceIterations > 0) {
+                grabResource(facility.input, {
+                  resourceType: ResourceType.LOG,
+                  quantity: resourceIterations * ITERATION_LOGS_NEED,
+                });
+              }
+
+              if (inprogressDone > 0 || resourceIterations > 0) {
+                addResource(facility.output, {
+                  resourceType: ResourceType.ROUTH_LUMBER,
+                  quantity:
+                    (inprogressDone + resourceIterations) *
+                    ITERATION_ROUGH_LUMBER_OUT,
+                });
+              }
+
+              if (resourceForIterations <= resourceForIterations) {
+                facility.inProcess = 0;
+              } else {
+                facility.inProcess = facility.inProcess % 1;
+              }
+
               break;
             }
           }

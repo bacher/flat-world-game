@@ -110,9 +110,17 @@ export function isPointsSame(
 }
 
 export function startGameLoop(visualState: VisualState): () => void {
+  let tickNumber = 0;
+
   const intervalId = window.setInterval(() => {
+    tickNumber += 1;
     tick(visualState.gameState);
     renderGameToCanvas(visualState);
+
+    // TODO: While developing
+    if (tickNumber === 100) {
+      window.clearInterval(intervalId);
+    }
   }, 1000);
 
   return () => {

@@ -3,6 +3,7 @@ import {
   FacilityType,
   ResourceType,
   StorageItem,
+  resourceLocalization,
 } from '../game/gameState';
 import type { CellPosition, CellRect, Point } from '../game/types';
 import type { VisualState } from '../game/visualState';
@@ -271,18 +272,42 @@ function drawStorage(
         ctx.lineTo(-5, 3);
         ctx.fillStyle = 'brown';
         ctx.fill();
-
-        ctx.textBaseline = 'middle';
-        const value = item.quantity.toFixed(1);
-
-        if (align === 'left') {
-          ctx.textAlign = 'left';
-          ctx.fillText(`${value} Logs`, 10, 0);
-        } else {
-          ctx.textAlign = 'right';
-          ctx.fillText(`${value} Logs`, -10, 0);
-        }
         break;
+      case ResourceType.ROUTH_LUMBER:
+        ctx.fillStyle = 'brown';
+        ctx.beginPath();
+        ctx.moveTo(-4, -6);
+        ctx.lineTo(-6, -4);
+        ctx.lineTo(4, 6);
+        ctx.lineTo(6, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-4, 6);
+        ctx.lineTo(-6, 4);
+        ctx.lineTo(4, -6);
+        ctx.lineTo(6, -4);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      default:
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+        console.warn(`No render function for resource ${item.resourceType}`);
+    }
+
+    ctx.textBaseline = 'middle';
+    const value = item.quantity.toFixed(1);
+    const resourceName = resourceLocalization[item.resourceType] ?? 'Unknown';
+
+    if (align === 'left') {
+      ctx.textAlign = 'left';
+      ctx.fillText(`${value} ${resourceName}`, 10, 0);
+    } else {
+      ctx.textAlign = 'right';
+      ctx.fillText(`${value} ${resourceName}`, -10, 0);
     }
 
     ctx.restore();
