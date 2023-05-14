@@ -19,6 +19,7 @@ export enum FacilityType {
   LAMBERT,
   BUILDING,
   CHOP_WOOD,
+  GATHERING,
 }
 
 export type CellPath = {
@@ -29,11 +30,13 @@ export type CellPath = {
 export enum ResourceType {
   LOG,
   ROUTH_LUMBER,
+  FOOD,
 }
 
 export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.LOG]: 'Log',
   [ResourceType.ROUTH_LUMBER]: 'Rough Lumber',
+  [ResourceType.FOOD]: 'Food',
 };
 
 type FacilityIterationInfo = {
@@ -45,6 +48,20 @@ type FacilityIterationInfo = {
 
 const facilitiesIterationInfo: Map<FacilityType, FacilityIterationInfo> =
   new Map([
+    [
+      FacilityType.GATHERING,
+      {
+        iterationPeopleDays: 1,
+        maximumPeopleAtWork: 3,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.FOOD,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
     [
       FacilityType.LAMBERT,
       {
@@ -121,6 +138,10 @@ export type Facility = {
       type: FacilityType.CHOP_WOOD;
       inProcess: number;
     }
+  | {
+      type: FacilityType.GATHERING;
+      inProcess: number;
+    }
 );
 
 export type FacilityNoCity = Exclude<Facility, { type: FacilityType.CITY }>;
@@ -142,6 +163,11 @@ export function startGame(): GameState {
             resourceType: ResourceType.LOG,
             people: 3,
           },
+          {
+            path: { from: [-3, 2], to: [0, 0] },
+            resourceType: ResourceType.FOOD,
+            people: 1,
+          },
         ],
         workingPaths: [],
         input: [],
@@ -162,6 +188,13 @@ export function startGame(): GameState {
         {
           type: FacilityType.CHOP_WOOD,
           position: [3, -3],
+          input: [],
+          output: [],
+          inProcess: 0,
+        },
+        {
+          type: FacilityType.GATHERING,
+          position: [-3, 2],
           input: [],
           output: [],
           inProcess: 0,

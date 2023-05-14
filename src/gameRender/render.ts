@@ -7,6 +7,7 @@ import {
 } from '../game/gameState';
 import type { CellPosition, CellRect, Point } from '../game/types';
 import type { VisualState } from '../game/visualState';
+import { neverCall } from '../utils/types';
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
@@ -131,8 +132,30 @@ function drawObject(visualState: VisualState, facility: Facility): void {
         ctx.fillStyle = 'gray';
         ctx.fill();
         break;
+      case FacilityType.GATHERING:
+        ctx.beginPath();
+        ctx.moveTo(-12, -4);
+        ctx.lineTo(-9, 8);
+        ctx.lineTo(9, 8);
+        ctx.lineTo(12, -4);
+        ctx.closePath();
+        ctx.fillStyle = 'brown';
+        ctx.fill();
+        ctx.rect(-2, -12, 4, 8);
+        ctx.fill();
+        break;
+
       default:
-        console.error(`No render function for ${drawFacilityType}`);
+        ctx.beginPath();
+        ctx.moveTo(-10, -10);
+        ctx.lineTo(10, 10);
+        ctx.moveTo(10, -10);
+        ctx.lineTo(-10, 10);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'black';
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        console.warn(`No render function for facility ${drawFacilityType}`);
     }
 
     if (facility.type === FacilityType.BUILDING) {
@@ -288,6 +311,16 @@ function drawStorage(
         ctx.lineTo(4, -6);
         ctx.lineTo(6, -4);
         ctx.closePath();
+        ctx.fill();
+        break;
+      case ResourceType.FOOD:
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.rect(2, -6, 2, 4);
+        ctx.fillStyle = 'green';
         ctx.fill();
         break;
       default:
