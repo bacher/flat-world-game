@@ -219,12 +219,18 @@ type JobObject =
       moveDistance: number;
     };
 
+// [temp, current, maximum, facility]
+type PlannedJob = [number, number, number, JobObject];
+
 export function tick(gameState: GameState): void {
+  // PLANING PHASE
+
+  const planPerCity = new Map<CityId, { jobs: PlannedJob[] }>();
+
   for (const city of gameState.cities) {
     const facilities = gameState.facilitiesByCityId[city.cityId];
 
-    //        [temp, current, maximum, facility]
-    let jobs: [number, number, number, JobObject][] = [];
+    let jobs: PlannedJob[] = [];
     let needPeople = 0;
     let maxRatio = -Infinity;
 
@@ -391,116 +397,144 @@ export function tick(gameState: GameState): void {
 
     jobs = jobs.filter((job) => job[1] > 0);
 
+    planPerCity.set(city.cityId, { jobs });
+  }
+
+  // Carriers get items
+
+  const currentlyMovingProducts: {
+    facility: Facility;
+    resource: StorageItem;
+  }[] = [];
+
+  for (const city of gameState.cities) {
+    const { jobs } = planPerCity.get(city.cityId)!;
+
     for (const [, people, , jobObject] of jobs) {
-      switch (jobObject.type) {
-        case 'facility': {
-          const { facility, distance } = jobObject;
+      if (jobObject.type === 'carrier') {
+        const {
+          carrierPath,
+          fromFacility,
+          toFacility,
+          commingDistance,
+          moveDistance,
+        } = jobObject;
 
-          const peopleAfterWalk = people * (1 - distance * 0.05);
+        const remains = 1 - commingDistance * PEOPLE_DAY_PER_CELL;
 
-          if (facility.type === FacilityType.BUILDING) {
-            const progress = peopleAfterWalk / facility.buildingTime;
-            facility.buildingStage += progress;
+        const power = remains * people;
 
-            if (facility.buildingStage >= 1) {
-              const index = facilities.indexOf(facility);
+        let movedWeight = (power / moveDistance) * WEIGHT_PER_PEOPLE_DAY;
+        movedWeight = Math.floor(movedWeight * 10) / 10;
 
-              facilities[index] = {
-                type: facility.buildingFacilityType,
-                position: facility.position,
-                input: [],
-                output: [],
-                inProcess: 0,
-              };
+        const grabbedItem = grabResource(fromFacility.output, {
+          resourceType: carrierPath.resourceType,
+          quantity: movedWeight,
+        });
+
+        currentlyMovingProducts.push({
+          facility: toFacility,
+          resource: grabbedItem,
+        });
+      }
+    }
+  }
+
+  // Facilities make products
+
+  for (const city of gameState.cities) {
+    const facilities = gameState.facilitiesByCityId[city.cityId];
+    const { jobs } = planPerCity.get(city.cityId)!;
+
+    for (const [, people, , jobObject] of jobs) {
+      if (jobObject.type === 'facility') {
+        const { facility, distance } = jobObject;
+
+        const peopleAfterWalk = people * (1 - distance * 0.05);
+
+        if (facility.type === FacilityType.BUILDING) {
+          const progress = peopleAfterWalk / facility.buildingTime;
+          facility.buildingStage += progress;
+
+          if (facility.buildingStage >= 1) {
+            const index = facilities.indexOf(facility);
+
+            facilities[index] = {
+              type: facility.buildingFacilityType,
+              position: facility.position,
+              input: [],
+              output: [],
+              inProcess: 0,
+            };
+          }
+        } else {
+          const iterationInfo = facilitiesIterationInfo.get(facility.type);
+
+          if (iterationInfo) {
+            const wasInProcess = facility.inProcess > 0;
+
+            facility.inProcess +=
+              peopleAfterWalk / iterationInfo.iterationPeopleDays;
+
+            let inprogressDone = 0;
+
+            if (wasInProcess && facility.inProcess >= 1) {
+              facility.inProcess -= 1;
+              inprogressDone += 1;
             }
-          } else {
-            const iterationInfo = facilitiesIterationInfo.get(facility.type);
 
-            if (iterationInfo) {
-              const wasInProcess = facility.inProcess > 0;
+            const resourceForIterations = getMaximumIterationsByResources(
+              iterationInfo,
+              facility,
+            );
 
-              facility.inProcess +=
-                peopleAfterWalk / iterationInfo.iterationPeopleDays;
+            const peopleForIterations = Math.ceil(facility.inProcess);
 
-              let inprogressDone = 0;
+            const iterationsUntilOverDone = Math.max(
+              0,
+              getIterationsUntilOverDone(iterationInfo, facility) -
+                inprogressDone,
+            );
 
-              if (wasInProcess && facility.inProcess >= 1) {
-                facility.inProcess -= 1;
-                inprogressDone += 1;
-              }
+            const resourceIterations = Math.min(
+              iterationsUntilOverDone,
+              resourceForIterations,
+              peopleForIterations,
+            );
 
-              const resourceForIterations = getMaximumIterationsByResources(
-                iterationInfo,
-                facility,
-              );
+            if (resourceIterations > 0) {
+              removeIterationInput(iterationInfo, facility, resourceIterations);
+            }
 
-              const peopleForIterations = Math.ceil(facility.inProcess);
+            let doneIterations = inprogressDone;
 
-              const iterationsUntilOverDone = Math.max(
-                0,
-                getIterationsUntilOverDone(iterationInfo, facility) -
-                  inprogressDone,
-              );
+            if (resourceIterations === peopleForIterations) {
+              doneIterations += Math.floor(facility.inProcess);
+              facility.inProcess = facility.inProcess % 1;
+            } else {
+              doneIterations += resourceIterations;
+              facility.inProcess = 0;
+            }
 
-              const resourceIterations = Math.min(
-                iterationsUntilOverDone,
-                resourceForIterations,
-                peopleForIterations,
-              );
-
-              if (resourceIterations > 0) {
-                removeIterationInput(
-                  iterationInfo,
-                  facility,
-                  resourceIterations,
-                );
-              }
-
-              let doneIterations = inprogressDone;
-
-              if (resourceIterations === peopleForIterations) {
-                doneIterations += Math.floor(facility.inProcess);
-                facility.inProcess = facility.inProcess % 1;
-              } else {
-                doneIterations += resourceIterations;
-                facility.inProcess = 0;
-              }
-
-              if (doneIterations > 0) {
-                addIterationOutput(iterationInfo, facility, doneIterations);
-              }
+            if (doneIterations > 0) {
+              addIterationOutput(iterationInfo, facility, doneIterations);
             }
           }
-
-          break;
-        }
-        case 'carrier': {
-          const {
-            carrierPath,
-            fromFacility,
-            toFacility,
-            commingDistance,
-            moveDistance,
-          } = jobObject;
-
-          const remains = 1 - commingDistance * PEOPLE_DAY_PER_CELL;
-
-          const power = remains * people;
-
-          let movedWeight = (power / moveDistance) * WEIGHT_PER_PEOPLE_DAY;
-          movedWeight = Math.floor(movedWeight * 10) / 10;
-
-          const grabbedItem = grabResource(fromFacility.output, {
-            resourceType: carrierPath.resourceType,
-            quantity: movedWeight,
-          });
-
-          addResource(toFacility.input, grabbedItem);
-
-          break;
         }
       }
     }
+  }
+
+  // Carriers have brought items
+
+  for (const { facility, resource } of currentlyMovingProducts) {
+    addResource(facility.input, resource);
+  }
+
+  // Apply cities' working paths
+
+  for (const city of gameState.cities) {
+    const { jobs } = planPerCity.get(city.cityId)!;
 
     city.workingPaths = jobs.map((job) => {
       switch (job[3].type) {
