@@ -247,7 +247,7 @@ function drawWorkingPaths(visualState: VisualState): void {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.strokeStyle = 'white';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.strokeText(peopleText, lineCenter[0], lineCenter[1]);
       ctx.fillStyle = 'black';
       ctx.fillText(peopleText, lineCenter[0], lineCenter[1]);
@@ -335,12 +335,19 @@ function drawStorage(
     const value = item.quantity.toFixed(1);
     const resourceName = resourceLocalization[item.resourceType] ?? 'Unknown';
 
+    ctx.fillStyle = 'black';
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    const text = `${value} ${resourceName}`;
+
     if (align === 'left') {
       ctx.textAlign = 'left';
-      ctx.fillText(`${value} ${resourceName}`, 10, 0);
+      ctx.strokeText(text, 10, 0);
+      ctx.fillText(text, 10, 0);
     } else {
       ctx.textAlign = 'right';
-      ctx.fillText(`${value} ${resourceName}`, -10, 0);
+      ctx.strokeText(text, -10, 0);
+      ctx.fillText(text, -10, 0);
     }
 
     ctx.restore();

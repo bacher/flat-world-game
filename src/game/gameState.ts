@@ -8,11 +8,13 @@ const WEIGHT_PER_PEOPLE_DAY = 2.5;
 const BUFFER_DAYS = 2;
 
 export type GameState = {
-  cities: Extract<Facility, { type: FacilityType.CITY }>[];
+  cities: City[];
   facilitiesByCityId: Record<CityId, FacilityNoCity[]>;
 };
 
 export type CityId = string;
+
+export type City = Extract<Facility, { type: FacilityType.CITY }>;
 
 export enum FacilityType {
   CITY,
@@ -292,11 +294,10 @@ export function tick(gameState: GameState): void {
     }
 
     for (const carrierPath of city.carrierPaths) {
-      const fromFacility = facilities.find((facility) =>
-        isSamePos(facility.position, carrierPath.path.from),
-      );
-      const toFacility = facilities.find((facility) =>
-        isSamePos(facility.position, carrierPath.path.to),
+      const { from: fromFacility, to: toFacility } = getPathFacilities(
+        city,
+        facilities,
+        carrierPath.path,
       );
 
       if (!fromFacility || !toFacility) {
@@ -317,20 +318,26 @@ export function tick(gameState: GameState): void {
 
       const toCount = getCountOf(toFacility.input, carrierPath.resourceType);
 
-      const toIterationInfo = facilitiesIterationInfo.get(toFacility.type)!;
+      let maxInput = 0;
 
-      const resourceIterationInfo = toIterationInfo.input.find(
-        (input) => input.resourceType === carrierPath.resourceType,
-      )!;
+      if (toFacility.type === FacilityType.CITY) {
+        maxInput = toFacility.popularity * 2;
+      } else {
+        const toIterationInfo = facilitiesIterationInfo.get(toFacility.type)!;
 
-      const maxInput =
-        resourceIterationInfo.quantity *
-        (toIterationInfo.maximumPeopleAtWork /
-          toIterationInfo.iterationPeopleDays) *
-        BUFFER_DAYS;
+        const resourceIterationInfo = toIterationInfo.input.find(
+          (input) => input.resourceType === carrierPath.resourceType,
+        )!;
 
-      if (toCount >= maxInput) {
-        continue;
+        maxInput =
+          resourceIterationInfo.quantity *
+          (toIterationInfo.maximumPeopleAtWork /
+            toIterationInfo.iterationPeopleDays) *
+          BUFFER_DAYS;
+
+        if (toCount >= maxInput) {
+          continue;
+        }
       }
 
       const commingDistance =
@@ -654,4 +661,27 @@ function addIterationOutput(
       quantity: iterationCount * resource.quantity,
     });
   }
+}
+
+function getPathFacilities(
+  city: City,
+  facilities: FacilityNoCity[],
+  path: CellPath,
+): { from: Facility | undefined; to: Facility | undefined } {
+  return {
+    from: getFacilityByPos(city, facilities, path.from),
+    to: getFacilityByPos(city, facilities, path.to),
+  };
+}
+
+function getFacilityByPos(
+  city: City,
+  facilities: FacilityNoCity[],
+  pos: CellPosition,
+): Facility | undefined {
+  if (isSamePos(city.position, pos)) {
+    return city;
+  }
+
+  return facilities.find((facility) => isSamePos(facility.position, pos));
 }
