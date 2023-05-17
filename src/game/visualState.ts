@@ -118,7 +118,8 @@ export function startGameLoop(visualState: VisualState): () => void {
     renderGameToCanvas(visualState);
 
     // TODO: While developing
-    if (tickNumber === 100) {
+    if (tickNumber === 200) {
+      console.log('Game stopped');
       window.clearInterval(intervalId);
     }
   }, 1000);

@@ -180,7 +180,7 @@ function drawObject(visualState: VisualState, facility: Facility): void {
       ctx.strokeText(facility.name, 0, 28);
       ctx.fillText(facility.name, 0, 28);
 
-      const populatityText = facility.popularity.toString();
+      const populatityText = Math.floor(facility.population).toString();
       ctx.strokeText(populatityText, 12, 14);
       ctx.fillText(populatityText, 12, 14);
 
@@ -224,7 +224,7 @@ function drawWorkingPaths(visualState: VisualState): void {
   const { ctx, gameState } = visualState;
 
   for (const city of gameState.cities) {
-    for (const { path, people } of city.workingPaths) {
+    for (const { path, workers, carriers } of city.workingPaths) {
       // Have to check viewport
 
       const fromCenter = getCellCenter(visualState, path.from);
@@ -243,7 +243,16 @@ function drawWorkingPaths(visualState: VisualState): void {
         (fromCenter[1] + toCenter[1]) / 2,
       ];
 
-      const peopleText = people.toString();
+      const peopleTextParts: string[] = [];
+
+      if (workers) {
+        peopleTextParts.push(`${workers}w`);
+      }
+      if (carriers) {
+        peopleTextParts.push(`${carriers}c`);
+      }
+
+      const peopleText = peopleTextParts.join(' + ');
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.strokeStyle = 'white';

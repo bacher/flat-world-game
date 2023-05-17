@@ -6,6 +6,8 @@ import type { CellPosition } from './types';
 const PEOPLE_DAY_PER_CELL = 0.02;
 const WEIGHT_PER_PEOPLE_DAY = 2.5;
 const BUFFER_DAYS = 2;
+const MINIMAL_CITY_PEOPLE = 3;
+const PEOPLE_FOOD_PER_DAY = 0.2;
 
 export type GameState = {
   cities: City[];
@@ -110,6 +112,12 @@ export type CarrierPath = {
   resourceType: ResourceType;
 };
 
+export type WorkingPath = {
+  path: CellPath;
+  workers: number;
+  carriers: number;
+};
+
 export type Facility = {
   position: CellPosition;
   input: StorageItem[];
@@ -119,9 +127,9 @@ export type Facility = {
       cityId: CityId;
       type: FacilityType.CITY;
       name: string;
-      popularity: number;
+      population: number;
       carrierPaths: CarrierPath[];
-      workingPaths: { path: CellPath; people: number }[];
+      workingPaths: WorkingPath[];
     }
   | {
       type: FacilityType.BUILDING;
@@ -158,7 +166,7 @@ export function startGame(): GameState {
         type: FacilityType.CITY,
         name: generateNewCityName(alreadyCityNames, true),
         position: [0, 0],
-        popularity: 3,
+        population: MINIMAL_CITY_PEOPLE,
         carrierPaths: [
           {
             path: { from: [-2, -3], to: [3, -3] },
@@ -168,7 +176,7 @@ export function startGame(): GameState {
           {
             path: { from: [-3, 2], to: [0, 0] },
             resourceType: ResourceType.FOOD,
-            people: 1,
+            people: 3,
           },
         ],
         workingPaths: [],
@@ -327,7 +335,7 @@ export function tick(gameState: GameState): void {
       let maxInput = 0;
 
       if (toFacility.type === FacilityType.CITY) {
-        maxInput = toFacility.popularity * 2;
+        maxInput = toFacility.population * 2;
       } else {
         const toIterationInfo = facilitiesIterationInfo.get(toFacility.type)!;
 
@@ -377,7 +385,7 @@ export function tick(gameState: GameState): void {
       );
     }
 
-    while (city.popularity < needPeople) {
+    while (city.population < needPeople) {
       const cutJobs = jobs.filter((job) => job[0] === maxRatio);
 
       const cutJob = sample(cutJobs)!;
@@ -536,24 +544,71 @@ export function tick(gameState: GameState): void {
   for (const city of gameState.cities) {
     const { jobs } = planPerCity.get(city.cityId)!;
 
-    city.workingPaths = jobs.map((job) => {
+    city.workingPaths = [];
+
+    for (const job of jobs) {
+      let workingPath: WorkingPath;
+
       switch (job[3].type) {
         case 'facility': {
           const facility = job[3].facility;
-          return {
+          workingPath = {
             path: { from: city.position, to: facility.position },
-            people: job[1],
+            workers: job[1],
+            carriers: 0,
           };
+          break;
         }
         case 'carrier': {
           const { from, to } = job[3].carrierPath.path;
-          return {
+          workingPath = {
             path: { from, to },
-            people: job[1],
+            workers: 0,
+            carriers: job[1],
           };
+          break;
         }
       }
+
+      const alreadyPath = city.workingPaths.find((path) =>
+        isSamePath(path.path, workingPath.path),
+      );
+
+      if (alreadyPath) {
+        alreadyPath.workers += workingPath.workers;
+        alreadyPath.carriers += workingPath.carriers;
+      } else {
+        city.workingPaths.push(workingPath);
+      }
+    }
+  }
+
+  // Population grow phase
+
+  for (const city of gameState.cities) {
+    const roundedPopulation = Math.floor(city.population);
+    const needFood = roundedPopulation * PEOPLE_FOOD_PER_DAY;
+
+    const grabbedFood = grabResource(city.input, {
+      resourceType: ResourceType.FOOD,
+      quantity: needFood,
     });
+
+    if (grabbedFood.quantity === needFood) {
+      if (getCountOf(city.input, ResourceType.FOOD) > 0) {
+        city.population *= 1.01;
+      }
+    } else {
+      if (city.population > MINIMAL_CITY_PEOPLE) {
+        const shortage = (needFood - grabbedFood.quantity) / needFood;
+        const poorPeople = shortage * city.population;
+        city.population -= poorPeople / 10;
+
+        if (city.population < MINIMAL_CITY_PEOPLE) {
+          city.population = MINIMAL_CITY_PEOPLE;
+        }
+      }
+    }
   }
 }
 
@@ -619,6 +674,17 @@ function getCountOf(
 
 function isSamePos(cell1: CellPosition, cell2: CellPosition): boolean {
   return cell1[0] === cell2[0] && cell1[1] === cell2[1];
+}
+
+function isSamePath(path1: CellPath, path2: CellPath): boolean {
+  return (
+    isExactSamePath(path1, path2) ||
+    isExactSamePath(path1, { from: path2.to, to: path2.from })
+  );
+}
+
+function isExactSamePath(path1: CellPath, path2: CellPath): boolean {
+  return isSamePos(path1.from, path2.from) && isSamePos(path1.to, path2.to);
 }
 
 function getMaximumIterationsByResources(
