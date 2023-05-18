@@ -14,6 +14,7 @@ export function renderGameToCanvas(visualState: VisualState): void {
 
   const [canvasWidth, canvasHeight] = visualState.canvasSize;
   const [halfWidth, halfHeight] = visualState.canvasHalfSize;
+  const [offsetX, offsetY] = visualState.offset;
 
   ctx.save();
 
@@ -21,7 +22,7 @@ export function renderGameToCanvas(visualState: VisualState): void {
   ctx.fillStyle = 'white';
   ctx.fill();
 
-  ctx.translate(halfWidth, halfHeight);
+  ctx.translate(offsetX + halfWidth, offsetY + halfHeight);
 
   highlightHoverCell(visualState);
   drawGrid(visualState);

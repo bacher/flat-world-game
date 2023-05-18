@@ -8,6 +8,7 @@ export type VisualState = {
   canvasSize: Point;
   canvasHalfSize: Point;
   cellSize: Point;
+  offset: Point;
   viewportBounds: CellRect;
   hoverCell: CellPosition | undefined;
 };
@@ -30,6 +31,7 @@ export function createVisualState(
     canvasSize: [canvasWidth, canvasHeight],
     canvasHalfSize: [halfWidth, halfHeight],
     cellSize,
+    offset: [0, 0],
     viewportBounds: { start: [0, 0], end: [0, 0] },
     hoverCell: undefined,
   };
@@ -43,9 +45,10 @@ function actualizeViewportBounds(visualState: VisualState): void {
   const [canvasWidth, canvasHeight] = visualState.canvasSize;
   const [halfWidth, halfHeight] = visualState.canvasHalfSize;
   const [cellWidth, cellHeight] = visualState.cellSize;
+  const [baseOffsetX, baseOffsetY] = visualState.offset;
 
-  const offsetX = halfWidth - cellWidth / 2;
-  const offsetY = halfHeight - cellHeight / 2;
+  const offsetX = baseOffsetX + halfWidth - cellWidth / 2;
+  const offsetY = baseOffsetY + halfHeight - cellHeight / 2;
 
   visualState.viewportBounds = {
     start: [
@@ -64,6 +67,7 @@ export function lookupGridByPoint(
   point: Point,
 ): CellPosition | undefined {
   const [canvasWidth, canvasHeight] = visualState.canvasSize;
+  const [offsetX, offsetY] = visualState.offset;
 
   const [x, y] = point;
 
@@ -76,8 +80,8 @@ export function lookupGridByPoint(
 
   const [cellWidth, cellHeight] = visualState.cellSize;
 
-  const canvasX = x - halfWidth + cellWidth / 2;
-  const canvasY = y - halfHeight + cellHeight / 2;
+  const canvasX = x - offsetX - halfWidth + cellWidth / 2;
+  const canvasY = y - offsetY - halfHeight + cellHeight / 2;
 
   return [Math.floor(canvasX / cellWidth), Math.floor(canvasY / cellHeight)];
 }
@@ -92,6 +96,15 @@ export function visualStateOnMouseMove(
     visualState.hoverCell = cell;
     renderGameToCanvas(visualState);
   }
+}
+
+export function visualStateMove(visualState: VisualState, point: Point): void {
+  visualState.offset[0] += point[0];
+  visualState.offset[1] += point[1];
+
+  actualizeViewportBounds(visualState);
+
+  renderGameToCanvas(visualState);
 }
 
 export function isPointsSame(
