@@ -78,8 +78,7 @@ function drawObjects(visualState: VisualState): void {
     drawObject(visualState, city);
   }
 
-  // TODO: Object.values is not performant way
-  for (const facilities of Object.values(gameState.facilitiesByCityId)) {
+  for (const facilities of gameState.facilitiesByCityId.values()) {
     for (const facility of facilities) {
       drawObject(visualState, facility);
     }

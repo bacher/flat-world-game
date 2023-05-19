@@ -91,8 +91,11 @@ export function Canvas() {
   }
 
   function onClick(event: React.MouseEvent) {
-    if (event.buttons === 1) {
+    if (event.button === 0) {
       event.preventDefault();
+      console.log('click');
+
+      visualStateMove;
     }
   }
 

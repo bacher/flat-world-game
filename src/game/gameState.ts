@@ -1,5 +1,7 @@
 import sample from 'lodash/sample';
 
+import type { Branded } from '../utils/types';
+
 import { generateNewCityName } from './cityNameGenerator';
 import type { CellPosition } from './types';
 
@@ -11,10 +13,12 @@ const PEOPLE_FOOD_PER_DAY = 0.2;
 
 export type GameState = {
   cities: City[];
-  facilitiesByCityId: Record<CityId, FacilityNoCity[]>;
+  facilitiesByCityId: Map<CityId, FacilityNoCity[]>;
+  allFacilities: Map<CellId, Facility>;
+  alreadyCityNames: Set<string>;
 };
 
-export type CityId = string;
+export type CityId = number;
 
 export type City = Extract<Facility, { type: FacilityType.CITY }>;
 
@@ -120,6 +124,7 @@ export type WorkingPath = {
 
 export type Facility = {
   position: CellPosition;
+  cellId: CellId;
   input: StorageItem[];
   output: StorageItem[];
 } & (
@@ -159,59 +164,83 @@ export type FacilityNoCity = Exclude<Facility, { type: FacilityType.CITY }>;
 export function startGame(): GameState {
   const alreadyCityNames = new Set<string>();
 
-  return {
-    cities: [
+  const initialGameState: GameState = {
+    cities: [],
+    facilitiesByCityId: new Map(),
+    allFacilities: new Map(),
+    alreadyCityNames,
+  };
+
+  const initialCity: City = {
+    cityId: convertCellToCellId([0, 0]),
+    type: FacilityType.CITY,
+    name: generateNewCityName(alreadyCityNames, true),
+    position: [0, 0],
+    cellId: convertCellToCellId([0, 0]),
+    population: MINIMAL_CITY_PEOPLE,
+    carrierPaths: [
       {
-        cityId: 'abc',
-        type: FacilityType.CITY,
-        name: generateNewCityName(alreadyCityNames, true),
-        position: [0, 0],
-        population: MINIMAL_CITY_PEOPLE,
-        carrierPaths: [
-          {
-            path: { from: [-2, -3], to: [3, -3] },
-            resourceType: ResourceType.LOG,
-            people: 3,
-          },
-          {
-            path: { from: [-3, 2], to: [0, 0] },
-            resourceType: ResourceType.FOOD,
-            people: 3,
-          },
-        ],
-        workingPaths: [],
-        input: [],
-        output: [],
+        path: { from: [-2, -3], to: [3, -3] },
+        resourceType: ResourceType.LOG,
+        people: 3,
+      },
+      {
+        path: { from: [-3, 2], to: [0, 0] },
+        resourceType: ResourceType.FOOD,
+        people: 3,
       },
     ],
-    facilitiesByCityId: {
-      abc: [
-        {
-          type: FacilityType.BUILDING,
-          position: [-2, -3],
-          buildingFacilityType: FacilityType.LAMBERT,
-          buildingStage: 0,
-          buildingTime: 4,
-          input: [],
-          output: [],
-        },
-        {
-          type: FacilityType.CHOP_WOOD,
-          position: [3, -3],
-          input: [],
-          output: [],
-          inProcess: 0,
-        },
-        {
-          type: FacilityType.GATHERING,
-          position: [-3, 2],
-          input: [],
-          output: [],
-          inProcess: 0,
-        },
-      ],
-    },
+    workingPaths: [],
+    input: [],
+    output: [],
   };
+
+  initialGameState.cities.push(initialCity);
+
+  initialGameState.facilitiesByCityId.set(initialCity.cityId, [
+    {
+      type: FacilityType.BUILDING,
+      position: [-2, -3],
+      cellId: convertCellToCellId([-2, -3]),
+      buildingFacilityType: FacilityType.LAMBERT,
+      buildingStage: 0,
+      buildingTime: 4,
+      input: [],
+      output: [],
+    },
+    {
+      type: FacilityType.CHOP_WOOD,
+      position: [3, -3],
+      cellId: convertCellToCellId([3, -3]),
+      input: [],
+      output: [],
+      inProcess: 0,
+    },
+    {
+      type: FacilityType.GATHERING,
+      position: [-3, 2],
+      cellId: convertCellToCellId([-3, 2]),
+      input: [],
+      output: [],
+      inProcess: 0,
+    },
+  ]);
+
+  fillupFacilities(initialGameState);
+
+  return initialGameState;
+}
+
+function fillupFacilities(gameState: GameState): void {
+  for (const city of gameState.cities) {
+    gameState.allFacilities.set(city.cellId, city);
+  }
+
+  for (const facilities of Object.values(gameState.facilitiesByCityId)) {
+    for (const facility of facilities) {
+      gameState.allFacilities.set(facility.cellId, facility);
+    }
+  }
 }
 
 const MAX_BUILDING_PEOPLE = 4;
@@ -236,7 +265,7 @@ export function tick(gameState: GameState): void {
   const planPerCity = new Map<CityId, { jobs: PlannedJob[] }>();
 
   for (const city of gameState.cities) {
-    const facilities = gameState.facilitiesByCityId[city.cityId];
+    const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
     let jobs: PlannedJob[] = [];
     let needPeople = 0;
@@ -451,7 +480,7 @@ export function tick(gameState: GameState): void {
   // Facilities make products
 
   for (const city of gameState.cities) {
-    const facilities = gameState.facilitiesByCityId[city.cityId];
+    const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
     const { jobs } = planPerCity.get(city.cityId)!;
 
     for (const [, people, , jobObject] of jobs) {
@@ -470,6 +499,7 @@ export function tick(gameState: GameState): void {
             facilities[index] = {
               type: facility.buildingFacilityType,
               position: facility.position,
+              cellId: facility.cellId,
               input: [],
               output: [],
               inProcess: 0,
@@ -784,4 +814,16 @@ function getFacilityByPos(
   }
 
   return facilities.find((facility) => isSamePos(facility.position, pos));
+}
+
+export type CellId = Branded<number, 'cellId'>;
+
+const ROW_SIZE = 2 ** 26;
+const ROW_HALF_SIZE = ROW_SIZE / 2;
+
+export function convertCellToCellId(cell: CellPosition): CellId {
+  const x = cell[0] + ROW_HALF_SIZE;
+  const y = cell[1] + ROW_HALF_SIZE;
+
+  return (y * ROW_SIZE + x) as CellId;
 }

@@ -1,5 +1,5 @@
 import { renderGameToCanvas } from '../gameRender/render';
-import { GameState, tick } from './gameState';
+import { Facility, GameState, convertCellToCellId, tick } from './gameState';
 import type { CellPosition, CellRect, Point } from './types';
 
 export type VisualState = {
@@ -84,6 +84,21 @@ export function lookupGridByPoint(
   const canvasY = y - offsetY - halfHeight + cellHeight / 2;
 
   return [Math.floor(canvasX / cellWidth), Math.floor(canvasY / cellHeight)];
+}
+
+export function lookupFacilityByPoint(
+  visualState: VisualState,
+  point: Point,
+): Facility | undefined {
+  const cell = lookupGridByPoint(visualState, point);
+
+  if (!cell) {
+    return undefined;
+  }
+
+  const cellId = convertCellToCellId(cell);
+
+  return visualState.gameState.allFacilities.get(cellId);
 }
 
 export function visualStateOnMouseMove(
