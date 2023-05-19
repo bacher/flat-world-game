@@ -1,5 +1,11 @@
 import { renderGameToCanvas } from '../gameRender/render';
-import { Facility, GameState, convertCellToCellId, tick } from './gameState';
+import {
+  Facility,
+  GameState,
+  Structure,
+  convertCellToCellId,
+  tick,
+} from './gameState';
 import type { CellPosition, CellRect, Point } from './types';
 
 export type VisualState = {
@@ -89,7 +95,7 @@ export function lookupGridByPoint(
 export function lookupFacilityByPoint(
   visualState: VisualState,
   point: Point,
-): Facility | undefined {
+): Structure | undefined {
   const cell = lookupGridByPoint(visualState, point);
 
   if (!cell) {
@@ -103,8 +109,14 @@ export function lookupFacilityByPoint(
 
 export function visualStateOnMouseMove(
   visualState: VisualState,
-  point: Point,
+  point: Point | undefined,
 ): void {
+  if (!point) {
+    visualState.hoverCell = undefined;
+    renderGameToCanvas(visualState);
+    return;
+  }
+
   const cell = lookupGridByPoint(visualState, point);
 
   if (!isPointsSame(visualState.hoverCell, cell)) {

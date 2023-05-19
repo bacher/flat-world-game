@@ -3,7 +3,19 @@ import sample from 'lodash/sample';
 import type { Branded } from '../utils/types';
 
 import { generateNewCityName } from './cityNameGenerator';
-import type { CellPosition } from './types';
+import {
+  CarrierPath,
+  CellPath,
+  CellPosition,
+  FacilityType,
+  ResourceType,
+  StorageItem,
+  WorkingPath,
+} from './types';
+import {
+  FacilityIterationInfo,
+  facilitiesIterationInfo,
+} from './facilitiesIterationInfo';
 
 const PEOPLE_DAY_PER_CELL = 0.02;
 const WEIGHT_PER_PEOPLE_DAY = 2.5;
@@ -13,33 +25,12 @@ const PEOPLE_FOOD_PER_DAY = 0.2;
 
 export type GameState = {
   cities: City[];
-  facilitiesByCityId: Map<CityId, FacilityNoCity[]>;
-  allFacilities: Map<CellId, Facility>;
+  facilitiesByCityId: Map<CityId, Facility[]>;
+  allFacilities: Map<CellId, Structure>;
   alreadyCityNames: Set<string>;
 };
 
-export type CityId = number;
-
-export type City = Extract<Facility, { type: FacilityType.CITY }>;
-
-export enum FacilityType {
-  CITY,
-  LAMBERT,
-  BUILDING,
-  CHOP_WOOD,
-  GATHERING,
-}
-
-export type CellPath = {
-  from: CellPosition;
-  to: CellPosition;
-};
-
-export enum ResourceType {
-  LOG,
-  ROUTH_LUMBER,
-  FOOD,
-}
+export type CityId = Branded<number, 'cityId'>;
 
 export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.LOG]: 'Log',
@@ -47,119 +38,50 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.FOOD]: 'Food',
 };
 
-type FacilityIterationInfo = {
-  iterationPeopleDays: number;
-  maximumPeopleAtWork: number;
-  input: StorageItem[];
-  output: StorageItem[];
-};
-
-const facilitiesIterationInfo: Map<FacilityType, FacilityIterationInfo> =
-  new Map([
-    [
-      FacilityType.GATHERING,
-      {
-        iterationPeopleDays: 1,
-        maximumPeopleAtWork: 3,
-        input: [],
-        output: [
-          {
-            resourceType: ResourceType.FOOD,
-            quantity: 1,
-          },
-        ],
-      },
-    ],
-    [
-      FacilityType.LAMBERT,
-      {
-        iterationPeopleDays: 1,
-        maximumPeopleAtWork: 4,
-        input: [],
-        output: [
-          {
-            resourceType: ResourceType.LOG,
-            quantity: 1,
-          },
-        ],
-      },
-    ],
-    [
-      FacilityType.CHOP_WOOD,
-      {
-        iterationPeopleDays: 1,
-        maximumPeopleAtWork: 4,
-        input: [
-          {
-            resourceType: ResourceType.LOG,
-            quantity: 1,
-          },
-        ],
-        output: [
-          {
-            resourceType: ResourceType.ROUTH_LUMBER,
-            quantity: 2,
-          },
-        ],
-      },
-    ],
-  ]);
-
-export type StorageItem = {
-  resourceType: ResourceType;
-  quantity: number;
-};
-
-export type CarrierPath = {
-  path: CellPath;
-  people: number;
-  resourceType: ResourceType;
-};
-
-export type WorkingPath = {
-  path: CellPath;
-  workers: number;
-  carriers: number;
-};
-
-export type Facility = {
+type StructureBase = {
   position: CellPosition;
   cellId: CellId;
   input: StorageItem[];
   output: StorageItem[];
-} & (
-  | {
-      cityId: CityId;
-      type: FacilityType.CITY;
-      name: string;
-      population: number;
-      carrierPaths: CarrierPath[];
-      workingPaths: WorkingPath[];
-    }
-  | {
-      type: FacilityType.BUILDING;
-      buildingFacilityType: Exclude<
-        FacilityType,
-        FacilityType.CITY | FacilityType.BUILDING
-      >;
-      buildingStage: number;
-      buildingTime: number;
-    }
-  | {
-      type: FacilityType.LAMBERT;
-      inProcess: number;
-    }
-  | {
-      type: FacilityType.CHOP_WOOD;
-      inProcess: number;
-    }
-  | {
-      type: FacilityType.GATHERING;
-      inProcess: number;
-    }
-);
+};
 
-export type FacilityNoCity = Exclude<Facility, { type: FacilityType.CITY }>;
+export type City = StructureBase & {
+  cityId: CityId;
+  type: FacilityType.CITY;
+  name: string;
+  population: number;
+  carrierPaths: CarrierPath[];
+  workingPaths: WorkingPath[];
+};
+
+export type Facility = (StructureBase & {
+  assignedWorkersCount: number;
+}) &
+  (
+    | {
+        type: FacilityType.BUILDING;
+        buildingFacilityType: Exclude<
+          FacilityType,
+          FacilityType.CITY | FacilityType.BUILDING
+        >;
+        buildingStage: number;
+        buildingTime: number;
+      }
+    | {
+        type: FacilityType.LAMBERT;
+        inProcess: number;
+      }
+    | {
+        type: FacilityType.CHOP_WOOD;
+        inProcess: number;
+      }
+    | {
+        type: FacilityType.GATHERING;
+        inProcess: number;
+      }
+  );
+
+export type Structure = City | Facility;
 
 export function startGame(): GameState {
   const alreadyCityNames = new Set<string>();
@@ -171,12 +93,14 @@ export function startGame(): GameState {
     alreadyCityNames,
   };
 
+  const initialCityCellId = convertCellToCellId([0, 0]);
+
   const initialCity: City = {
-    cityId: convertCellToCellId([0, 0]),
+    cityId: initialCityCellId as unknown as CityId,
     type: FacilityType.CITY,
     name: generateNewCityName(alreadyCityNames, true),
     position: [0, 0],
-    cellId: convertCellToCellId([0, 0]),
+    cellId: initialCityCellId,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [
       {
@@ -205,6 +129,8 @@ export function startGame(): GameState {
       buildingFacilityType: FacilityType.LAMBERT,
       buildingStage: 0,
       buildingTime: 4,
+      assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.BUILDING)!
+        .maximumPeopleAtWork,
       input: [],
       output: [],
     },
@@ -212,6 +138,8 @@ export function startGame(): GameState {
       type: FacilityType.CHOP_WOOD,
       position: [3, -3],
       cellId: convertCellToCellId([3, -3]),
+      assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.CHOP_WOOD)!
+        .maximumPeopleAtWork,
       input: [],
       output: [],
       inProcess: 0,
@@ -220,6 +148,8 @@ export function startGame(): GameState {
       type: FacilityType.GATHERING,
       position: [-3, 2],
       cellId: convertCellToCellId([-3, 2]),
+      assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.GATHERING)!
+        .maximumPeopleAtWork,
       input: [],
       output: [],
       inProcess: 0,
@@ -236,7 +166,7 @@ function fillupFacilities(gameState: GameState): void {
     gameState.allFacilities.set(city.cellId, city);
   }
 
-  for (const facilities of Object.values(gameState.facilitiesByCityId)) {
+  for (const facilities of gameState.facilitiesByCityId.values()) {
     for (const facility of facilities) {
       gameState.allFacilities.set(facility.cellId, facility);
     }
@@ -246,12 +176,12 @@ function fillupFacilities(gameState: GameState): void {
 const MAX_BUILDING_PEOPLE = 4;
 
 type JobObject =
-  | { type: 'facility'; facility: FacilityNoCity; distance: number }
+  | { type: 'facility'; facility: Facility; distance: number }
   | {
       type: 'carrier';
       carrierPath: CarrierPath;
-      fromFacility: Facility;
-      toFacility: Facility;
+      fromFacility: Structure;
+      toFacility: Structure;
       commingDistance: number;
       moveDistance: number;
     };
@@ -325,7 +255,7 @@ export function tick(gameState: GameState): void {
             ) * iterationInfo.iterationPeopleDays;
 
           if (needPeople > 0) {
-            const max = iterationInfo.maximumPeopleAtWork;
+            const max = facility.assignedWorkersCount;
 
             const onePersonWork = 1 - distance * 0.05;
             const people = Math.min(max, Math.ceil(needPeople / onePersonWork));
@@ -374,7 +304,7 @@ export function tick(gameState: GameState): void {
 
         maxInput =
           resourceIterationInfo.quantity *
-          (toIterationInfo.maximumPeopleAtWork /
+          (toFacility.assignedWorkersCount /
             toIterationInfo.iterationPeopleDays) *
           BUFFER_DAYS;
 
@@ -440,7 +370,7 @@ export function tick(gameState: GameState): void {
   // Carriers get items
 
   const currentlyMovingProducts: {
-    facility: Facility;
+    facility: Structure;
     resource: StorageItem;
   }[] = [];
 
@@ -500,6 +430,9 @@ export function tick(gameState: GameState): void {
               type: facility.buildingFacilityType,
               position: facility.position,
               cellId: facility.cellId,
+              assignedWorkersCount: facilitiesIterationInfo.get(
+                facility.buildingFacilityType,
+              )!.maximumPeopleAtWork,
               input: [],
               output: [],
               inProcess: 0,
@@ -745,7 +678,7 @@ function getIterationsUntilOverDone(
   for (let resource of iterationInfo.output) {
     const maxPerDay =
       resource.quantity *
-      (iterationInfo.maximumPeopleAtWork / iterationInfo.iterationPeopleDays);
+      (facility.assignedWorkersCount / iterationInfo.iterationPeopleDays);
 
     const iterations = Math.ceil(
       (maxPerDay * BUFFER_DAYS -
@@ -795,9 +728,9 @@ function addIterationOutput(
 
 function getPathFacilities(
   city: City,
-  facilities: FacilityNoCity[],
+  facilities: Facility[],
   path: CellPath,
-): { from: Facility | undefined; to: Facility | undefined } {
+): { from: Structure | undefined; to: Structure | undefined } {
   return {
     from: getFacilityByPos(city, facilities, path.from),
     to: getFacilityByPos(city, facilities, path.to),
@@ -806,9 +739,9 @@ function getPathFacilities(
 
 function getFacilityByPos(
   city: City,
-  facilities: FacilityNoCity[],
+  facilities: Facility[],
   pos: CellPosition,
-): Facility | undefined {
+): Structure | undefined {
   if (isSamePos(city.position, pos)) {
     return city;
   }

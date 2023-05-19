@@ -1,13 +1,13 @@
+import { Structure, resourceLocalization } from '../game/gameState';
 import {
-  Facility,
+  CellPosition,
+  CellRect,
   FacilityType,
+  Point,
   ResourceType,
   StorageItem,
-  resourceLocalization,
-} from '../game/gameState';
-import type { CellPosition, CellRect, Point } from '../game/types';
+} from '../game/types';
 import type { VisualState } from '../game/visualState';
-import { neverCall } from '../utils/types';
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
@@ -85,7 +85,7 @@ function drawObjects(visualState: VisualState): void {
   }
 }
 
-function drawObject(visualState: VisualState, facility: Facility): void {
+function drawObject(visualState: VisualState, facility: Structure): void {
   if (isCellInRectInclsive(visualState.viewportBounds, facility.position)) {
     const { ctx, cellSize } = visualState;
 
@@ -267,7 +267,7 @@ function drawWorkingPaths(visualState: VisualState): void {
 
 function drawFacilityStorage(
   visualState: VisualState,
-  facility: Facility,
+  facility: Structure,
 ): void {
   if (facility.input.length) {
     drawStorage(visualState, facility.input, 'right');

@@ -3,17 +3,19 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import styles from './Canvas.module.scss';
 
-import { startGame } from '../../game/gameState';
+import { Facility, startGame } from '../../game/gameState';
 import { renderGameToCanvas } from '../../gameRender/render';
 import {
   VisualState,
   createVisualState,
+  lookupFacilityByPoint,
   startGameLoop,
   visualStateMove,
   visualStateOnMouseMove,
 } from '../../game/visualState';
 import type { Point } from '../../game/types';
 import { useForceUpdate } from '../hooks/forceUpdate';
+import { FacilityModal } from '../FacilityModal';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -35,6 +37,8 @@ export function Canvas() {
 
   const visualStateRef = useRef<VisualState | undefined>();
 
+  const showDialogForFacilityRef = useRef<Facility | undefined>();
+
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
       alpha: false,
@@ -52,6 +56,10 @@ export function Canvas() {
   }, []);
 
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
+    if (showDialogForFacilityRef.current) {
+      return;
+    }
+
     mousePos[0] = event.clientX;
     mousePos[1] = event.clientY;
 
@@ -93,21 +101,45 @@ export function Canvas() {
   function onClick(event: React.MouseEvent) {
     if (event.button === 0) {
       event.preventDefault();
-      console.log('click');
 
-      visualStateMove;
+      const visualState = visualStateRef.current;
+
+      if (visualState) {
+        const facility = lookupFacilityByPoint(visualState, [
+          event.clientX,
+          event.clientY,
+        ]);
+
+        showDialogForFacilityRef.current = facility;
+        visualStateOnMouseMove(visualState, undefined);
+
+        forceUpdate();
+      }
     }
   }
 
   return (
-    <canvas
-      ref={canvasRef}
-      className={styles.canvas}
-      data-drag={mouseState.isMouseDown || undefined}
-      width={INITIAL_CANVAS_WIDTH}
-      height={INITIAL_CANVAS_HEIGHT}
-      onMouseDown={onMouseDown}
-      onClick={onClick}
-    />
+    <div className={styles.wrapper}>
+      <canvas
+        ref={canvasRef}
+        className={styles.canvas}
+        data-drag={mouseState.isMouseDown || undefined}
+        width={INITIAL_CANVAS_WIDTH}
+        height={INITIAL_CANVAS_HEIGHT}
+        onMouseDown={onMouseDown}
+        onClick={onClick}
+      />
+      {showDialogForFacilityRef.current && (
+        <div className={styles.modalWrapper}>
+          <FacilityModal
+            facility={showDialogForFacilityRef.current}
+            onClose={() => {
+              showDialogForFacilityRef.current = undefined;
+              forceUpdate();
+            }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
