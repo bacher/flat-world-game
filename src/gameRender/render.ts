@@ -1,4 +1,5 @@
-import { Structure, resourceLocalization } from '../game/gameState';
+import { Structure, convertCellToCellId } from '../game/gameState';
+import { resourceLocalization } from '../game/resourceLocalization';
 import {
   CellPosition,
   CellRect,
@@ -24,7 +25,14 @@ export function renderGameToCanvas(visualState: VisualState): void {
 
   ctx.translate(offsetX + halfWidth, offsetY + halfHeight);
 
-  highlightHoverCell(visualState);
+  if (visualState.hoverCell) {
+    if (visualState.planingBuildingMode) {
+      drawBuildingMode(visualState);
+    } else {
+      highlightHoverCell(visualState);
+    }
+  }
+
   drawGrid(visualState);
   drawWorkingPaths(visualState);
   drawObjects(visualState);
@@ -54,20 +62,41 @@ function drawGrid(visualState: VisualState): void {
 }
 
 function highlightHoverCell(visualState: VisualState): void {
-  if (visualState.hoverCell) {
-    const { ctx } = visualState;
-    const [cellWidth, cellHeight] = visualState.cellSize;
+  highlightCell(visualState, visualState.hoverCell!, 'azure');
+}
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.translate(-cellWidth / 2, -cellHeight / 2);
+function highlightCell(
+  visualState: VisualState,
+  cellPosition: CellPosition,
+  cellColor: string,
+): void {
+  const { ctx } = visualState;
+  const [cellWidth, cellHeight] = visualState.cellSize;
 
-    const [i, j] = visualState.hoverCell;
+  ctx.save();
+  ctx.beginPath();
+  ctx.translate(-cellWidth / 2, -cellHeight / 2);
 
-    ctx.rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
-    ctx.fillStyle = 'azure';
-    ctx.fill();
-    ctx.restore();
+  const [i, j] = cellPosition;
+
+  ctx.rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+  ctx.fillStyle = cellColor;
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawBuildingMode(visualState: VisualState): void {
+  const hoverCell = visualState.hoverCell!;
+
+  const hoverCellId = convertCellToCellId(hoverCell);
+
+  const isAlreadyBuilding =
+    visualState.gameState.structuresByCellId.has(hoverCellId);
+
+  if (isAlreadyBuilding) {
+    highlightCell(visualState, hoverCell, '#e99');
+  } else {
+    highlightCell(visualState, hoverCell, '#9c9');
   }
 }
 

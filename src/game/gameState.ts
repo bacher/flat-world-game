@@ -7,6 +7,7 @@ import {
   CarrierPath,
   CellPath,
   CellPosition,
+  ExactFacilityType,
   FacilityType,
   ResourceType,
   StorageItem,
@@ -25,18 +26,14 @@ const PEOPLE_FOOD_PER_DAY = 0.2;
 
 export type GameState = {
   cities: City[];
-  facilitiesByCityId: Map<CityId, Facility[]>;
-  allFacilities: Map<CellId, Structure>;
+  facilitiesByCityId: Map<CityId, (Construction | Facility)[]>;
+  structuresByCellId: Map<CellId, Structure>;
+  carrierPathsFromCellId: Map<CellId, CarrierPath[]>;
+  carrierPathsToCellId: Map<CellId, CarrierPath[]>;
   alreadyCityNames: Set<string>;
 };
 
 export type CityId = Branded<number, 'cityId'>;
-
-export const resourceLocalization: Record<ResourceType, string> = {
-  [ResourceType.LOG]: 'Log',
-  [ResourceType.ROUTH_LUMBER]: 'Rough Lumber',
-  [ResourceType.FOOD]: 'Food',
-};
 
 type StructureBase = {
   position: CellPosition;
@@ -54,19 +51,18 @@ export type City = StructureBase & {
   workingPaths: WorkingPath[];
 };
 
+export type Construction = StructureBase & {
+  type: FacilityType.BUILDING;
+  buildingFacilityType: ExactFacilityType;
+  buildingStage: number;
+  buildingTime: number;
+  assignedWorkersCount: number;
+};
+
 export type Facility = (StructureBase & {
   assignedWorkersCount: number;
 }) &
   (
-    | {
-        type: FacilityType.BUILDING;
-        buildingFacilityType: Exclude<
-          FacilityType,
-          FacilityType.CITY | FacilityType.BUILDING
-        >;
-        buildingStage: number;
-        buildingTime: number;
-      }
     | {
         type: FacilityType.LAMBERT;
         inProcess: number;
@@ -81,102 +77,99 @@ export type Facility = (StructureBase & {
       }
   );
 
-export type Structure = City | Facility;
+export type Structure = City | Construction | Facility;
 
 export function startGame(): GameState {
-  const alreadyCityNames = new Set<string>();
-
   const initialGameState: GameState = {
     cities: [],
     facilitiesByCityId: new Map(),
-    allFacilities: new Map(),
-    alreadyCityNames,
+    carrierPathsFromCellId: new Map(),
+    carrierPathsToCellId: new Map(),
+    structuresByCellId: new Map(),
+    alreadyCityNames: new Set<string>(),
   };
 
-  const initialCityCellId = convertCellToCellId([0, 0]);
-
-  const initialCity: City = {
-    cityId: initialCityCellId as unknown as CityId,
-    type: FacilityType.CITY,
-    name: generateNewCityName(alreadyCityNames, true),
+  const initialCity = addCity(initialGameState, {
     position: [0, 0],
-    cellId: initialCityCellId,
-    population: MINIMAL_CITY_PEOPLE,
-    carrierPaths: [
-      {
-        path: { from: [-2, -3], to: [3, -3] },
-        resourceType: ResourceType.LOG,
-        people: 3,
-      },
-      {
-        path: { from: [-3, 2], to: [0, 0] },
-        resourceType: ResourceType.FOOD,
-        people: 3,
-      },
-    ],
-    workingPaths: [],
-    input: [],
-    output: [],
-  };
+  });
 
-  initialGameState.cities.push(initialCity);
+  addConstructionStructure(
+    initialGameState,
+    { facilityType: FacilityType.LAMBERT, position: [-2, -3] },
+    initialCity,
+  );
 
-  initialGameState.facilitiesByCityId.set(initialCity.cityId, [
+  addFacility(
+    initialGameState,
     {
-      type: FacilityType.BUILDING,
-      position: [-2, -3],
-      cellId: convertCellToCellId([-2, -3]),
-      buildingFacilityType: FacilityType.LAMBERT,
-      buildingStage: 0,
-      buildingTime: 4,
-      assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.BUILDING)!
-        .maximumPeopleAtWork,
-      input: [],
-      output: [],
-    },
-    {
-      type: FacilityType.CHOP_WOOD,
+      facilityType: FacilityType.CHOP_WOOD,
       position: [3, -3],
-      cellId: convertCellToCellId([3, -3]),
-      assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.CHOP_WOOD)!
-        .maximumPeopleAtWork,
-      input: [],
-      output: [],
-      inProcess: 0,
+    },
+    initialCity,
+  );
+
+  addFacility(
+    initialGameState,
+    {
+      facilityType: FacilityType.GATHERING,
+      position: [-3, 2],
+    },
+    initialCity,
+  );
+
+  addCityCarrierPaths(initialGameState, initialCity, [
+    {
+      path: { from: [-2, -3], to: [3, -3] },
+      resourceType: ResourceType.LOG,
+      people: 3,
     },
     {
-      type: FacilityType.GATHERING,
-      position: [-3, 2],
-      cellId: convertCellToCellId([-3, 2]),
-      assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.GATHERING)!
-        .maximumPeopleAtWork,
-      input: [],
-      output: [],
-      inProcess: 0,
+      path: { from: [-3, 2], to: [0, 0] },
+      resourceType: ResourceType.FOOD,
+      people: 3,
     },
   ]);
-
-  fillupFacilities(initialGameState);
 
   return initialGameState;
 }
 
-function fillupFacilities(gameState: GameState): void {
-  for (const city of gameState.cities) {
-    gameState.allFacilities.set(city.cellId, city);
+export function addCityCarrierPaths(
+  gameState: GameState,
+  city: City,
+  carrierPaths: CarrierPath[],
+): void {
+  for (const carrierPath of carrierPaths) {
+    city.carrierPaths.push(carrierPath);
+
+    addPathTo(
+      gameState.carrierPathsFromCellId,
+      carrierPath,
+      carrierPath.path.from,
+    );
+    addPathTo(gameState.carrierPathsToCellId, carrierPath, carrierPath.path.to);
+  }
+}
+
+function addPathTo(
+  carrierPaths: Map<CellId, CarrierPath[]>,
+  carrierPath: CarrierPath,
+  pos: CellPosition,
+): void {
+  const cellId = convertCellToCellId(pos);
+  let alreadyPaths = carrierPaths.get(cellId);
+
+  if (!alreadyPaths) {
+    alreadyPaths = [];
+    carrierPaths.set(cellId, alreadyPaths);
   }
 
-  for (const facilities of gameState.facilitiesByCityId.values()) {
-    for (const facility of facilities) {
-      gameState.allFacilities.set(facility.cellId, facility);
-    }
-  }
+  alreadyPaths.push(carrierPath);
 }
 
 const MAX_BUILDING_PEOPLE = 4;
 
 type JobObject =
-  | { type: 'facility'; facility: Facility; distance: number }
+  | { type: 'facility'; facility: Facility | Construction; distance: number }
   | {
       type: 'carrier';
       carrierPath: CarrierPath;
@@ -728,7 +721,7 @@ function addIterationOutput(
 
 function getPathFacilities(
   city: City,
-  facilities: Facility[],
+  facilities: (Facility | Construction)[],
   path: CellPath,
 ): { from: Structure | undefined; to: Structure | undefined } {
   return {
@@ -739,7 +732,7 @@ function getPathFacilities(
 
 function getFacilityByPos(
   city: City,
-  facilities: Facility[],
+  facilities: (Facility | Construction)[],
   pos: CellPosition,
 ): Structure | undefined {
   if (isSamePos(city.position, pos)) {
@@ -759,4 +752,92 @@ export function convertCellToCellId(cell: CellPosition): CellId {
   const y = cell[1] + ROW_HALF_SIZE;
 
   return (y * ROW_SIZE + x) as CellId;
+}
+
+export function addCity(
+  gameState: GameState,
+  { position }: { position: CellPosition },
+): City {
+  const cellId = convertCellToCellId(position);
+
+  const city: City = {
+    cityId: cellId as unknown as CityId,
+    type: FacilityType.CITY,
+    name: generateNewCityName(gameState.alreadyCityNames, true),
+    position: [0, 0],
+    cellId: cellId,
+    population: MINIMAL_CITY_PEOPLE,
+    carrierPaths: [],
+    workingPaths: [],
+    input: [],
+    output: [],
+  };
+
+  gameState.cities.push(city);
+  gameState.facilitiesByCityId.set(city.cityId, []);
+  gameState.structuresByCellId.set(cellId, city);
+
+  return city;
+}
+
+function addCityFacility(
+  gameState: GameState,
+  city: City,
+  facility: Facility | Construction,
+): void {
+  const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
+
+  facilities.push(facility);
+
+  gameState.structuresByCellId.set(facility.cellId, facility);
+}
+
+export function addConstructionStructure(
+  gameState: GameState,
+  {
+    facilityType,
+    position,
+  }: { facilityType: ExactFacilityType; position: CellPosition },
+  city: City,
+): void {
+  const cellId = convertCellToCellId(position);
+
+  const buildingFacilility: Construction = {
+    type: FacilityType.BUILDING,
+    position,
+    cellId,
+    buildingFacilityType: facilityType,
+    buildingStage: 0,
+    buildingTime: 4,
+    assignedWorkersCount: facilitiesIterationInfo.get(FacilityType.BUILDING)!
+      .maximumPeopleAtWork,
+    input: [],
+    output: [],
+  };
+
+  addCityFacility(gameState, city, buildingFacilility);
+}
+
+function addFacility(
+  gameState: GameState,
+  {
+    facilityType,
+    position,
+  }: { facilityType: ExactFacilityType; position: CellPosition },
+  city: City,
+): void {
+  const cellId = convertCellToCellId(position);
+
+  const facility = {
+    type: facilityType,
+    position,
+    cellId,
+    assignedWorkersCount:
+      facilitiesIterationInfo.get(facilityType)!.maximumPeopleAtWork,
+    input: [],
+    output: [],
+    inProcess: 0,
+  };
+
+  addCityFacility(gameState, city, facility);
 }

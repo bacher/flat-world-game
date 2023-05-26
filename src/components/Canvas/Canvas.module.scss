@@ -1,4 +1,8 @@
 .wrapper {
+    display: flex;
+}
+
+.canvasWrapper {
     display: grid;
     grid-template-areas: 'A';
     width: 800px;
@@ -20,6 +24,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    pointer-events: none;
+
+    & > * {
+        pointer-events: initial;
+    }
 }
 
+.modalShadow {
+    grid-area: A;
+}
 
+.sidePanel {
+    width: 300px;
+}

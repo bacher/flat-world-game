@@ -8,12 +8,17 @@ export type CellRect = {
 };
 
 export enum FacilityType {
-  CITY,
-  LAMBERT,
-  BUILDING,
-  CHOP_WOOD,
-  GATHERING,
+  CITY = 'CITY',
+  LAMBERT = 'LAMBERT',
+  BUILDING = 'BUILDING',
+  CHOP_WOOD = 'CHOP_WOOD',
+  GATHERING = 'GATHERING',
 }
+
+export type ExactFacilityType = Exclude<
+  FacilityType,
+  FacilityType.CITY | FacilityType.BUILDING
+>;
 
 export type CellPath = {
   from: CellPosition;

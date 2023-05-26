@@ -3,19 +3,29 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import styles from './Canvas.module.scss';
 
-import { Facility, startGame } from '../../game/gameState';
+import {
+  Structure,
+  addConstructionStructure,
+  convertCellToCellId,
+  startGame,
+} from '../../game/gameState';
 import { renderGameToCanvas } from '../../gameRender/render';
 import {
   VisualState,
   createVisualState,
-  lookupFacilityByPoint,
+  lookupGridByPoint,
   startGameLoop,
   visualStateMove,
   visualStateOnMouseMove,
 } from '../../game/visualState';
 import type { Point } from '../../game/types';
 import { useForceUpdate } from '../hooks/forceUpdate';
-import { FacilityModal } from '../FacilityModal';
+import { FacilityModal, FacilityModalRef } from '../FacilityModal';
+import {
+  GameStateWatcherProvider,
+  createGameStateWatcher,
+} from '../contexts/GameStateWatcher';
+import { BuildingsPanel } from '../BuildingsPanel';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -27,9 +37,15 @@ export function Canvas() {
 
   const gameState = useMemo(() => startGame(), []);
 
-  const mouseState = useMemo(
+  const mouseState = useMemo<{
+    isMouseDown: boolean;
+    isDrag: boolean;
+    mouseDownPosition: Point | undefined;
+  }>(
     () => ({
       isMouseDown: false,
+      isDrag: false,
+      mouseDownPosition: undefined,
     }),
     [],
   );
@@ -37,7 +53,11 @@ export function Canvas() {
 
   const visualStateRef = useRef<VisualState | undefined>();
 
-  const showDialogForFacilityRef = useRef<Facility | undefined>();
+  const showDialogForFacilityRef = useRef<Structure | undefined>();
+
+  const facilityModalRef = useRef<FacilityModalRef>(null);
+
+  const gameStateWatcher = useMemo(createGameStateWatcher, []);
 
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
@@ -49,10 +69,21 @@ export function Canvas() {
       throw new Error('No 2d context');
     }
 
-    visualStateRef.current = createVisualState(gameState, ctx);
+    const visualState = createVisualState(gameState, ctx);
+
+    visualStateRef.current = visualState;
+
+    // TODO: Debug
+    (window as any).visualState = visualState;
+    (window as any).gameState = visualState.gameState;
+
     visualStateOnMouseMove(visualStateRef.current, mousePos);
     renderGameToCanvas(visualStateRef.current);
-    return startGameLoop(visualStateRef.current);
+
+    return startGameLoop(visualStateRef.current, () => {
+      renderGameToCanvas(visualState);
+      gameStateWatcher.tick();
+    });
   }, []);
 
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
@@ -65,10 +96,25 @@ export function Canvas() {
 
     if (!mouseState.isMouseDown && event.buttons === 1) {
       mouseState.isMouseDown = true;
+      mouseState.mouseDownPosition = [mousePos[0], mousePos[1]];
       forceUpdate();
     } else if (mouseState.isMouseDown && event.buttons !== 1) {
       mouseState.isMouseDown = false;
+      mouseState.mouseDownPosition = undefined;
       forceUpdate();
+    }
+
+    if (
+      !mouseState.isDrag &&
+      mouseState.mouseDownPosition &&
+      mouseState.isMouseDown
+    ) {
+      const dx = mouseState.mouseDownPosition[0] - mousePos[0];
+      const dy = mouseState.mouseDownPosition[1] - mousePos[1];
+
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+        mouseState.isDrag = true;
+      }
     }
 
     const visualState = visualStateRef.current;
@@ -99,47 +145,107 @@ export function Canvas() {
   }
 
   function onClick(event: React.MouseEvent) {
-    if (event.button === 0) {
-      event.preventDefault();
+    const isDragMode = mouseState.isDrag;
 
-      const visualState = visualStateRef.current;
+    if (mouseState.isDrag) {
+      mouseState.isDrag = false;
+      mouseState.mouseDownPosition = undefined;
+    }
 
-      if (visualState) {
-        const facility = lookupFacilityByPoint(visualState, [
-          event.clientX,
-          event.clientY,
-        ]);
+    if (event.button !== 0) {
+      return;
+    }
 
-        showDialogForFacilityRef.current = facility;
-        visualStateOnMouseMove(visualState, undefined);
+    event.preventDefault();
 
-        forceUpdate();
+    if (isDragMode) {
+      return;
+    }
+
+    if (showDialogForFacilityRef.current) {
+      facilityModalRef.current?.close();
+    } else {
+      const visualState = visualStateRef.current!;
+
+      const cell = lookupGridByPoint(visualState, [
+        event.clientX,
+        event.clientY,
+      ]);
+
+      if (cell) {
+        const cellId = convertCellToCellId(cell);
+        const facility = gameState.structuresByCellId.get(cellId);
+
+        if (visualState.planingBuildingMode) {
+          if (!facility) {
+            const nearestCity = [...gameState.cities.values()][0];
+
+            addConstructionStructure(
+              gameState,
+              {
+                facilityType: visualState.planingBuildingMode.facilityType,
+                position: cell,
+              },
+              nearestCity,
+            );
+
+            visualState.planingBuildingMode = undefined;
+          }
+        } else {
+          showDialogForFacilityRef.current = facility;
+          visualStateOnMouseMove(visualState, undefined);
+
+          forceUpdate();
+        }
       }
     }
   }
 
   return (
     <div className={styles.wrapper}>
-      <canvas
-        ref={canvasRef}
-        className={styles.canvas}
-        data-drag={mouseState.isMouseDown || undefined}
-        width={INITIAL_CANVAS_WIDTH}
-        height={INITIAL_CANVAS_HEIGHT}
-        onMouseDown={onMouseDown}
-        onClick={onClick}
-      />
-      {showDialogForFacilityRef.current && (
-        <div className={styles.modalWrapper}>
-          <FacilityModal
-            facility={showDialogForFacilityRef.current}
-            onClose={() => {
-              showDialogForFacilityRef.current = undefined;
-              forceUpdate();
-            }}
-          />
-        </div>
-      )}
+      <div className={styles.canvasWrapper}>
+        <canvas
+          ref={canvasRef}
+          className={styles.canvas}
+          data-drag={mouseState.isMouseDown || undefined}
+          width={INITIAL_CANVAS_WIDTH}
+          height={INITIAL_CANVAS_HEIGHT}
+          onMouseDown={onMouseDown}
+          onClick={onClick}
+        />
+        <GameStateWatcherProvider value={gameStateWatcher}>
+          {showDialogForFacilityRef.current && (
+            <>
+              <div
+                className={styles.modalShadow}
+                onClick={() => {
+                  facilityModalRef.current?.close();
+                }}
+              />
+              <div className={styles.modalWrapper}>
+                <FacilityModal
+                  ref={facilityModalRef}
+                  gameState={gameState}
+                  facility={showDialogForFacilityRef.current}
+                  onClose={() => {
+                    showDialogForFacilityRef.current = undefined;
+                    forceUpdate();
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </GameStateWatcherProvider>
+      </div>
+      <div className={styles.sidePanel}>
+        <BuildingsPanel
+          onBuildingClick={({ facilityType }) => {
+            visualStateRef.current!.planingBuildingMode = {
+              facilityType,
+            };
+          }}
+        />
+      </div>
     </div>
   );
 }

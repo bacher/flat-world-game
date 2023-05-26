@@ -6,7 +6,13 @@ import {
   convertCellToCellId,
   tick,
 } from './gameState';
-import type { CellPosition, CellRect, Point } from './types';
+import type {
+  CellPosition,
+  CellRect,
+  ExactFacilityType,
+  FacilityType,
+  Point,
+} from './types';
 
 export type VisualState = {
   gameState: GameState;
@@ -17,6 +23,11 @@ export type VisualState = {
   offset: Point;
   viewportBounds: CellRect;
   hoverCell: CellPosition | undefined;
+  planingBuildingMode:
+    | {
+        facilityType: ExactFacilityType;
+      }
+    | undefined;
 };
 
 export function createVisualState(
@@ -40,6 +51,7 @@ export function createVisualState(
     offset: [0, 0],
     viewportBounds: { start: [0, 0], end: [0, 0] },
     hoverCell: undefined,
+    planingBuildingMode: undefined,
   };
 
   actualizeViewportBounds(visualState);
@@ -104,7 +116,7 @@ export function lookupFacilityByPoint(
 
   const cellId = convertCellToCellId(cell);
 
-  return visualState.gameState.allFacilities.get(cellId);
+  return visualState.gameState.structuresByCellId.get(cellId);
 }
 
 export function visualStateOnMouseMove(
@@ -149,13 +161,16 @@ export function isPointsSame(
   return p1[0] === p2[0] && p1[1] === p2[1];
 }
 
-export function startGameLoop(visualState: VisualState): () => void {
+export function startGameLoop(
+  visualState: VisualState,
+  onTick: () => void,
+): () => void {
   let tickNumber = 0;
 
   const intervalId = window.setInterval(() => {
     tickNumber += 1;
     tick(visualState.gameState);
-    renderGameToCanvas(visualState);
+    onTick();
 
     // TODO: While developing
     if (tickNumber === 200) {

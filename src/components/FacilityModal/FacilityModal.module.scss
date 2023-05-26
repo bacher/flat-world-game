@@ -1,12 +1,37 @@
 .modalWindow {
     position: relative;
-    width: 300px;
-    height: 200px;
+    width: 400px;
+    height: 400px;
+    padding: 10px 16px;
     background: white;
+    border: 1px solid #777;
 }
 
 .closeButton {
     position: absolute;
     top: 5px;
     right: 5px;
+}
+
+.resourceNameLine {
+    display: flex;
+    align-items: center;
+}
+
+.resourceName {
+    flex-grow: 1;
+}
+
+.addCarrierPathButton {
+    
+}
+
+.carrierPaths {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.carrierPathLine {
+
 }
