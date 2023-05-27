@@ -1,3 +1,5 @@
+import { facilitiesDescription } from '../game/facilitiesDescriptions';
+import { facilitiesIterationInfo } from '../game/facilitiesIterationInfo';
 import { Structure, convertCellToCellId } from '../game/gameState';
 import { resourceLocalization } from '../game/resourceLocalization';
 import {
@@ -36,6 +38,7 @@ export function renderGameToCanvas(visualState: VisualState): void {
   drawGrid(visualState);
   drawWorkingPaths(visualState);
   drawObjects(visualState);
+  drawTopOverlay(visualState);
 
   ctx.restore();
 }
@@ -298,17 +301,40 @@ function drawFacilityStorage(
   visualState: VisualState,
   facility: Structure,
 ): void {
-  if (facility.input.length) {
-    drawStorage(visualState, facility.input, 'right');
+  const facilityInfo = facilitiesIterationInfo.get(facility.type)!;
+
+  const input = facilityInfo
+    ? combineStorageWithIteration(facilityInfo.input, facility.input)
+    : facility.input;
+
+  if (input.length) {
+    drawStorage(visualState, input, 'right');
   }
 
-  if (facility.output.length) {
-    drawStorage(visualState, facility.output, 'left');
+  const output = facilityInfo
+    ? combineStorageWithIteration(facilityInfo.output, facility.output)
+    : facility.output;
+
+  if (output.length) {
+    drawStorage(visualState, output, 'left');
   }
+}
+
+function combineStorageWithIteration(
+  iterationStorage: StorageItem[],
+  storage: StorageItem[],
+): StorageItem[] {
+  return iterationStorage.map((item) => ({
+    resourceType: item.resourceType,
+    quantity:
+      storage.find(({ resourceType }) => resourceType === item.resourceType)
+        ?.quantity ?? 0,
+  }));
 }
 
 function drawStorage(
   visualState: VisualState,
+
   storage: StorageItem[],
   align: 'left' | 'right',
 ): void {
@@ -322,9 +348,9 @@ function drawStorage(
       ctx.translate(-15, 5 + i * 16);
     }
 
-    const item = storage[i];
+    const { resourceType, quantity } = storage[i];
 
-    switch (item.resourceType) {
+    switch (resourceType) {
       case ResourceType.LOG:
         ctx.beginPath();
         ctx.moveTo(-5, -3);
@@ -366,12 +392,12 @@ function drawStorage(
         ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
         ctx.fillStyle = 'black';
         ctx.fill();
-        console.warn(`No render function for resource ${item.resourceType}`);
+        console.warn(`No render function for resource ${resourceType}`);
     }
 
     ctx.textBaseline = 'middle';
-    const value = item.quantity.toFixed(1);
-    const resourceName = resourceLocalization[item.resourceType] ?? 'Unknown';
+    const value = quantity.toFixed(1);
+    const resourceName = resourceLocalization[resourceType] ?? 'Unknown';
 
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'white';
@@ -388,6 +414,25 @@ function drawStorage(
       ctx.fillText(text, -10, 0);
     }
 
+    ctx.restore();
+  }
+}
+
+function drawTopOverlay(visualState: VisualState): void {
+  if (visualState.hoverCell) {
+    const { ctx } = visualState;
+    const drawText = `(${visualState.hoverCell.join(',')})`;
+    const [x, y] = visualState.canvasHalfSize;
+
+    ctx.save();
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 5;
+    ctx.strokeText(drawText, x, y);
+    ctx.fillStyle = 'black';
+    ctx.fillText(drawText, x, y);
     ctx.restore();
   }
 }

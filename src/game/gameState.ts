@@ -417,19 +417,7 @@ export function tick(gameState: GameState): void {
           facility.buildingStage += progress;
 
           if (facility.buildingStage >= 1) {
-            const index = facilities.indexOf(facility);
-
-            facilities[index] = {
-              type: facility.buildingFacilityType,
-              position: facility.position,
-              cellId: facility.cellId,
-              assignedWorkersCount: facilitiesIterationInfo.get(
-                facility.buildingFacilityType,
-              )!.maximumPeopleAtWork,
-              input: [],
-              output: [],
-              inProcess: 0,
-            };
+            completeConstruction(gameState, facility);
           }
         } else {
           const iterationInfo = facilitiesIterationInfo.get(facility.type);
@@ -840,4 +828,34 @@ function addFacility(
   };
 
   addCityFacility(gameState, city, facility);
+}
+
+function completeConstruction(
+  gameState: GameState,
+  constuction: Construction,
+): Facility {
+  const facility = {
+    type: constuction.buildingFacilityType,
+    position: constuction.position,
+    cellId: constuction.cellId,
+    assignedWorkersCount: facilitiesIterationInfo.get(
+      constuction.buildingFacilityType,
+    )!.maximumPeopleAtWork,
+    input: [],
+    output: [],
+    inProcess: 0,
+  };
+
+  for (const facilities of gameState.facilitiesByCityId.values()) {
+    const index = facilities.indexOf(constuction);
+
+    if (index !== -1) {
+      facilities[index] = facility;
+      break;
+    }
+  }
+
+  gameState.structuresByCellId.set(facility.cellId, facility);
+
+  return facility;
 }
