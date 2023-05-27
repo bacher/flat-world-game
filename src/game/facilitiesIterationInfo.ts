@@ -13,16 +13,9 @@ export type FacilityIterationInfo = {
 };
 
 export const facilitiesIterationInfo: Record<
-  ExactFacilityType | FacilityType.BUILDING,
+  ExactFacilityType,
   FacilityIterationInfo
 > = {
-  [FacilityType.BUILDING]: {
-    iterationPeopleDays: 3,
-    maximumPeopleAtWork: 3,
-    input: [],
-    output: [],
-  },
-
   [FacilityType.GATHERING]: {
     iterationPeopleDays: 1,
     maximumPeopleAtWork: 3,
@@ -35,7 +28,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
 
-  [FacilityType.LAMBERT]: {
+  [FacilityType.LUMBERT]: {
     iterationPeopleDays: 1,
     maximumPeopleAtWork: 4,
     input: [],
@@ -57,6 +50,42 @@ export const facilitiesIterationInfo: Record<
       },
     ],
     output: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 2,
+      },
+    ],
+  },
+};
+
+export type FacilityConstructionInfo = {
+  iterations: number;
+  iterationPeopleDays: number;
+  maximumPeopleAtWork: number;
+  input: StorageItem[];
+};
+
+export const facilitiesConstructionInfo: Record<
+  ExactFacilityType,
+  FacilityConstructionInfo
+> = {
+  [FacilityType.LUMBERT]: {
+    iterations: 1,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [],
+  },
+  [FacilityType.GATHERING]: {
+    iterations: 1,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [],
+  },
+  [FacilityType.CHOP_WOOD]: {
+    iterations: 2,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,
         quantity: 2,

@@ -15,6 +15,7 @@ import {
 } from './types';
 import {
   FacilityIterationInfo,
+  facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from './facilitiesIterationInfo';
 
@@ -53,7 +54,7 @@ export type City = StructureBase & {
 };
 
 export type Construction = StructureBase & {
-  type: FacilityType.BUILDING;
+  type: FacilityType.CONSTRUCTION;
   buildingFacilityType: ExactFacilityType;
   buildingStage: number;
   buildingTime: number;
@@ -65,7 +66,7 @@ export type Facility = (StructureBase & {
 }) &
   (
     | {
-        type: FacilityType.LAMBERT;
+        type: FacilityType.LUMBERT;
         inProcess: number;
       }
     | {
@@ -96,7 +97,7 @@ export function startGame(): GameState {
 
   addConstructionStructure(
     initialGameState,
-    { facilityType: FacilityType.LAMBERT, position: [-2, -3] },
+    { facilityType: FacilityType.LUMBERT, position: [-2, -3] },
     initialCity,
   );
 
@@ -212,7 +213,7 @@ export function tick(gameState: GameState): void {
     for (const facility of facilities) {
       const distance = calculateDistance(city.position, facility.position);
 
-      if (facility.type === FacilityType.BUILDING) {
+      if (facility.type === FacilityType.CONSTRUCTION) {
         registerJob(
           { type: 'facility', facility, distance },
           MAX_BUILDING_PEOPLE,
@@ -290,17 +291,32 @@ export function tick(gameState: GameState): void {
       if (toFacility.type === FacilityType.CITY) {
         maxInput = toFacility.population * 2;
       } else {
-        const toIterationInfo = facilitiesIterationInfo[toFacility.type];
+        if (toFacility.type === FacilityType.CONSTRUCTION) {
+          const constructInfo =
+            facilitiesConstructionInfo[toFacility.buildingFacilityType];
 
-        const resourceIterationInfo = toIterationInfo.input.find(
-          (input) => input.resourceType === carrierPath.resourceType,
-        )!;
+          const resourceIterationInfo = constructInfo.input.find(
+            (input) => input.resourceType === carrierPath.resourceType,
+          )!;
 
-        maxInput =
-          resourceIterationInfo.quantity *
-          (toFacility.assignedWorkersCount /
-            toIterationInfo.iterationPeopleDays) *
-          BUFFER_DAYS;
+          maxInput =
+            resourceIterationInfo.quantity *
+            (toFacility.assignedWorkersCount /
+              constructInfo.iterationPeopleDays) *
+            constructInfo.iterations;
+        } else {
+          const toIterationInfo = facilitiesIterationInfo[toFacility.type];
+
+          const resourceIterationInfo = toIterationInfo.input.find(
+            (input) => input.resourceType === carrierPath.resourceType,
+          )!;
+
+          maxInput =
+            resourceIterationInfo.quantity *
+            (toFacility.assignedWorkersCount /
+              toIterationInfo.iterationPeopleDays) *
+            BUFFER_DAYS;
+        }
 
         if (toCount >= maxInput) {
           continue;
@@ -414,7 +430,7 @@ export function tick(gameState: GameState): void {
 
         const peopleAfterWalk = people * (1 - distance * 0.05);
 
-        if (facility.type === FacilityType.BUILDING) {
+        if (facility.type === FacilityType.CONSTRUCTION) {
           const progress = peopleAfterWalk / facility.buildingTime;
           facility.buildingStage += progress;
 
@@ -792,14 +808,14 @@ export function addConstructionStructure(
   const cellId = convertCellToCellId(position);
 
   const buildingFacilility: Construction = {
-    type: FacilityType.BUILDING,
+    type: FacilityType.CONSTRUCTION,
     position,
     cellId,
     buildingFacilityType: facilityType,
     buildingStage: 0,
     buildingTime: 4,
     assignedWorkersCount:
-      facilitiesIterationInfo[FacilityType.BUILDING].maximumPeopleAtWork,
+      facilitiesConstructionInfo[facilityType].maximumPeopleAtWork,
     input: [],
     output: [],
   };

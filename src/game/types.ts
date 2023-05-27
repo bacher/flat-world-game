@@ -9,15 +9,15 @@ export type CellRect = {
 
 export enum FacilityType {
   CITY = 'CITY',
-  LAMBERT = 'LAMBERT',
-  BUILDING = 'BUILDING',
+  LUMBERT = 'LAMBERT',
+  CONSTRUCTION = 'BUILDING',
   CHOP_WOOD = 'CHOP_WOOD',
   GATHERING = 'GATHERING',
 }
 
 export type ExactFacilityType = Exclude<
   FacilityType,
-  FacilityType.CITY | FacilityType.BUILDING
+  FacilityType.CITY | FacilityType.CONSTRUCTION
 >;
 
 export type CellPath = {

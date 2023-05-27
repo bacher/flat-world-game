@@ -1,4 +1,7 @@
-import { facilitiesIterationInfo } from '../game/facilitiesIterationInfo';
+import {
+  facilitiesConstructionInfo,
+  facilitiesIterationInfo,
+} from '../game/facilitiesIterationInfo';
 import { Structure, convertCellToCellId } from '../game/gameState';
 import { resourceLocalization } from '../game/resourceLocalization';
 import {
@@ -126,7 +129,7 @@ function drawObject(visualState: VisualState, facility: Structure): void {
 
     let drawFacilityType = facility.type;
 
-    if (facility.type === FacilityType.BUILDING) {
+    if (facility.type === FacilityType.CONSTRUCTION) {
       drawFacilityType = facility.buildingFacilityType;
     }
 
@@ -137,7 +140,7 @@ function drawObject(visualState: VisualState, facility: Structure): void {
         ctx.fillStyle = 'black';
         ctx.fill();
         break;
-      case FacilityType.LAMBERT:
+      case FacilityType.LUMBERT:
         ctx.beginPath();
         ctx.moveTo(0, -15);
         ctx.lineTo(-15, 12);
@@ -189,7 +192,7 @@ function drawObject(visualState: VisualState, facility: Structure): void {
         console.warn(`No render function for facility ${drawFacilityType}`);
     }
 
-    if (facility.type === FacilityType.BUILDING) {
+    if (facility.type === FacilityType.CONSTRUCTION) {
       ctx.beginPath();
       ctx.rect(
         -cellSize[0] / 2 + 1,
@@ -311,12 +314,23 @@ function drawFacilityStorage(
   facility: Structure,
 ): void {
   const facilityInfo =
-    facility.type !== FacilityType.CITY
+    facility.type !== FacilityType.CITY &&
+    facility.type !== FacilityType.CONSTRUCTION
       ? facilitiesIterationInfo[facility.type]
       : undefined;
 
-  const input = facilityInfo
-    ? combineStorageWithIteration(facilityInfo.input, facility.input)
+  let planInput: StorageItem[] | undefined;
+
+  if (facility.type === FacilityType.CONSTRUCTION) {
+    const constructionFacility =
+      facilitiesConstructionInfo[facility.buildingFacilityType];
+    planInput = constructionFacility.input;
+  } else if (facilityInfo) {
+    planInput = facilityInfo.input;
+  }
+
+  const input = planInput
+    ? combineStorageWithIteration(planInput, facility.input)
     : facility.input;
 
   if (input.length) {

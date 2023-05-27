@@ -12,7 +12,7 @@ export function BuildingsPanel({ onBuildingClick }: Props) {
     () =>
       [...Object.values(FacilityType)].filter(
         (facilityType) =>
-          facilityType !== FacilityType.BUILDING &&
+          facilityType !== FacilityType.CONSTRUCTION &&
           facilityType !== FacilityType.CITY,
       ) as ExactFacilityType[],
     [],

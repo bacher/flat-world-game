@@ -92,7 +92,7 @@ function Content({
     return <CityContent city={facility} />;
   }
 
-  if (facility.type === FacilityType.BUILDING) {
+  if (facility.type === FacilityType.CONSTRUCTION) {
     return <BuildingContent />;
   }
 
