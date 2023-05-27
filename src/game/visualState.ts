@@ -1,18 +1,6 @@
 import { renderGameToCanvas } from '../gameRender/render';
-import {
-  Facility,
-  GameState,
-  Structure,
-  convertCellToCellId,
-  tick,
-} from './gameState';
-import type {
-  CellPosition,
-  CellRect,
-  ExactFacilityType,
-  FacilityType,
-  Point,
-} from './types';
+import { GameState, Structure, convertCellToCellId, tick } from './gameState';
+import type { CellPosition, CellRect, ExactFacilityType, Point } from './types';
 
 export type VisualState = {
   gameState: GameState;

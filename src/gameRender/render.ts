@@ -1,4 +1,3 @@
-import { facilitiesDescription } from '../game/facilitiesDescriptions';
 import { facilitiesIterationInfo } from '../game/facilitiesIterationInfo';
 import { Structure, convertCellToCellId } from '../game/gameState';
 import { resourceLocalization } from '../game/resourceLocalization';
@@ -301,7 +300,10 @@ function drawFacilityStorage(
   visualState: VisualState,
   facility: Structure,
 ): void {
-  const facilityInfo = facilitiesIterationInfo.get(facility.type)!;
+  const facilityInfo =
+    facility.type !== FacilityType.CITY
+      ? facilitiesIterationInfo[facility.type]
+      : undefined;
 
   const input = facilityInfo
     ? combineStorageWithIteration(facilityInfo.input, facility.input)

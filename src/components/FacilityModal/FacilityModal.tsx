@@ -92,6 +92,10 @@ function Content({
     return <CityContent city={facility} />;
   }
 
+  if (facility.type === FacilityType.BUILDING) {
+    return <BuildingContent />;
+  }
+
   return (
     <FacilityContent
       gameState={gameState}
@@ -105,19 +109,19 @@ function CityContent({ city }: { city: City }) {
   return <div>City: {city.name}</div>;
 }
 
+function BuildingContent() {
+  return <div>Under construction</div>;
+}
+
 type ActualPathState = Map<
   ResourceType,
   { path: CarrierPath; inputValue: string; changed: boolean }[]
 >;
 
 function useAlreadyPathsState({
-  gameState,
-  facility,
   actualPaths,
   availablePaths,
 }: {
-  gameState: GameState;
-  facility: Facility;
   actualPaths: CarrierPath[] | undefined;
   availablePaths: StorageItem[];
 }): ActualPathState {
@@ -165,20 +169,16 @@ function FacilityContent({
   );
 
   const facilityInfo = useMemo(
-    () => facilitiesIterationInfo.get(facility.type)!,
+    () => facilitiesIterationInfo[facility.type],
     [facility.type],
   );
 
   const alreadyToPaths = useAlreadyPathsState({
-    gameState,
-    facility,
     availablePaths: facilityInfo.input,
     actualPaths: gameState.carrierPathsToCellId.get(facility.cellId),
   });
 
   const alreadyFromPaths = useAlreadyPathsState({
-    gameState,
-    facility,
     availablePaths: facilityInfo.output,
     actualPaths: gameState.carrierPathsFromCellId.get(facility.cellId),
   });

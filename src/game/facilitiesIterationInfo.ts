@@ -1,4 +1,9 @@
-import { FacilityType, ResourceType, StorageItem } from './types';
+import {
+  ExactFacilityType,
+  FacilityType,
+  ResourceType,
+  StorageItem,
+} from './types';
 
 export type FacilityIterationInfo = {
   iterationPeopleDays: number;
@@ -7,62 +12,55 @@ export type FacilityIterationInfo = {
   output: StorageItem[];
 };
 
-export const facilitiesIterationInfo: Map<FacilityType, FacilityIterationInfo> =
-  new Map([
-    [
-      FacilityType.BUILDING,
+export const facilitiesIterationInfo: Record<
+  ExactFacilityType | FacilityType.BUILDING,
+  FacilityIterationInfo
+> = {
+  [FacilityType.BUILDING]: {
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [],
+    output: [],
+  },
+
+  [FacilityType.GATHERING]: {
+    iterationPeopleDays: 1,
+    maximumPeopleAtWork: 3,
+    input: [],
+    output: [
       {
-        iterationPeopleDays: 3,
-        maximumPeopleAtWork: 3,
-        input: [],
-        output: [],
+        resourceType: ResourceType.FOOD,
+        quantity: 1,
       },
     ],
-    [
-      FacilityType.GATHERING,
+  },
+
+  [FacilityType.LAMBERT]: {
+    iterationPeopleDays: 1,
+    maximumPeopleAtWork: 4,
+    input: [],
+    output: [
       {
-        iterationPeopleDays: 1,
-        maximumPeopleAtWork: 3,
-        input: [],
-        output: [
-          {
-            resourceType: ResourceType.FOOD,
-            quantity: 1,
-          },
-        ],
+        resourceType: ResourceType.LOG,
+        quantity: 1,
       },
     ],
-    [
-      FacilityType.LAMBERT,
+  },
+
+  [FacilityType.CHOP_WOOD]: {
+    iterationPeopleDays: 1,
+    maximumPeopleAtWork: 4,
+    input: [
       {
-        iterationPeopleDays: 1,
-        maximumPeopleAtWork: 4,
-        input: [],
-        output: [
-          {
-            resourceType: ResourceType.LOG,
-            quantity: 1,
-          },
-        ],
+        resourceType: ResourceType.LOG,
+        quantity: 1,
       },
     ],
-    [
-      FacilityType.CHOP_WOOD,
+    output: [
       {
-        iterationPeopleDays: 1,
-        maximumPeopleAtWork: 4,
-        input: [
-          {
-            resourceType: ResourceType.LOG,
-            quantity: 1,
-          },
-        ],
-        output: [
-          {
-            resourceType: ResourceType.ROUTH_LUMBER,
-            quantity: 2,
-          },
-        ],
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 2,
       },
     ],
-  ]);
+  },
+};
