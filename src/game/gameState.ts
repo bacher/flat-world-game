@@ -48,7 +48,8 @@ export type City = StructureBase & {
   name: string;
   population: number;
   carrierPaths: CarrierPath[];
-  workingPaths: WorkingPath[];
+  lastTickNeedPopulation: number;
+  lastTickWorkingPaths: WorkingPath[];
 };
 
 export type Construction = StructureBase & {
@@ -337,6 +338,8 @@ export function tick(gameState: GameState): void {
       );
     }
 
+    city.lastTickNeedPopulation = needPeople;
+
     while (city.population < needPeople) {
       const cutJobs = jobs.filter((job) => job[0] === maxRatio);
 
@@ -485,7 +488,7 @@ export function tick(gameState: GameState): void {
   for (const city of gameState.cities) {
     const { jobs } = planPerCity.get(city.cityId)!;
 
-    city.workingPaths = [];
+    city.lastTickWorkingPaths = [];
 
     for (const job of jobs) {
       let workingPath: WorkingPath;
@@ -511,7 +514,7 @@ export function tick(gameState: GameState): void {
         }
       }
 
-      const alreadyPath = city.workingPaths.find((path) =>
+      const alreadyPath = city.lastTickWorkingPaths.find((path) =>
         isSamePath(path.path, workingPath.path),
       );
 
@@ -519,7 +522,7 @@ export function tick(gameState: GameState): void {
         alreadyPath.workers += workingPath.workers;
         alreadyPath.carriers += workingPath.carriers;
       } else {
-        city.workingPaths.push(workingPath);
+        city.lastTickWorkingPaths.push(workingPath);
       }
     }
   }
@@ -753,7 +756,8 @@ export function addCity(
     cellId: cellId,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
-    workingPaths: [],
+    lastTickNeedPopulation: 0,
+    lastTickWorkingPaths: [],
     input: [],
     output: [],
   };

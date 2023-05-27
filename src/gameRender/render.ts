@@ -202,6 +202,8 @@ function drawObject(visualState: VisualState, facility: Structure): void {
     }
 
     if (facility.type === FacilityType.CITY) {
+      const city = facility;
+
       ctx.textAlign = 'center';
       ctx.textBaseline = 'alphabetic';
       ctx.strokeStyle = 'white';
@@ -211,9 +213,17 @@ function drawObject(visualState: VisualState, facility: Structure): void {
       ctx.strokeText(facility.name, 0, 28);
       ctx.fillText(facility.name, 0, 28);
 
-      const populatityText = Math.floor(facility.population).toString();
-      ctx.strokeText(populatityText, 12, 14);
-      ctx.fillText(populatityText, 12, 14);
+      const populationText = Math.floor(city.population).toString();
+      const needPopulationText = city.lastTickNeedPopulation.toString();
+      const text = `${needPopulationText}/${populationText}`;
+      if (city.population >= city.lastTickNeedPopulation) {
+        ctx.fillStyle = 'green';
+      } else {
+        ctx.fillStyle = 'red';
+      }
+      ctx.textAlign = 'right';
+      ctx.strokeText(text, 18, 14);
+      ctx.fillText(text, 18, 14);
 
       ctx.lineWidth = 1;
     }
@@ -255,7 +265,7 @@ function drawWorkingPaths(visualState: VisualState): void {
   const { ctx, gameState } = visualState;
 
   for (const city of gameState.cities) {
-    for (const { path, workers, carriers } of city.workingPaths) {
+    for (const { path, workers, carriers } of city.lastTickWorkingPaths) {
       // Have to check viewport
 
       const fromCenter = getCellCenter(visualState, path.from);
