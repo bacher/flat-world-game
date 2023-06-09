@@ -441,28 +441,24 @@ export function tick(gameState: GameState): void {
     for (const [, people, , jobObject] of jobs) {
       if (jobObject.type === 'facility') {
         const { facility, distance } = jobObject;
-
         const peopleAfterWalk = people * (1 - distance * 0.05);
+        const iterationInfo = getFacilityIterationInfo(facility);
 
-        let iterationInfo;
+        let peopleIterationsRemains =
+          peopleAfterWalk / iterationInfo.iterationPeopleDays;
+        let overallDone = 0;
 
-        if (facility.type === FacilityType.CONSTRUCTION) {
-          iterationInfo =
-            facilitiesConstructionInfo[facility.buildingFacilityType];
-        } else {
-          iterationInfo = facilitiesIterationInfo[facility.type];
+        const iterationLeft = 1 - facility.inProcess;
+
+        if (peopleIterationsRemains < iterationLeft) {
+          facility.inProcess += peopleIterationsRemains;
+          continue;
         }
 
-        const wasInProcess = facility.inProcess > 0;
-
-        facility.inProcess +=
-          peopleAfterWalk / iterationInfo.iterationPeopleDays;
-
-        let inprogressDone = 0;
-
-        if (wasInProcess && facility.inProcess >= 1) {
-          facility.inProcess -= 1;
-          inprogressDone += 1;
+        if (facility.inProcess > 0) {
+          peopleIterationsRemains -= iterationLeft;
+          facility.inProcess = 0;
+          overallDone += 1;
         }
 
         const resourceForIterations = getMaximumIterationsByResources(
@@ -470,50 +466,45 @@ export function tick(gameState: GameState): void {
           facility,
         );
 
-        const peopleForIterations = Math.ceil(facility.inProcess);
-
         let iterationsUntilOverDone;
 
         if (facility.type === FacilityType.CONSTRUCTION) {
-          iterationsUntilOverDone = Math.max(
-            0,
-            getIterationsUntilConstructionComplete(
-              iterationInfo as FacilityConstructionInfo,
-              facility,
-            ) - inprogressDone,
+          iterationsUntilOverDone = getIterationsUntilConstructionComplete(
+            iterationInfo as FacilityConstructionInfo,
+            facility,
           );
         } else {
-          iterationsUntilOverDone = Math.max(
-            0,
-            getIterationsUntilOverDone(
-              iterationInfo as FacilityIterationInfo,
-              facility,
-            ) - inprogressDone,
+          iterationsUntilOverDone = getIterationsUntilOverDone(
+            iterationInfo as FacilityIterationInfo,
+            facility,
           );
         }
 
+        const finalIterationsUntilOverDone = Math.max(
+          0,
+          iterationsUntilOverDone - overallDone,
+        );
+
         const resourceIterations = Math.min(
-          iterationsUntilOverDone,
+          finalIterationsUntilOverDone,
           resourceForIterations,
-          peopleForIterations,
+          Math.ceil(peopleIterationsRemains),
         );
 
         if (resourceIterations > 0) {
           removeIterationInput(iterationInfo, facility, resourceIterations);
         }
 
-        let doneIterations = inprogressDone;
-
-        if (resourceIterations === peopleForIterations) {
-          doneIterations += Math.floor(facility.inProcess);
-          facility.inProcess = facility.inProcess % 1;
-        } else if (resourceIterations > 0) {
-          doneIterations += resourceIterations;
-          facility.inProcess = 0;
+        if (peopleIterationsRemains > resourceIterations) {
+          overallDone += resourceIterations;
+        } else {
+          const doneNewIterations = Math.floor(peopleIterationsRemains);
+          overallDone += doneNewIterations;
+          facility.inProcess = peopleIterationsRemains % 1;
         }
 
         if (facility.type === FacilityType.CONSTRUCTION) {
-          facility.iterationsComplete += doneIterations;
+          facility.iterationsComplete += overallDone;
 
           if (
             facility.iterationsComplete >=
@@ -522,11 +513,11 @@ export function tick(gameState: GameState): void {
             completeConstruction(gameState, facility);
           }
         } else {
-          if (doneIterations > 0) {
+          if (overallDone > 0) {
             addIterationOutput(
               iterationInfo as FacilityIterationInfo,
               facility,
-              doneIterations,
+              overallDone,
             );
           }
         }
@@ -611,6 +602,15 @@ export function tick(gameState: GameState): void {
       }
     }
   }
+}
+
+function getFacilityIterationInfo(
+  facility: Facility | Construction,
+): FacilityConstructionInfo | FacilityIterationInfo {
+  if (facility.type === FacilityType.CONSTRUCTION) {
+    return facilitiesConstructionInfo[facility.buildingFacilityType];
+  }
+  return facilitiesIterationInfo[facility.type];
 }
 
 function calculateDistance(cell1: CellPosition, cell2: CellPosition): number {
