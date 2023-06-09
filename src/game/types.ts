@@ -10,7 +10,7 @@ export type CellRect = {
 export enum FacilityType {
   CITY = 'CITY',
   LUMBERT = 'LAMBERT',
-  CONSTRUCTION = 'BUILDING',
+  CONSTRUCTION = 'CONSTRUCTION',
   CHOP_WOOD = 'CHOP_WOOD',
   GATHERING = 'GATHERING',
 }

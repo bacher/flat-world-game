@@ -5,7 +5,13 @@ import {
   StorageItem,
 } from './types';
 
+export enum ItrationInfoType {
+  FACILITY,
+  CONSTRUCTION,
+}
+
 export type FacilityIterationInfo = {
+  iterationInfoType: ItrationInfoType.FACILITY;
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
   input: StorageItem[];
@@ -17,6 +23,7 @@ export const facilitiesIterationInfo: Record<
   FacilityIterationInfo
 > = {
   [FacilityType.GATHERING]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
     iterationPeopleDays: 1,
     maximumPeopleAtWork: 3,
     input: [],
@@ -29,6 +36,7 @@ export const facilitiesIterationInfo: Record<
   },
 
   [FacilityType.LUMBERT]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
     iterationPeopleDays: 1,
     maximumPeopleAtWork: 4,
     input: [],
@@ -41,6 +49,7 @@ export const facilitiesIterationInfo: Record<
   },
 
   [FacilityType.CHOP_WOOD]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
     iterationPeopleDays: 1,
     maximumPeopleAtWork: 4,
     input: [
@@ -59,6 +68,7 @@ export const facilitiesIterationInfo: Record<
 };
 
 export type FacilityConstructionInfo = {
+  iterationInfoType: ItrationInfoType.CONSTRUCTION;
   iterations: number;
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
@@ -70,24 +80,27 @@ export const facilitiesConstructionInfo: Record<
   FacilityConstructionInfo
 > = {
   [FacilityType.LUMBERT]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [],
   },
   [FacilityType.GATHERING]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [],
   },
   [FacilityType.CHOP_WOOD]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterations: 2,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LOG,
         quantity: 2,
       },
     ],

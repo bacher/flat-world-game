@@ -14,6 +14,7 @@ import {
   WorkingPath,
 } from './types';
 import {
+  FacilityConstructionInfo,
   FacilityIterationInfo,
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
@@ -56,26 +57,24 @@ export type City = StructureBase & {
 export type Construction = StructureBase & {
   type: FacilityType.CONSTRUCTION;
   buildingFacilityType: ExactFacilityType;
-  buildingStage: number;
-  buildingTime: number;
   assignedWorkersCount: number;
+  inProcess: number;
+  iterationsComplete: number;
 };
 
 export type Facility = (StructureBase & {
   assignedWorkersCount: number;
+  inProcess: number;
 }) &
   (
     | {
         type: FacilityType.LUMBERT;
-        inProcess: number;
       }
     | {
         type: FacilityType.CHOP_WOOD;
-        inProcess: number;
       }
     | {
         type: FacilityType.GATHERING;
-        inProcess: number;
       }
   );
 
@@ -104,18 +103,24 @@ export function startGame(): GameState {
   addFacility(
     initialGameState,
     {
-      facilityType: FacilityType.CHOP_WOOD,
-      position: [3, -3],
+      facilityType: FacilityType.GATHERING,
+      position: [-3, 2],
     },
     initialCity,
   );
 
-  addFacility(
+  // addFacility(
+  //   initialGameState,
+  //   {
+  //     facilityType: FacilityType.CHOP_WOOD,
+  //     position: [3, -3],
+  //   },
+  //   initialCity,
+  // );
+
+  addConstructionStructure(
     initialGameState,
-    {
-      facilityType: FacilityType.GATHERING,
-      position: [-3, 2],
-    },
+    { facilityType: FacilityType.CHOP_WOOD, position: [3, -3] },
     initialCity,
   );
 
@@ -168,8 +173,6 @@ function addPathTo(
   alreadyPaths.push(carrierPath);
 }
 
-const MAX_BUILDING_PEOPLE = 4;
-
 type JobObject =
   | { type: 'facility'; facility: Facility | Construction; distance: number }
   | {
@@ -213,50 +216,57 @@ export function tick(gameState: GameState): void {
     for (const facility of facilities) {
       const distance = calculateDistance(city.position, facility.position);
 
+      let iterationInfo;
       if (facility.type === FacilityType.CONSTRUCTION) {
-        registerJob(
-          { type: 'facility', facility, distance },
-          MAX_BUILDING_PEOPLE,
-          MAX_BUILDING_PEOPLE,
-        );
+        iterationInfo =
+          facilitiesConstructionInfo[facility.buildingFacilityType];
       } else {
-        const iterationInfo = facilitiesIterationInfo[facility.type];
+        iterationInfo = facilitiesIterationInfo[facility.type];
+      }
 
-        if (iterationInfo) {
-          let needPeople = 0;
+      if (iterationInfo) {
+        let needPeople = 0;
 
-          if (facility.inProcess > 0) {
-            needPeople +=
-              (1 - facility.inProcess) * iterationInfo.iterationPeopleDays;
-          }
-
-          const resourcesForIterations = getMaximumIterationsByResources(
-            iterationInfo,
-            facility,
-          );
-
-          const iterationsUntilOverDone = getIterationsUntilOverDone(
-            iterationInfo,
-            facility,
-          );
-
+        if (facility.inProcess > 0) {
           needPeople +=
-            Math.min(
-              resourcesForIterations,
-              Math.max(
-                0,
-                iterationsUntilOverDone + (facility.inProcess > 0 ? -1 : 0),
-              ),
-            ) * iterationInfo.iterationPeopleDays;
+            (1 - facility.inProcess) * iterationInfo.iterationPeopleDays;
+        }
 
-          if (needPeople > 0) {
-            const max = facility.assignedWorkersCount;
+        const resourcesForIterations = getMaximumIterationsByResources(
+          iterationInfo,
+          facility,
+        );
 
-            const onePersonWork = 1 - distance * 0.05;
-            const people = Math.min(max, Math.ceil(needPeople / onePersonWork));
+        let iterationsUntilOverDone;
 
-            registerJob({ type: 'facility', facility, distance }, people, max);
-          }
+        if (facility.type === FacilityType.CONSTRUCTION) {
+          iterationsUntilOverDone = getIterationsUntilConstructionComplete(
+            iterationInfo as FacilityConstructionInfo,
+            facility,
+          );
+        } else {
+          iterationsUntilOverDone = getIterationsUntilOverDone(
+            iterationInfo as FacilityIterationInfo,
+            facility,
+          );
+        }
+
+        needPeople +=
+          Math.min(
+            resourcesForIterations,
+            Math.max(
+              0,
+              iterationsUntilOverDone + (facility.inProcess > 0 ? -1 : 0),
+            ),
+          ) * iterationInfo.iterationPeopleDays;
+
+        if (needPeople > 0) {
+          const max = facility.assignedWorkersCount;
+
+          const onePersonWork = 1 - distance * 0.05;
+          const people = Math.min(max, Math.ceil(needPeople / onePersonWork));
+
+          registerJob({ type: 'facility', facility, distance }, people, max);
         }
       }
     }
@@ -298,6 +308,10 @@ export function tick(gameState: GameState): void {
           const resourceIterationInfo = constructInfo.input.find(
             (input) => input.resourceType === carrierPath.resourceType,
           )!;
+
+          if (!resourceIterationInfo) {
+            debugger;
+          }
 
           maxInput =
             resourceIterationInfo.quantity *
@@ -430,63 +444,90 @@ export function tick(gameState: GameState): void {
 
         const peopleAfterWalk = people * (1 - distance * 0.05);
 
-        if (facility.type === FacilityType.CONSTRUCTION) {
-          const progress = peopleAfterWalk / facility.buildingTime;
-          facility.buildingStage += progress;
+        let iterationInfo;
 
-          if (facility.buildingStage >= 1) {
+        if (facility.type === FacilityType.CONSTRUCTION) {
+          iterationInfo =
+            facilitiesConstructionInfo[facility.buildingFacilityType];
+        } else {
+          iterationInfo = facilitiesIterationInfo[facility.type];
+        }
+
+        const wasInProcess = facility.inProcess > 0;
+
+        facility.inProcess +=
+          peopleAfterWalk / iterationInfo.iterationPeopleDays;
+
+        let inprogressDone = 0;
+
+        if (wasInProcess && facility.inProcess >= 1) {
+          facility.inProcess -= 1;
+          inprogressDone += 1;
+        }
+
+        const resourceForIterations = getMaximumIterationsByResources(
+          iterationInfo,
+          facility,
+        );
+
+        const peopleForIterations = Math.ceil(facility.inProcess);
+
+        let iterationsUntilOverDone;
+
+        if (facility.type === FacilityType.CONSTRUCTION) {
+          iterationsUntilOverDone = Math.max(
+            0,
+            getIterationsUntilConstructionComplete(
+              iterationInfo as FacilityConstructionInfo,
+              facility,
+            ) - inprogressDone,
+          );
+        } else {
+          iterationsUntilOverDone = Math.max(
+            0,
+            getIterationsUntilOverDone(
+              iterationInfo as FacilityIterationInfo,
+              facility,
+            ) - inprogressDone,
+          );
+        }
+
+        const resourceIterations = Math.min(
+          iterationsUntilOverDone,
+          resourceForIterations,
+          peopleForIterations,
+        );
+
+        if (resourceIterations > 0) {
+          removeIterationInput(iterationInfo, facility, resourceIterations);
+        }
+
+        let doneIterations = inprogressDone;
+
+        if (resourceIterations === peopleForIterations) {
+          doneIterations += Math.floor(facility.inProcess);
+          facility.inProcess = facility.inProcess % 1;
+        } else if (resourceIterations > 0) {
+          doneIterations += resourceIterations;
+          facility.inProcess = 0;
+        }
+
+        if (facility.type === FacilityType.CONSTRUCTION) {
+          facility.iterationsComplete += doneIterations;
+
+          if (
+            facility.iterationsComplete >=
+            (iterationInfo as FacilityConstructionInfo).iterations
+          ) {
             completeConstruction(gameState, facility);
           }
         } else {
-          const iterationInfo = facilitiesIterationInfo[facility.type];
-
-          const wasInProcess = facility.inProcess > 0;
-
-          facility.inProcess +=
-            peopleAfterWalk / iterationInfo.iterationPeopleDays;
-
-          let inprogressDone = 0;
-
-          if (wasInProcess && facility.inProcess >= 1) {
-            facility.inProcess -= 1;
-            inprogressDone += 1;
-          }
-
-          const resourceForIterations = getMaximumIterationsByResources(
-            iterationInfo,
-            facility,
-          );
-
-          const peopleForIterations = Math.ceil(facility.inProcess);
-
-          const iterationsUntilOverDone = Math.max(
-            0,
-            getIterationsUntilOverDone(iterationInfo, facility) -
-              inprogressDone,
-          );
-
-          const resourceIterations = Math.min(
-            iterationsUntilOverDone,
-            resourceForIterations,
-            peopleForIterations,
-          );
-
-          if (resourceIterations > 0) {
-            removeIterationInput(iterationInfo, facility, resourceIterations);
-          }
-
-          let doneIterations = inprogressDone;
-
-          if (resourceIterations === peopleForIterations) {
-            doneIterations += Math.floor(facility.inProcess);
-            facility.inProcess = facility.inProcess % 1;
-          } else {
-            doneIterations += resourceIterations;
-            facility.inProcess = 0;
-          }
-
           if (doneIterations > 0) {
-            addIterationOutput(iterationInfo, facility, doneIterations);
+            addIterationOutput(
+              iterationInfo as FacilityIterationInfo,
+              facility,
+              doneIterations,
+            );
           }
         }
       }
@@ -648,8 +689,8 @@ function isExactSamePath(path1: CellPath, path2: CellPath): boolean {
 }
 
 function getMaximumIterationsByResources(
-  iterationInfo: FacilityIterationInfo,
-  facility: Facility,
+  iterationInfo: FacilityIterationInfo | FacilityConstructionInfo,
+  facility: Facility | Construction,
 ): number {
   let minIterations = Infinity;
 
@@ -691,9 +732,20 @@ function getIterationsUntilOverDone(
   return Math.max(0, minIterations);
 }
 
+function getIterationsUntilConstructionComplete(
+  iterationInfo: FacilityConstructionInfo,
+  construction: Construction,
+): number {
+  return Math.ceil(
+    iterationInfo.iterations -
+      construction.iterationsComplete -
+      construction.inProcess,
+  );
+}
+
 function removeIterationInput(
-  iterationInfo: FacilityIterationInfo,
-  facility: Facility,
+  iterationInfo: FacilityIterationInfo | FacilityConstructionInfo,
+  facility: Facility | Construction,
   iterationCount: number,
 ): void {
   for (const resource of iterationInfo.input) {
@@ -812,12 +864,12 @@ export function addConstructionStructure(
     position,
     cellId,
     buildingFacilityType: facilityType,
-    buildingStage: 0,
-    buildingTime: 4,
     assignedWorkersCount:
       facilitiesConstructionInfo[facilityType].maximumPeopleAtWork,
     input: [],
     output: [],
+    inProcess: 0,
+    iterationsComplete: 0,
   };
 
   addCityFacility(gameState, city, buildingFacilility);
@@ -867,6 +919,7 @@ function completeConstruction(
     const index = facilities.indexOf(constuction);
 
     if (index !== -1) {
+      debugger;
       facilities[index] = facility;
       break;
     }
