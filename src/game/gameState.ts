@@ -396,7 +396,8 @@ export function tick(gameState: GameState): void {
   // Carriers get items
 
   const currentlyMovingProducts: {
-    facility: Structure;
+    fromFacility: Structure;
+    toFacility: Structure;
     resource: StorageItem;
   }[] = [];
 
@@ -426,7 +427,8 @@ export function tick(gameState: GameState): void {
         });
 
         currentlyMovingProducts.push({
-          facility: toFacility,
+          fromFacility,
+          toFacility,
           resource: grabbedItem,
         });
       }
@@ -448,14 +450,14 @@ export function tick(gameState: GameState): void {
           peopleAfterWalk / iterationInfo.iterationPeopleDays;
         let overallDone = 0;
 
-        const iterationLeft = 1 - facility.inProcess;
-
-        if (peopleIterationsRemains < iterationLeft) {
-          facility.inProcess += peopleIterationsRemains;
-          continue;
-        }
-
         if (facility.inProcess > 0) {
+          const iterationLeft = 1 - facility.inProcess;
+
+          if (peopleIterationsRemains < iterationLeft) {
+            facility.inProcess += peopleIterationsRemains;
+            continue;
+          }
+
           peopleIterationsRemains -= iterationLeft;
           facility.inProcess = 0;
           overallDone += 1;
@@ -495,7 +497,7 @@ export function tick(gameState: GameState): void {
           removeIterationInput(iterationInfo, facility, resourceIterations);
         }
 
-        if (peopleIterationsRemains > resourceIterations) {
+        if (peopleIterationsRemains >= resourceIterations) {
           overallDone += resourceIterations;
         } else {
           const doneNewIterations = Math.floor(peopleIterationsRemains);
@@ -527,8 +529,35 @@ export function tick(gameState: GameState): void {
 
   // Carriers have brought items
 
-  for (const { facility, resource } of currentlyMovingProducts) {
-    addResource(facility.input, resource);
+  for (const {
+    fromFacility,
+    toFacility,
+    resource,
+  } of currentlyMovingProducts) {
+    if (toFacility.type === FacilityType.CONSTRUCTION) {
+      const addingLimit = getMaximumAddingLimit(
+        toFacility,
+        resource.resourceType,
+      );
+
+      if (resource.quantity > addingLimit) {
+        if (addingLimit > 0) {
+          addResource(toFacility.input, {
+            quantity: addingLimit,
+            resourceType: resource.resourceType,
+          });
+        }
+
+        addResource(fromFacility.output, {
+          quantity: resource.quantity - addingLimit,
+          resourceType: resource.resourceType,
+        });
+      } else {
+        addResource(toFacility.input, resource);
+      }
+    } else {
+      addResource(toFacility.input, resource);
+    }
   }
 
   // Apply cities' working paths
@@ -919,7 +948,6 @@ function completeConstruction(
     const index = facilities.indexOf(constuction);
 
     if (index !== -1) {
-      debugger;
       facilities[index] = facility;
       break;
     }
@@ -928,4 +956,37 @@ function completeConstruction(
   gameState.structuresByCellId.set(facility.cellId, facility);
 
   return facility;
+}
+
+function getMaximumAddingLimit(
+  facility: Construction,
+  resourceType: ResourceType,
+): number {
+  const constructionInfo =
+    facilitiesConstructionInfo[facility.buildingFacilityType];
+
+  const iterationInput = constructionInfo.input.find(
+    (resource) => resource.resourceType === resourceType,
+  );
+
+  if (!iterationInput) {
+    return 0;
+  }
+
+  const alreadyQuantity =
+    facility.input.find((resource) => resource.resourceType === resourceType)
+      ?.quantity ?? 0;
+
+  const restIterations =
+    constructionInfo.iterations -
+    (facility.iterationsComplete + (facility.inProcess > 0 ? 1 : 0));
+
+  if (restIterations <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    iterationInput.quantity * restIterations - alreadyQuantity,
+  );
 }
