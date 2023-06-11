@@ -29,7 +29,7 @@ import { resourceLocalization } from '../../game/resourceLocalization';
 import { useForceUpdate } from '../hooks/forceUpdate';
 import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
 import { parseCoordinatesFromString } from '../utils/coords';
-import type { VisualState } from '../../game/visualState';
+import { InteractiveActionType, VisualState } from '../../game/visualState';
 
 type Props = {
   gameState: GameState;
@@ -101,7 +101,8 @@ function Content({
       <CityContent
         city={facility}
         onNewCityClick={() => {
-          visualState.planingBuildingMode = {
+          visualState.interactiveAction = {
+            actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
             facilityType: FacilityType.CITY,
             expeditionFromCity: facility,
           };
@@ -274,6 +275,7 @@ function FacilityContent({
       people: 1,
     };
 
+    // TODO: hardcode city #1
     addCityCarrierPaths(gameState, [...gameState.cities.values()][0], [
       newPath,
     ]);

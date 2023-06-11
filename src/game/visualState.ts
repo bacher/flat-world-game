@@ -12,6 +12,7 @@ import {
   ExactFacilityType,
   FacilityType,
   Point,
+  ResourceType,
 } from './types';
 
 export type VisualState = {
@@ -23,17 +24,33 @@ export type VisualState = {
   offset: Point;
   viewportBounds: CellRect;
   hoverCell: CellPosition | undefined;
-  planingBuildingMode:
-    | {
-        facilityType: ExactFacilityType;
-      }
-    | {
-        facilityType: FacilityType.CITY;
-        expeditionFromCity: City;
-      }
-    | undefined;
+  interactiveAction: InteractiveAction | undefined;
   onUpdate: () => void;
 };
+
+export enum InteractiveActionType {
+  CONSTRUCTION_PLANNING,
+  CARRIER_PATH_PLANNING,
+}
+
+export type InteractiveAction =
+  | ({
+      actionType: InteractiveActionType.CONSTRUCTION_PLANNING;
+    } & (
+      | {
+          facilityType: ExactFacilityType;
+        }
+      | {
+          facilityType: FacilityType.CITY;
+          expeditionFromCity: City;
+        }
+    ))
+  | {
+      actionType: InteractiveActionType.CARRIER_PATH_PLANNING;
+      direction: 'from' | 'to';
+      cell: CellPosition;
+      resourceType: ResourceType;
+    };
 
 export function createVisualState(
   gameState: GameState,
@@ -57,7 +74,7 @@ export function createVisualState(
     offset: [0, 0],
     viewportBounds: { start: [0, 0], end: [0, 0] },
     hoverCell: undefined,
-    planingBuildingMode: undefined,
+    interactiveAction: undefined,
     onUpdate: () => {
       renderGameToCanvas(visualState);
       onUpdate();
@@ -207,11 +224,13 @@ export function isAllowToConstructAtPosition(
   }
 
   if (
-    visualState.planingBuildingMode &&
-    visualState.planingBuildingMode.facilityType === FacilityType.CITY
+    visualState.interactiveAction &&
+    visualState.interactiveAction.actionType ===
+      InteractiveActionType.CONSTRUCTION_PLANNING &&
+    visualState.interactiveAction.facilityType === FacilityType.CITY
   ) {
     const expeditionStart =
-      visualState.planingBuildingMode.expeditionFromCity.position;
+      visualState.interactiveAction.expeditionFromCity.position;
     return (
       cellDistanceSquare(expeditionStart, cell) < MAX_EXPEDITION_DISTANCE_SQUARE
     );

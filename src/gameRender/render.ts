@@ -12,7 +12,11 @@ import {
   ResourceType,
   StorageItem,
 } from '../game/types';
-import { VisualState, isAllowToConstructAtPosition } from '../game/visualState';
+import {
+  InteractiveActionType,
+  VisualState,
+  isAllowToConstructAtPosition,
+} from '../game/visualState';
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
@@ -30,21 +34,31 @@ export function renderGameToCanvas(visualState: VisualState): void {
   ctx.translate(offsetX + halfWidth, offsetY + halfHeight);
 
   drawHighlights(visualState);
-
-  if (visualState.hoverCell) {
-    if (visualState.planingBuildingMode) {
-      drawBuildingMode(visualState);
-    } else {
-      highlightHoverCell(visualState);
-    }
-  }
-
+  drawInteractiveAction(visualState);
   drawGrid(visualState);
   drawWorkingPaths(visualState);
   drawObjects(visualState);
   drawTopOverlay(visualState);
 
   ctx.restore();
+}
+
+function drawInteractiveAction(visualState: VisualState): void {
+  if (visualState.interactiveAction) {
+    switch (visualState.interactiveAction.actionType) {
+      case InteractiveActionType.CONSTRUCTION_PLANNING: {
+        drawBuildingMode(visualState);
+        break;
+      }
+      case InteractiveActionType.CARRIER_PATH_PLANNING: {
+        break;
+      }
+      default:
+      // do nothing
+    }
+  } else {
+    highlightHoverCell(visualState);
+  }
 }
 
 function drawGrid(visualState: VisualState): void {
@@ -69,26 +83,34 @@ function drawGrid(visualState: VisualState): void {
 }
 
 function drawHighlights(visualState: VisualState): void {
-  if (
-    visualState.planingBuildingMode &&
-    visualState.planingBuildingMode.facilityType === FacilityType.CITY
-  ) {
-    const { start, end } = visualState.viewportBounds;
+  if (!visualState.interactiveAction) {
+    return;
+  }
 
-    for (let col = start[0]; col < end[0]; col += 1) {
-      for (let row = start[1]; row < end[1]; row += 1) {
-        const cell = [col, row] as CellPosition;
+  switch (visualState.interactiveAction.actionType) {
+    case InteractiveActionType.CONSTRUCTION_PLANNING: {
+      if (visualState.interactiveAction.facilityType === FacilityType.CITY) {
+        const { start, end } = visualState.viewportBounds;
 
-        if (isAllowToConstructAtPosition(visualState, cell)) {
-          highlightCell(visualState, cell, '#aea');
+        for (let col = start[0]; col < end[0]; col += 1) {
+          for (let row = start[1]; row < end[1]; row += 1) {
+            const cell = [col, row] as CellPosition;
+
+            if (isAllowToConstructAtPosition(visualState, cell)) {
+              highlightCell(visualState, cell, '#aea');
+            }
+          }
         }
       }
+      break;
     }
   }
 }
 
 function highlightHoverCell(visualState: VisualState): void {
-  highlightCell(visualState, visualState.hoverCell!, 'azure');
+  if (visualState.hoverCell) {
+    highlightCell(visualState, visualState.hoverCell, 'azure');
+  }
 }
 
 function highlightCell(
@@ -112,7 +134,10 @@ function highlightCell(
 }
 
 function drawBuildingMode(visualState: VisualState): void {
-  const hoverCell = visualState.hoverCell!;
+  const { hoverCell } = visualState;
+  if (!hoverCell) {
+    return;
+  }
 
   const isAllow = isAllowToConstructAtPosition(visualState, hoverCell);
 

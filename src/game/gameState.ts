@@ -964,6 +964,16 @@ function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
   const paths = gameState.carrierPathsToCellId.get(cellId);
 
   if (paths) {
+    for (const path of paths) {
+      const fromPaths = gameState.carrierPathsFromCellId.get(
+        convertCellToCellId(path.path.from),
+      );
+
+      if (fromPaths) {
+        removeArrayItem(fromPaths, path);
+      }
+    }
+
     for (const city of gameState.cities) {
       for (const path of paths) {
         removeArrayItem(city.carrierPaths, path);

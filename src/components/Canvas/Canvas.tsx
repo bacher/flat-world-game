@@ -12,6 +12,7 @@ import {
 } from '../../game/gameState';
 import { renderGameToCanvas } from '../../gameRender/render';
 import {
+  InteractiveActionType,
   VisualState,
   createVisualState,
   isAllowToConstructAtPosition,
@@ -144,9 +145,9 @@ export function Canvas() {
 
     switch (event.key) {
       case 'Escape':
-        if (visualState.planingBuildingMode) {
+        if (visualState.interactiveAction) {
           event.preventDefault();
-          visualState.planingBuildingMode = undefined;
+          visualState.interactiveAction = undefined;
           visualState.onUpdate();
         }
         break;
@@ -202,29 +203,34 @@ export function Canvas() {
       const cellId = convertCellToCellId(cell);
       const facility = gameState.structuresByCellId.get(cellId);
 
-      if (visualState.planingBuildingMode) {
-        const isAllow = isAllowToConstructAtPosition(visualState, cell);
+      if (visualState.interactiveAction) {
+        switch (visualState.interactiveAction.actionType) {
+          case InteractiveActionType.CONSTRUCTION_PLANNING: {
+            const isAllow = isAllowToConstructAtPosition(visualState, cell);
 
-        if (isAllow) {
-          if (
-            visualState.planingBuildingMode.facilityType === FacilityType.CITY
-          ) {
-            addCity(gameState, { position: cell });
-          } else {
-            const nearestCity = [...gameState.cities.values()][0];
+            if (isAllow) {
+              if (
+                visualState.interactiveAction.facilityType === FacilityType.CITY
+              ) {
+                addCity(gameState, { position: cell });
+              } else {
+                const nearestCity = [...gameState.cities.values()][0];
 
-            addConstructionStructure(
-              gameState,
-              {
-                facilityType: visualState.planingBuildingMode.facilityType,
-                position: cell,
-              },
-              nearestCity,
-            );
+                addConstructionStructure(
+                  gameState,
+                  {
+                    facilityType: visualState.interactiveAction.facilityType,
+                    position: cell,
+                  },
+                  nearestCity,
+                );
+              }
+
+              visualState.interactiveAction = undefined;
+              visualState.onUpdate();
+            }
+            break;
           }
-
-          visualState.planingBuildingMode = undefined;
-          visualState.onUpdate();
         }
       } else {
         showDialogForFacilityRef.current = facility;
@@ -280,7 +286,8 @@ export function Canvas() {
       <div className={styles.sidePanel}>
         <BuildingsPanel
           onBuildingClick={({ facilityType }) => {
-            visualStateRef.current!.planingBuildingMode = {
+            visualStateRef.current!.interactiveAction = {
+              actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
               facilityType,
             };
           }}
