@@ -31,6 +31,7 @@ export function renderGameToCanvas(visualState: VisualState): void {
   ctx.fillStyle = 'white';
   ctx.fill();
 
+  ctx.save();
   ctx.translate(offsetX + halfWidth, offsetY + halfHeight);
 
   drawHighlights(visualState);
@@ -38,6 +39,9 @@ export function renderGameToCanvas(visualState: VisualState): void {
   drawGrid(visualState);
   drawWorkingPaths(visualState);
   drawObjects(visualState);
+
+  ctx.restore();
+
   drawTopOverlay(visualState);
 
   ctx.restore();
@@ -490,7 +494,7 @@ function drawTopOverlay(visualState: VisualState): void {
   if (visualState.hoverCell) {
     const { ctx } = visualState;
     const drawText = `(${visualState.hoverCell.join(',')})`;
-    const [x, y] = visualState.canvasHalfSize;
+    const [x, y] = visualState.canvasSize;
 
     ctx.save();
     ctx.font = '18px sans-serif';
