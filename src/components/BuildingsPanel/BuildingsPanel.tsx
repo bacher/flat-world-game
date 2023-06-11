@@ -29,7 +29,7 @@ export function BuildingsPanel({ onBuildingClick }: Props) {
               onBuildingClick({ facilityType });
             }}
           >
-            {facilitiesDescription.get(facilityType) ?? facilityType}
+            {facilitiesDescription[facilityType] ?? facilityType}
           </button>
         </div>
       ))}

@@ -849,7 +849,7 @@ export function addCity(
     cityId: cellId as unknown as CityId,
     type: FacilityType.CITY,
     name: generateNewCityName(gameState.alreadyCityNames, true),
-    position: [0, 0],
+    position,
     cellId: cellId,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
@@ -955,7 +955,30 @@ function completeConstruction(
 
   gameState.structuresByCellId.set(facility.cellId, facility);
 
+  removeAllCarrierPathsTo(gameState, facility.cellId);
+
   return facility;
+}
+
+function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
+  const paths = gameState.carrierPathsToCellId.get(cellId);
+
+  if (paths) {
+    for (const city of gameState.cities) {
+      for (const path of paths) {
+        removeArrayItem(city.carrierPaths, path);
+      }
+    }
+
+    gameState.carrierPathsToCellId.delete(cellId);
+  }
+}
+
+function removeArrayItem<T>(array: T[], item: T): void {
+  const index = array.indexOf(item);
+  if (index !== -1) {
+    array.splice(index, 1);
+  }
 }
 
 function getMaximumAddingLimit(

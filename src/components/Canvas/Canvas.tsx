@@ -5,6 +5,7 @@ import styles from './Canvas.module.scss';
 
 import {
   Structure,
+  addCity,
   addConstructionStructure,
   convertCellToCellId,
   startGame,
@@ -13,12 +14,13 @@ import { renderGameToCanvas } from '../../gameRender/render';
 import {
   VisualState,
   createVisualState,
+  isAllowToConstructAtPosition,
   lookupGridByPoint,
   startGameLoop,
   visualStateMove,
   visualStateOnMouseMove,
 } from '../../game/visualState';
-import type { Point } from '../../game/types';
+import { FacilityType, Point } from '../../game/types';
 import { useForceUpdate } from '../hooks/forceUpdate';
 import { FacilityModal, FacilityModalRef } from '../FacilityModal';
 import {
@@ -26,6 +28,7 @@ import {
   createGameStateWatcher,
 } from '../contexts/GameStateWatcher';
 import { BuildingsPanel } from '../BuildingsPanel';
+import { StatusText } from '../StatusText';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -69,7 +72,9 @@ export function Canvas() {
       throw new Error('No 2d context');
     }
 
-    const visualState = createVisualState(gameState, ctx);
+    const visualState = createVisualState(gameState, ctx, () => {
+      gameStateWatcher.emitVisualStateChange();
+    });
 
     visualStateRef.current = visualState;
 
@@ -80,9 +85,11 @@ export function Canvas() {
     visualStateOnMouseMove(visualStateRef.current, mousePos);
     renderGameToCanvas(visualStateRef.current);
 
+    forceUpdate();
+
     return startGameLoop(visualStateRef.current, () => {
       renderGameToCanvas(visualState);
-      gameStateWatcher.tick();
+      gameStateWatcher.emitTick();
     });
   }, []);
 
@@ -128,15 +135,35 @@ export function Canvas() {
     }
   }
 
+  function onKeyDown(event: KeyboardEvent): void {
+    if (!visualStateRef.current || event.defaultPrevented) {
+      return;
+    }
+
+    const visualState = visualStateRef.current;
+
+    switch (event.key) {
+      case 'Escape':
+        if (visualState.planingBuildingMode) {
+          event.preventDefault();
+          visualState.planingBuildingMode = undefined;
+          visualState.onUpdate();
+        }
+        break;
+    }
+  }
+
   useEffect(() => {
     window.addEventListener('mousemove', actualizeMouseState, {
       passive: true,
     });
     window.addEventListener('mouseup', actualizeMouseState, { passive: true });
+    window.addEventListener('keydown', onKeyDown);
 
     return () => {
       window.removeEventListener('mousemove', actualizeMouseState);
       window.removeEventListener('mouseup', actualizeMouseState);
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, []);
 
@@ -164,20 +191,26 @@ export function Canvas() {
 
     if (showDialogForFacilityRef.current) {
       facilityModalRef.current?.close();
-    } else {
-      const visualState = visualStateRef.current!;
+      return;
+    }
 
-      const cell = lookupGridByPoint(visualState, [
-        event.clientX,
-        event.clientY,
-      ]);
+    const visualState = visualStateRef.current!;
 
-      if (cell) {
-        const cellId = convertCellToCellId(cell);
-        const facility = gameState.structuresByCellId.get(cellId);
+    const cell = lookupGridByPoint(visualState, [event.clientX, event.clientY]);
 
-        if (visualState.planingBuildingMode) {
-          if (!facility) {
+    if (cell) {
+      const cellId = convertCellToCellId(cell);
+      const facility = gameState.structuresByCellId.get(cellId);
+
+      if (visualState.planingBuildingMode) {
+        const isAllow = isAllowToConstructAtPosition(visualState, cell);
+
+        if (isAllow) {
+          if (
+            visualState.planingBuildingMode.facilityType === FacilityType.CITY
+          ) {
+            addCity(gameState, { position: cell });
+          } else {
             const nearestCity = [...gameState.cities.values()][0];
 
             addConstructionStructure(
@@ -188,15 +221,16 @@ export function Canvas() {
               },
               nearestCity,
             );
-
-            visualState.planingBuildingMode = undefined;
           }
-        } else {
-          showDialogForFacilityRef.current = facility;
-          visualStateOnMouseMove(visualState, undefined);
 
-          forceUpdate();
+          visualState.planingBuildingMode = undefined;
+          visualState.onUpdate();
         }
+      } else {
+        showDialogForFacilityRef.current = facility;
+        visualStateOnMouseMove(visualState, undefined);
+
+        forceUpdate();
       }
     }
   }
@@ -214,25 +248,31 @@ export function Canvas() {
           onClick={onClick}
         />
         <GameStateWatcherProvider value={gameStateWatcher}>
-          {showDialogForFacilityRef.current && (
+          {visualStateRef.current && (
             <>
-              <div
-                className={styles.modalShadow}
-                onClick={() => {
-                  facilityModalRef.current?.close();
-                }}
-              />
-              <div className={styles.modalWrapper}>
-                <FacilityModal
-                  ref={facilityModalRef}
-                  gameState={gameState}
-                  facility={showDialogForFacilityRef.current}
-                  onClose={() => {
-                    showDialogForFacilityRef.current = undefined;
-                    forceUpdate();
-                  }}
-                />
-              </div>
+              <StatusText visualState={visualStateRef.current} />
+              {showDialogForFacilityRef.current && (
+                <>
+                  <div
+                    className={styles.modalShadow}
+                    onClick={() => {
+                      facilityModalRef.current?.close();
+                    }}
+                  />
+                  <div className={styles.modalWrapper}>
+                    <FacilityModal
+                      ref={facilityModalRef}
+                      gameState={gameState}
+                      visualState={visualStateRef.current}
+                      facility={showDialogForFacilityRef.current}
+                      onClose={() => {
+                        showDialogForFacilityRef.current = undefined;
+                        forceUpdate();
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
         </GameStateWatcherProvider>

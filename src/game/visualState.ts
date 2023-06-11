@@ -1,6 +1,18 @@
 import { renderGameToCanvas } from '../gameRender/render';
-import { GameState, Structure, convertCellToCellId, tick } from './gameState';
-import type { CellPosition, CellRect, ExactFacilityType, Point } from './types';
+import {
+  City,
+  GameState,
+  Structure,
+  convertCellToCellId,
+  tick,
+} from './gameState';
+import {
+  CellPosition,
+  CellRect,
+  ExactFacilityType,
+  FacilityType,
+  Point,
+} from './types';
 
 export type VisualState = {
   gameState: GameState;
@@ -15,12 +27,18 @@ export type VisualState = {
     | {
         facilityType: ExactFacilityType;
       }
+    | {
+        facilityType: FacilityType.CITY;
+        expeditionFromCity: City;
+      }
     | undefined;
+  onUpdate: () => void;
 };
 
 export function createVisualState(
   gameState: GameState,
   ctx: CanvasRenderingContext2D,
+  onUpdate: () => void,
 ): VisualState {
   const canvasWidth = ctx.canvas.width;
   const canvasHeight = ctx.canvas.height;
@@ -40,6 +58,10 @@ export function createVisualState(
     viewportBounds: { start: [0, 0], end: [0, 0] },
     hoverCell: undefined,
     planingBuildingMode: undefined,
+    onUpdate: () => {
+      renderGameToCanvas(visualState);
+      onUpdate();
+    },
   };
 
   actualizeViewportBounds(visualState);
@@ -170,4 +192,34 @@ export function startGameLoop(
   return () => {
     window.clearInterval(intervalId);
   };
+}
+
+const MAX_EXPEDITION_DISTANCE_SQUARE = 7 ** 2;
+
+export function isAllowToConstructAtPosition(
+  visualState: VisualState,
+  cell: CellPosition,
+): boolean {
+  const cellId = convertCellToCellId(cell);
+
+  if (visualState.gameState.structuresByCellId.has(cellId)) {
+    return false;
+  }
+
+  if (
+    visualState.planingBuildingMode &&
+    visualState.planingBuildingMode.facilityType === FacilityType.CITY
+  ) {
+    const expeditionStart =
+      visualState.planingBuildingMode.expeditionFromCity.position;
+    return (
+      cellDistanceSquare(expeditionStart, cell) < MAX_EXPEDITION_DISTANCE_SQUARE
+    );
+  }
+
+  return true;
+}
+
+function cellDistanceSquare(pos1: CellPosition, pos2: CellPosition): number {
+  return (pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2;
 }

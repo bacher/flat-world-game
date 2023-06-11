@@ -29,9 +29,11 @@ import { resourceLocalization } from '../../game/resourceLocalization';
 import { useForceUpdate } from '../hooks/forceUpdate';
 import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
 import { parseCoordinatesFromString } from '../utils/coords';
+import type { VisualState } from '../../game/visualState';
 
 type Props = {
   gameState: GameState;
+  visualState: VisualState;
   facility: Structure;
   onClose: () => void;
 };
@@ -47,7 +49,7 @@ export type FacilityModalRef = {
 };
 
 export const FacilityModal = forwardRef<FacilityModalRef, Props>(
-  ({ gameState, facility, onClose }, ref) => {
+  ({ gameState, visualState, facility, onClose }, ref) => {
     const controlRef = useRef<Control | undefined>();
 
     function onCloseClick() {
@@ -63,8 +65,10 @@ export const FacilityModal = forwardRef<FacilityModalRef, Props>(
       <div className={styles.modalWindow}>
         <Content
           gameState={gameState}
+          visualState={visualState}
           facility={facility}
           controlRef={controlRef}
+          onCloseClick={onCloseClick}
         />
         <button
           className={styles.closeButton}
@@ -81,15 +85,31 @@ export const FacilityModal = forwardRef<FacilityModalRef, Props>(
 
 function Content({
   gameState,
+  visualState,
   facility,
   controlRef,
+  onCloseClick,
 }: {
   gameState: GameState;
+  visualState: VisualState;
   facility: Structure;
   controlRef: ControlRef;
+  onCloseClick: () => void;
 }) {
   if (facility.type === FacilityType.CITY) {
-    return <CityContent city={facility} />;
+    return (
+      <CityContent
+        city={facility}
+        onNewCityClick={() => {
+          visualState.planingBuildingMode = {
+            facilityType: FacilityType.CITY,
+            expeditionFromCity: facility,
+          };
+          visualState.onUpdate();
+          onCloseClick();
+        }}
+      />
+    );
   }
 
   if (facility.type === FacilityType.CONSTRUCTION) {
@@ -105,8 +125,26 @@ function Content({
   );
 }
 
-function CityContent({ city }: { city: City }) {
-  return <div>City: {city.name}</div>;
+function CityContent({
+  city,
+  onNewCityClick,
+}: {
+  city: City;
+  onNewCityClick: () => void;
+}) {
+  return (
+    <div>
+      <h2>City: {city.name}</h2>
+      <button
+        type="button"
+        onClick={() => {
+          onNewCityClick();
+        }}
+      >
+        Set up new City
+      </button>
+    </div>
+  );
 }
 
 function BuildingContent() {
@@ -255,7 +293,7 @@ function FacilityContent({
 
   return (
     <div>
-      <h2>{facilitiesDescription.get(facility.type)}</h2>
+      <h2>{facilitiesDescription[facility.type]}</h2>
       <label>
         Assigned Workers (max={max}):{' '}
         <input

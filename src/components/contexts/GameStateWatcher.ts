@@ -1,8 +1,10 @@
 import { createContext } from 'react';
 
 type GameStateWatcher = {
-  tick: () => void;
+  emitTick: () => void;
+  emitVisualStateChange: () => void;
   onTick: (callback: () => void) => () => void;
+  onVisualStateChange: (callback: () => void) => () => void;
 };
 
 export const GameStateWatcherContext = createContext<
@@ -10,21 +12,37 @@ export const GameStateWatcherContext = createContext<
 >(undefined);
 
 export function createGameStateWatcher(): GameStateWatcher {
-  const listeners: (() => void)[] = [];
+  const tickListeners: (() => void)[] = [];
+  const visualStateListeners: (() => void)[] = [];
 
   return {
-    tick: () => {
-      for (const listener of listeners) {
+    emitTick: () => {
+      for (const listener of tickListeners) {
         listener();
       }
     },
     onTick: (callback) => {
-      listeners.push(callback);
+      tickListeners.push(callback);
 
       return () => {
-        const index = listeners.findIndex(callback);
+        const index = tickListeners.findIndex(callback);
         if (index !== -1) {
-          listeners.splice(index, 1);
+          tickListeners.splice(index, 1);
+        }
+      };
+    },
+    emitVisualStateChange: () => {
+      for (const listener of visualStateListeners) {
+        listener();
+      }
+    },
+    onVisualStateChange: (callback) => {
+      visualStateListeners.push(callback);
+
+      return () => {
+        const index = visualStateListeners.findIndex(callback);
+        if (index !== -1) {
+          visualStateListeners.splice(index, 1);
         }
       };
     },

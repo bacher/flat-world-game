@@ -20,6 +20,11 @@ export type ExactFacilityType = Exclude<
   FacilityType.CITY | FacilityType.CONSTRUCTION
 >;
 
+export type FacilityTypeWithoutConstruction = Exclude<
+  FacilityType,
+  FacilityType.CONSTRUCTION
+>;
+
 export type CellPath = {
   from: CellPosition;
   to: CellPosition;

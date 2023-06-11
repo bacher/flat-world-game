@@ -2,7 +2,7 @@ import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from '../game/facilitiesIterationInfo';
-import { Structure, convertCellToCellId } from '../game/gameState';
+import { Structure } from '../game/gameState';
 import { resourceLocalization } from '../game/resourceLocalization';
 import {
   CellPosition,
@@ -12,7 +12,7 @@ import {
   ResourceType,
   StorageItem,
 } from '../game/types';
-import type { VisualState } from '../game/visualState';
+import { VisualState, isAllowToConstructAtPosition } from '../game/visualState';
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
@@ -28,6 +28,8 @@ export function renderGameToCanvas(visualState: VisualState): void {
   ctx.fill();
 
   ctx.translate(offsetX + halfWidth, offsetY + halfHeight);
+
+  drawHighlights(visualState);
 
   if (visualState.hoverCell) {
     if (visualState.planingBuildingMode) {
@@ -66,6 +68,25 @@ function drawGrid(visualState: VisualState): void {
   ctx.restore();
 }
 
+function drawHighlights(visualState: VisualState): void {
+  if (
+    visualState.planingBuildingMode &&
+    visualState.planingBuildingMode.facilityType === FacilityType.CITY
+  ) {
+    const { start, end } = visualState.viewportBounds;
+
+    for (let col = start[0]; col < end[0]; col += 1) {
+      for (let row = start[1]; row < end[1]; row += 1) {
+        const cell = [col, row] as CellPosition;
+
+        if (isAllowToConstructAtPosition(visualState, cell)) {
+          highlightCell(visualState, cell, '#aea');
+        }
+      }
+    }
+  }
+}
+
 function highlightHoverCell(visualState: VisualState): void {
   highlightCell(visualState, visualState.hoverCell!, 'azure');
 }
@@ -93,15 +114,12 @@ function highlightCell(
 function drawBuildingMode(visualState: VisualState): void {
   const hoverCell = visualState.hoverCell!;
 
-  const hoverCellId = convertCellToCellId(hoverCell);
+  const isAllow = isAllowToConstructAtPosition(visualState, hoverCell);
 
-  const isAlreadyBuilding =
-    visualState.gameState.structuresByCellId.has(hoverCellId);
-
-  if (isAlreadyBuilding) {
-    highlightCell(visualState, hoverCell, '#e99');
-  } else {
+  if (isAllow) {
     highlightCell(visualState, hoverCell, '#9c9');
+  } else {
+    highlightCell(visualState, hoverCell, '#e99');
   }
 }
 
@@ -178,7 +196,6 @@ function drawObject(visualState: VisualState, facility: Structure): void {
         ctx.rect(-2, -12, 4, 8);
         ctx.fill();
         break;
-
       default:
         ctx.beginPath();
         ctx.moveTo(-10, -10);

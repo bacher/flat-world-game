@@ -1,40 +1,40 @@
 .wrapper {
-    display: flex;
+  display: flex;
 }
 
 .canvasWrapper {
-    display: grid;
-    grid-template-areas: 'A';
-    width: 800px;
-    height: 600px;
+  display: grid;
+  grid-template-areas: 'A';
+  width: 800px;
+  height: 600px;
 }
 
 .canvas {
-    width: 800px;
-    height: 600px;
-    grid-area: A;
+  width: 800px;
+  height: 600px;
+  grid-area: A;
 
-    &[data-drag] {
-        cursor: move;
-    }
+  &[data-drag] {
+    cursor: move;
+  }
 }
 
 .modalWrapper {
-    grid-area: A;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    pointer-events: none;
+  grid-area: A;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
 
-    & > * {
-        pointer-events: initial;
-    }
+  & > * {
+    pointer-events: initial;
+  }
 }
 
 .modalShadow {
-    grid-area: A;
+  grid-area: A;
 }
 
 .sidePanel {
-    width: 300px;
+  width: 300px;
 }
