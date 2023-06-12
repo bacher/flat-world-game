@@ -2,20 +2,23 @@ import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from '../game/facilitiesIterationInfo';
-import { Structure } from '../game/gameState';
+import { Structure, convertCellToCellId } from '../game/gameState';
 import { resourceLocalization } from '../game/resourceLocalization';
 import {
   CellPosition,
   CellRect,
+  ExactFacilityType,
   FacilityType,
   Point,
   ResourceType,
   StorageItem,
 } from '../game/types';
 import {
+  InteractActionCarrierPlanning,
   InteractiveActionType,
   VisualState,
   isAllowToConstructAtPosition,
+  isPointsSame,
 } from '../game/visualState';
 
 export function renderGameToCanvas(visualState: VisualState): void {
@@ -55,6 +58,8 @@ function drawInteractiveAction(visualState: VisualState): void {
         break;
       }
       case InteractiveActionType.CARRIER_PATH_PLANNING: {
+        drawCarrierPlanningMode(visualState, visualState.interactiveAction);
+
         break;
       }
       default:
@@ -63,6 +68,51 @@ function drawInteractiveAction(visualState: VisualState): void {
   } else {
     highlightHoverCell(visualState);
   }
+}
+
+function drawCarrierPlanningMode(
+  visualState: VisualState,
+  action: InteractActionCarrierPlanning,
+): void {
+  if (!visualState.hoverCell) {
+    return;
+  }
+
+  const cellId = convertCellToCellId(visualState.hoverCell);
+  const hoverFacility = visualState.gameState.structuresByCellId.get(cellId);
+
+  const isValid =
+    hoverFacility &&
+    isValidCarrierPlanningTarget(visualState, hoverFacility, action);
+
+  highlightCell(visualState, visualState.hoverCell, isValid ? '#aea' : '#e99');
+}
+
+export function isExactFacility(type: FacilityType): type is ExactFacilityType {
+  return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
+}
+
+export function isValidCarrierPlanningTarget(
+  visualState: VisualState,
+  hoverFacility: Structure,
+  action: InteractActionCarrierPlanning,
+): boolean {
+  if (
+    hoverFacility &&
+    isExactFacility(hoverFacility.type) &&
+    !isPointsSame(visualState.hoverCell, action.cell)
+  ) {
+    const iterationInfo = facilitiesIterationInfo[hoverFacility.type];
+
+    const storage =
+      action.direction === 'from' ? iterationInfo.input : iterationInfo.output;
+
+    return storage.some(
+      (storageItem) => storageItem.resourceType === action.resourceType,
+    );
+  }
+
+  return false;
 }
 
 function drawGrid(visualState: VisualState): void {

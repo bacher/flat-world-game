@@ -11,13 +11,7 @@ import clamp from 'lodash/clamp';
 import styles from './FacilityModal.module.scss';
 
 import { facilitiesDescription } from '../../game/facilitiesDescriptions';
-import {
-  City,
-  Facility,
-  GameState,
-  Structure,
-  addCityCarrierPaths,
-} from '../../game/gameState';
+import { City, Facility, GameState, Structure } from '../../game/gameState';
 import {
   CarrierPath,
   FacilityType,
@@ -28,7 +22,6 @@ import { facilitiesIterationInfo } from '../../game/facilitiesIterationInfo';
 import { resourceLocalization } from '../../game/resourceLocalization';
 import { useForceUpdate } from '../hooks/forceUpdate';
 import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
-import { parseCoordinatesFromString } from '../utils/coords';
 import { InteractiveActionType, VisualState } from '../../game/visualState';
 
 type Props = {
@@ -119,9 +112,11 @@ function Content({
 
   return (
     <FacilityContent
+      visualState={visualState}
       gameState={gameState}
       facility={facility}
       controlRef={controlRef}
+      onCloseClick={onCloseClick}
     />
   );
 }
@@ -192,13 +187,17 @@ function useAlreadyPathsState({
 }
 
 function FacilityContent({
+  visualState,
   gameState,
   facility,
   controlRef,
+  onCloseClick,
 }: {
+  visualState: VisualState;
   gameState: GameState;
   facility: Facility;
   controlRef: ControlRef;
+  onCloseClick: () => void;
 }) {
   const forceUpdate = useForceUpdate();
   useRenderOnGameTick();
@@ -249,6 +248,22 @@ function FacilityContent({
   }));
 
   function onAddPathClick(
+    facility: Facility,
+    direction: 'from' | 'to',
+    resourceType: ResourceType,
+  ): void {
+    visualState.interactiveAction = {
+      actionType: InteractiveActionType.CARRIER_PATH_PLANNING,
+      cell: facility.position,
+      direction,
+      resourceType,
+    };
+    visualState.onUpdate();
+    onCloseClick();
+  }
+
+  /*
+  function onAddPathManuallyClick(
     resourceType: ResourceType,
     alreadyPaths: ActualPathState,
   ): void {
@@ -292,6 +307,7 @@ function FacilityContent({
       inputValue: '1',
     });
   }
+  */
 
   return (
     <div>
@@ -313,7 +329,7 @@ function FacilityContent({
         storage={facility.input}
         alreadyPaths={alreadyToPaths}
         onAddPathClick={(resourceType) => {
-          onAddPathClick(resourceType, alreadyToPaths);
+          onAddPathClick(facility, 'to', resourceType);
         }}
         forceUpdate={forceUpdate}
       />
@@ -323,7 +339,7 @@ function FacilityContent({
         storage={facility.output}
         alreadyPaths={alreadyFromPaths}
         onAddPathClick={(resourceType) => {
-          onAddPathClick(resourceType, alreadyFromPaths);
+          onAddPathClick(facility, 'from', resourceType);
         }}
         forceUpdate={forceUpdate}
       />

@@ -4,18 +4,24 @@ import { useEffect, useMemo, useRef } from 'react';
 import styles from './Canvas.module.scss';
 
 import {
+  Facility,
   Structure,
   addCity,
+  addCityCarrierPaths,
   addConstructionStructure,
   convertCellToCellId,
   startGame,
 } from '../../game/gameState';
-import { renderGameToCanvas } from '../../gameRender/render';
+import {
+  isValidCarrierPlanningTarget,
+  renderGameToCanvas,
+} from '../../gameRender/render';
 import {
   InteractiveActionType,
   VisualState,
   createVisualState,
   isAllowToConstructAtPosition,
+  isPointsSame,
   lookupGridByPoint,
   startGameLoop,
   visualStateMove,
@@ -228,6 +234,68 @@ export function Canvas() {
 
               visualState.interactiveAction = undefined;
               visualState.onUpdate();
+            }
+            break;
+          }
+          case InteractiveActionType.CARRIER_PATH_PLANNING: {
+            const facility = gameState.structuresByCellId.get(cellId);
+
+            if (
+              facility &&
+              isValidCarrierPlanningTarget(
+                visualState,
+                facility,
+                visualState.interactiveAction,
+              )
+            ) {
+              const cellId = convertCellToCellId(
+                visualState.interactiveAction.cell,
+              );
+
+              const originFacility = gameState.structuresByCellId.get(
+                cellId,
+              ) as Facility;
+
+              const action = visualState.interactiveAction;
+              const { direction } = action;
+
+              const fromFacility =
+                direction === 'from' ? originFacility : facility;
+              const toFacility =
+                direction === 'from' ? facility : originFacility;
+
+              const alreadyCarrierPaths = gameState.carrierPathsFromCellId.get(
+                fromFacility.cellId,
+              );
+
+              if (
+                alreadyCarrierPaths &&
+                alreadyCarrierPaths.some(
+                  (path) =>
+                    path.resourceType === action.resourceType &&
+                    isPointsSame(path.path.from, fromFacility.position) &&
+                    isPointsSame(path.path.to, toFacility.position),
+                )
+              ) {
+                console.log('already path, do nothing');
+              } else {
+                addCityCarrierPaths(
+                  gameState,
+                  [...gameState.cities.values()][0],
+                  [
+                    {
+                      path: {
+                        from: fromFacility.position,
+                        to: toFacility.position,
+                      },
+                      people: 1,
+                      resourceType: action.resourceType,
+                    },
+                  ],
+                );
+                visualState.interactiveAction = undefined;
+                visualState.onUpdate();
+              }
             }
             break;
           }

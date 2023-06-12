@@ -1,4 +1,5 @@
 import { facilitiesDescription } from '../../game/facilitiesDescriptions';
+import { resourceLocalization } from '../../game/resourceLocalization';
 import { InteractiveActionType, VisualState } from '../../game/visualState';
 import { useRenderOnVisualStateChange } from '../hooks/useRenderOnVisualStateChange';
 
@@ -29,7 +30,21 @@ export function StatusText({ visualState }: Props) {
       );
     }
     case InteractiveActionType.CARRIER_PATH_PLANNING: {
-      return <div>CARRIER_PATH_PLANNING</div>;
+      return (
+        <div className={styles.statusText}>
+          <div className={styles.upperTitle}>Current action</div>
+          <div className={styles.mainTitle}>
+            Choose carrier path with "
+            {resourceLocalization[visualState.interactiveAction.resourceType]}"{' '}
+            {getOpositeDirection(visualState.interactiveAction.direction)}:
+          </div>
+          <div className={styles.lowerTitle}>[press Escape to cancel]</div>
+        </div>
+      );
     }
   }
+}
+
+function getOpositeDirection(direction: 'from' | 'to'): 'from' | 'to' {
+  return direction === 'from' ? 'to' : 'from';
 }

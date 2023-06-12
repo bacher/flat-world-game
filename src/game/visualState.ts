@@ -34,23 +34,27 @@ export enum InteractiveActionType {
 }
 
 export type InteractiveAction =
-  | ({
-      actionType: InteractiveActionType.CONSTRUCTION_PLANNING;
-    } & (
-      | {
-          facilityType: ExactFacilityType;
-        }
-      | {
-          facilityType: FacilityType.CITY;
-          expeditionFromCity: City;
-        }
-    ))
+  | InteractActionConstructionPlanning
+  | InteractActionCarrierPlanning;
+
+export type InteractActionConstructionPlanning = {
+  actionType: InteractiveActionType.CONSTRUCTION_PLANNING;
+} & (
   | {
-      actionType: InteractiveActionType.CARRIER_PATH_PLANNING;
-      direction: 'from' | 'to';
-      cell: CellPosition;
-      resourceType: ResourceType;
-    };
+      facilityType: ExactFacilityType;
+    }
+  | {
+      facilityType: FacilityType.CITY;
+      expeditionFromCity: City;
+    }
+);
+
+export type InteractActionCarrierPlanning = {
+  actionType: InteractiveActionType.CARRIER_PATH_PLANNING;
+  direction: 'from' | 'to';
+  cell: CellPosition;
+  resourceType: ResourceType;
+};
 
 export function createVisualState(
   gameState: GameState,
