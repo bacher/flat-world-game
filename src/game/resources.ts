@@ -1,4 +1,8 @@
-import { ResourceType } from './types';
+export enum ResourceType {
+  LOG,
+  ROUTH_LUMBER,
+  FOOD,
+}
 
 export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.LOG]: 'Log',

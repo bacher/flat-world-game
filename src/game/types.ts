@@ -1,3 +1,5 @@
+import type { ResourceType } from './resources';
+
 export type CellPosition = [number, number];
 
 export type Point = [number, number];
@@ -29,12 +31,6 @@ export type CellPath = {
   from: CellPosition;
   to: CellPosition;
 };
-
-export enum ResourceType {
-  LOG,
-  ROUTH_LUMBER,
-  FOOD,
-}
 
 export type StorageItem = {
   resourceType: ResourceType;

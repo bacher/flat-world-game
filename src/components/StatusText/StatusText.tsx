@@ -1,5 +1,5 @@
-import { facilitiesDescription } from '../../game/facilitiesDescriptions';
-import { resourceLocalization } from '../../game/resourceLocalization';
+import { facilitiesDescription } from '../../game/facilities';
+import { resourceLocalization } from '../../game/resources';
 import { InteractiveActionType, VisualState } from '../../game/visualState';
 import { useRenderOnVisualStateChange } from '../hooks/useRenderOnVisualStateChange';
 

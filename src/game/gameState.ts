@@ -9,16 +9,16 @@ import {
   CellPosition,
   ExactFacilityType,
   FacilityType,
-  ResourceType,
   StorageItem,
   WorkingPath,
 } from './types';
+import { ResourceType } from './resources';
 import {
   FacilityConstructionInfo,
   FacilityIterationInfo,
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
-} from './facilitiesIterationInfo';
+} from './facilities';
 
 const PEOPLE_DAY_PER_CELL = 0.02;
 const WEIGHT_PER_PEOPLE_DAY = 2.5;

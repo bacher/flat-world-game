@@ -10,16 +10,12 @@ import clamp from 'lodash/clamp';
 
 import styles from './FacilityModal.module.scss';
 
-import { facilitiesDescription } from '../../game/facilitiesDescriptions';
+import { facilitiesDescription } from '../../game/facilities';
 import { City, Facility, GameState, Structure } from '../../game/gameState';
-import {
-  CarrierPath,
-  FacilityType,
-  ResourceType,
-  StorageItem,
-} from '../../game/types';
-import { facilitiesIterationInfo } from '../../game/facilitiesIterationInfo';
-import { resourceLocalization } from '../../game/resourceLocalization';
+import { CarrierPath, FacilityType, StorageItem } from '../../game/types';
+import { ResourceType } from '../../game/resources';
+import { facilitiesIterationInfo } from '../../game/facilities';
+import { resourceLocalization } from '../../game/resources';
 import { useForceUpdate } from '../hooks/forceUpdate';
 import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
 import { InteractiveActionType, VisualState } from '../../game/visualState';

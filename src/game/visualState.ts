@@ -12,8 +12,8 @@ import {
   ExactFacilityType,
   FacilityType,
   Point,
-  ResourceType,
 } from './types';
+import { ResourceType } from './resources';
 
 export type VisualState = {
   gameState: GameState;

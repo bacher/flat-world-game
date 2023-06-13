@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { ExactFacilityType, FacilityType } from '../../game/types';
-import { facilitiesDescription } from '../../game/facilitiesDescriptions';
+import { facilitiesDescription } from '../../game/facilities';
 
 type Props = {
   onBuildingClick: (params: { facilityType: ExactFacilityType }) => void;

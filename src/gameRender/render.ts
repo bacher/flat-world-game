@@ -1,16 +1,15 @@
 import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
-} from '../game/facilitiesIterationInfo';
+} from '../game/facilities';
 import { Structure, convertCellToCellId } from '../game/gameState';
-import { resourceLocalization } from '../game/resourceLocalization';
+import { ResourceType, resourceLocalization } from '../game/resources';
 import {
   CellPosition,
   CellRect,
   ExactFacilityType,
   FacilityType,
   Point,
-  ResourceType,
   StorageItem,
 } from '../game/types';
 import {
