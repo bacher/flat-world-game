@@ -11,7 +11,13 @@ import clamp from 'lodash/clamp';
 import styles from './FacilityModal.module.scss';
 
 import { facilitiesDescription } from '../../game/facilities';
-import { City, Facility, GameState, Structure } from '../../game/gameState';
+import {
+  City,
+  Facility,
+  GameState,
+  Structure,
+  getStructureIterationStorageInfo,
+} from '../../game/gameState';
 import { CarrierPath, FacilityType, StorageItem } from '../../game/types';
 import { ResourceType } from '../../game/resources';
 import { facilitiesIterationInfo } from '../../game/facilities';
@@ -149,17 +155,17 @@ type ActualPathState = Map<
 >;
 
 function useAlreadyPathsState({
+  availableResources,
   actualPaths,
-  availablePaths,
 }: {
+  availableResources: ResourceType[];
   actualPaths: CarrierPath[] | undefined;
-  availablePaths: StorageItem[];
 }): ActualPathState {
   return useMemo(() => {
     const state = new Map();
 
-    for (const availablePath of availablePaths) {
-      state.set(availablePath.resourceType, []);
+    for (const resourceType of availableResources) {
+      state.set(resourceType, []);
     }
 
     if (actualPaths) {
@@ -207,17 +213,22 @@ function FacilityContent({
     [facility.type],
   );
 
+  const iterationInfo = useMemo(
+    () => getStructureIterationStorageInfo(facility),
+    [facility],
+  );
+
   const alreadyToPaths = useAlreadyPathsState({
-    availablePaths: facilityInfo.input,
+    availableResources: iterationInfo.input.map((item) => item.resourceType),
     actualPaths: gameState.carrierPathsToCellId.get(facility.cellId),
   });
 
   const alreadyFromPaths = useAlreadyPathsState({
-    availablePaths: facilityInfo.output,
+    availableResources: iterationInfo.output.map((item) => item.resourceType),
     actualPaths: gameState.carrierPathsFromCellId.get(facility.cellId),
   });
 
-  const max = useMemo(() => facilityInfo.maximumPeopleAtWork, [facilityInfo]);
+  const max = facilityInfo.maximumPeopleAtWork;
 
   useImperativeHandle(controlRef, () => ({
     applyChanges: () => {

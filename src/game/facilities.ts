@@ -8,10 +8,12 @@ export enum ItrationInfoType {
 
 export type FacilityIterationInfo = {
   iterationInfoType: ItrationInfoType.FACILITY;
-  iterationPeopleDays: number;
   maximumPeopleAtWork: number;
-  input: StorageItem[];
-  output: StorageItem[];
+  productionVariants: {
+    iterationPeopleDays: number;
+    input: StorageItem[];
+    output: StorageItem[];
+  }[];
 };
 
 export const facilitiesIterationInfo: Record<
@@ -20,44 +22,96 @@ export const facilitiesIterationInfo: Record<
 > = {
   [FacilityType.GATHERING]: {
     iterationInfoType: ItrationInfoType.FACILITY,
-    iterationPeopleDays: 1,
     maximumPeopleAtWork: 3,
-    input: [],
-    output: [
+    productionVariants: [
       {
-        resourceType: ResourceType.FOOD,
-        quantity: 1,
+        iterationPeopleDays: 1,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.FOOD,
+            quantity: 1,
+          },
+        ],
       },
     ],
   },
-
   [FacilityType.LUMBERT]: {
     iterationInfoType: ItrationInfoType.FACILITY,
-    iterationPeopleDays: 1,
     maximumPeopleAtWork: 4,
-    input: [],
-    output: [
+    productionVariants: [
       {
-        resourceType: ResourceType.LOG,
-        quantity: 1,
+        iterationPeopleDays: 1,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.LOG,
+            quantity: 1,
+          },
+        ],
       },
     ],
   },
-
   [FacilityType.CHOP_WOOD]: {
     iterationInfoType: ItrationInfoType.FACILITY,
-    iterationPeopleDays: 1,
     maximumPeopleAtWork: 4,
-    input: [
+    productionVariants: [
       {
-        resourceType: ResourceType.LOG,
-        quantity: 1,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.LOG,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 2,
+          },
+        ],
       },
     ],
-    output: [
+  },
+  [FacilityType.WORK_SHOP]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
-        quantity: 2,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.AGRICULTURAL_TOOLS,
+            quantity: 2,
+          },
+        ],
+      },
+    ],
+  },
+  [FacilityType.FIELD]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: [
+      {
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.AGRICULTURAL_TOOLS,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.HAY,
+            quantity: 2,
+          },
+        ],
       },
     ],
   },
@@ -101,6 +155,30 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.WORK_SHOP]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 2,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 10,
+      },
+    ],
+  },
+  [FacilityType.FIELD]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 2,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.AGRICULTURAL_TOOLS,
+        quantity: 10,
+      },
+    ],
+  },
 };
 
 export const facilitiesDescription: Record<FacilityType, string> = {
@@ -109,4 +187,6 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.LUMBERT]: 'Lumbert',
   [FacilityType.GATHERING]: 'Gathering',
   [FacilityType.CHOP_WOOD]: 'Chop wood',
+  [FacilityType.FIELD]: 'Field',
+  [FacilityType.WORK_SHOP]: 'Work shop',
 };

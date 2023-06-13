@@ -1,4 +1,4 @@
-import type { ResourceType } from './resources';
+import { ResourceType } from './resources';
 
 export type CellPosition = [number, number];
 
@@ -15,6 +15,8 @@ export enum FacilityType {
   CONSTRUCTION = 'CONSTRUCTION',
   CHOP_WOOD = 'CHOP_WOOD',
   GATHERING = 'GATHERING',
+  WORK_SHOP = 'WORK_SHOP',
+  FIELD = 'FIELD',
 }
 
 export type ExactFacilityType = Exclude<
@@ -36,6 +38,8 @@ export type StorageItem = {
   resourceType: ResourceType;
   quantity: number;
 };
+
+export const citiesInputResourceTypes = [ResourceType.FOOD];
 
 export type CarrierPath = {
   path: CellPath;

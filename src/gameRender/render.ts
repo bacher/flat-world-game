@@ -1,8 +1,11 @@
 import {
-  facilitiesConstructionInfo,
-  facilitiesIterationInfo,
-} from '../game/facilities';
-import { Structure, convertCellToCellId } from '../game/gameState';
+  City,
+  Construction,
+  Facility,
+  Structure,
+  convertCellToCellId,
+  getStructureIterationStorageInfo,
+} from '../game/gameState';
 import { ResourceType, resourceLocalization } from '../game/resources';
 import {
   CellPosition,
@@ -11,6 +14,7 @@ import {
   FacilityType,
   Point,
   StorageItem,
+  citiesInputResourceTypes,
 } from '../game/types';
 import {
   InteractActionCarrierPlanning,
@@ -91,24 +95,36 @@ export function isExactFacility(type: FacilityType): type is ExactFacilityType {
   return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
 }
 
+function extactResourceTypesFromStorageInfo(
+  facility: Facility | Construction,
+): { input: ResourceType[]; output: ResourceType[] } {
+  const { input, output } = getStructureIterationStorageInfo(facility);
+
+  return {
+    input: input.map((item) => item.resourceType),
+    output: output.map((item) => item.resourceType),
+  };
+}
+
 export function isValidCarrierPlanningTarget(
   visualState: VisualState,
   hoverFacility: Structure,
   action: InteractActionCarrierPlanning,
 ): boolean {
-  if (
-    hoverFacility &&
-    isExactFacility(hoverFacility.type) &&
-    !isPointsSame(visualState.hoverCell, action.cell)
-  ) {
-    const iterationInfo = facilitiesIterationInfo[hoverFacility.type];
+  if (hoverFacility && !isPointsSame(visualState.hoverCell, action.cell)) {
+    let input: ResourceType[];
+    let output: ResourceType[];
 
-    const storage =
-      action.direction === 'from' ? iterationInfo.input : iterationInfo.output;
+    if (isCity(hoverFacility)) {
+      input = citiesInputResourceTypes;
+      output = [];
+    } else {
+      ({ input, output } = extactResourceTypesFromStorageInfo(hoverFacility));
+    }
 
-    return storage.some(
-      (storageItem) => storageItem.resourceType === action.resourceType,
-    );
+    const storage = action.direction === 'from' ? input : output;
+
+    return storage.includes(action.resourceType);
   }
 
   return false;
@@ -274,6 +290,17 @@ function drawObject(visualState: VisualState, facility: Structure): void {
         ctx.rect(-2, -12, 4, 8);
         ctx.fill();
         break;
+      case FacilityType.WORK_SHOP:
+        ctx.beginPath();
+        ctx.moveTo(-10, -7);
+        ctx.lineTo(-10, 8);
+        ctx.lineTo(10, 8);
+        ctx.lineTo(10, -7);
+        ctx.lineTo(0, -11);
+        ctx.closePath();
+        ctx.fillStyle = 'brown';
+        ctx.fill();
+        break;
       default:
         ctx.beginPath();
         ctx.moveTo(-10, -10);
@@ -404,25 +431,19 @@ function drawWorkingPaths(visualState: VisualState): void {
   }
 }
 
+function isCity(structure: Structure): structure is City {
+  return structure.type === FacilityType.CITY;
+}
+
 function drawFacilityStorage(
   visualState: VisualState,
   facility: Structure,
 ): void {
-  const facilityInfo =
-    facility.type !== FacilityType.CITY &&
-    facility.type !== FacilityType.CONSTRUCTION
-      ? facilitiesIterationInfo[facility.type]
-      : undefined;
+  const iterationInfo = isCity(facility)
+    ? undefined
+    : getStructureIterationStorageInfo(facility);
 
-  let planInput: StorageItem[] | undefined;
-
-  if (facility.type === FacilityType.CONSTRUCTION) {
-    const constructionFacility =
-      facilitiesConstructionInfo[facility.buildingFacilityType];
-    planInput = constructionFacility.input;
-  } else if (facilityInfo) {
-    planInput = facilityInfo.input;
-  }
+  const planInput = iterationInfo?.input;
 
   const input = planInput
     ? combineStorageWithIteration(planInput, facility.input)
@@ -432,8 +453,8 @@ function drawFacilityStorage(
     drawStorage(visualState, input, 'right');
   }
 
-  const output = facilityInfo
-    ? combineStorageWithIteration(facilityInfo.output, facility.output)
+  const output = iterationInfo
+    ? combineStorageWithIteration(iterationInfo.output, facility.output)
     : facility.output;
 
   if (output.length) {
