@@ -4,6 +4,7 @@ export enum ResourceType {
   FOOD,
   AGRICULTURAL_TOOLS,
   HAY,
+  HORSE,
 }
 
 export const resourceLocalization: Record<ResourceType, string> = {
@@ -12,4 +13,5 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.FOOD]: 'Food',
   [ResourceType.AGRICULTURAL_TOOLS]: 'Agricultural tools',
   [ResourceType.HAY]: 'Hay',
+  [ResourceType.HORSE]: 'Horse',
 };

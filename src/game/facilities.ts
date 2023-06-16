@@ -115,6 +115,27 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
+  [FacilityType.HORSE_HOUSE]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: [
+      {
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.HAY,
+            quantity: 20,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.HORSE,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
 };
 
 export type FacilityConstructionInfo = {
@@ -179,6 +200,18 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.HORSE_HOUSE]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 2,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.LOG,
+        quantity: 10,
+      },
+    ],
+  },
 };
 
 export const facilitiesDescription: Record<FacilityType, string> = {
@@ -189,4 +222,5 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CHOP_WOOD]: 'Chop wood',
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
+  [FacilityType.HORSE_HOUSE]: 'Horse house',
 };

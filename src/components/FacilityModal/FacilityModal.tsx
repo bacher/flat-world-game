@@ -10,9 +10,13 @@ import clamp from 'lodash/clamp';
 
 import styles from './FacilityModal.module.scss';
 
-import { facilitiesDescription } from '../../game/facilities';
+import {
+  facilitiesConstructionInfo,
+  facilitiesDescription,
+} from '../../game/facilities';
 import {
   City,
+  Construction,
   Facility,
   GameState,
   Structure,
@@ -109,7 +113,14 @@ function Content({
   }
 
   if (facility.type === FacilityType.CONSTRUCTION) {
-    return <BuildingContent />;
+    return (
+      <BuildingContent
+        gameState={gameState}
+        visualState={visualState}
+        construction={facility}
+        onCloseClick={onCloseClick}
+      />
+    );
   }
 
   return (
@@ -145,8 +156,45 @@ function CityContent({
   );
 }
 
-function BuildingContent() {
-  return <div>Under construction</div>;
+function BuildingContent({
+  gameState,
+  visualState,
+  construction,
+  onCloseClick,
+}: {
+  gameState: GameState;
+  visualState: VisualState;
+  construction: Construction;
+  onCloseClick: () => void;
+}) {
+  const forceUpdate = useForceUpdate();
+
+  const iterationInfo = useMemo(
+    () => facilitiesConstructionInfo[construction.buildingFacilityType],
+    [construction.buildingFacilityType],
+  );
+
+  const alreadyToPaths = useAlreadyPathsState({
+    availableResources: iterationInfo.input.map((item) => item.resourceType),
+    actualPaths: gameState.carrierPathsToCellId.get(construction.cellId),
+  });
+
+  return (
+    <div>
+      Under construction
+      <SupplySection
+        title="Input"
+        storageType={StorateType.INPUT}
+        storage={construction.input}
+        alreadyPaths={alreadyToPaths}
+        onAddPathClick={(resourceType) => {
+          addPath(visualState, construction, 'to', resourceType);
+          onCloseClick();
+        }}
+        forceUpdate={forceUpdate}
+      />
+    </div>
+  );
 }
 
 type ActualPathState = Map<
@@ -186,6 +234,21 @@ function useAlreadyPathsState({
 
     return state;
   }, []);
+}
+
+function addPath(
+  visualState: VisualState,
+  facility: Structure,
+  direction: 'from' | 'to',
+  resourceType: ResourceType,
+): void {
+  visualState.interactiveAction = {
+    actionType: InteractiveActionType.CARRIER_PATH_PLANNING,
+    cell: facility.position,
+    direction,
+    resourceType,
+  };
+  visualState.onUpdate();
 }
 
 function FacilityContent({
@@ -254,21 +317,6 @@ function FacilityContent({
     },
   }));
 
-  function onAddPathClick(
-    facility: Facility,
-    direction: 'from' | 'to',
-    resourceType: ResourceType,
-  ): void {
-    visualState.interactiveAction = {
-      actionType: InteractiveActionType.CARRIER_PATH_PLANNING,
-      cell: facility.position,
-      direction,
-      resourceType,
-    };
-    visualState.onUpdate();
-    onCloseClick();
-  }
-
   /*
   function onAddPathManuallyClick(
     resourceType: ResourceType,
@@ -336,7 +384,8 @@ function FacilityContent({
         storage={facility.input}
         alreadyPaths={alreadyToPaths}
         onAddPathClick={(resourceType) => {
-          onAddPathClick(facility, 'to', resourceType);
+          addPath(visualState, facility, 'to', resourceType);
+          onCloseClick();
         }}
         forceUpdate={forceUpdate}
       />
@@ -346,7 +395,8 @@ function FacilityContent({
         storage={facility.output}
         alreadyPaths={alreadyFromPaths}
         onAddPathClick={(resourceType) => {
-          onAddPathClick(facility, 'from', resourceType);
+          addPath(visualState, facility, 'from', resourceType);
+          onCloseClick();
         }}
         forceUpdate={forceUpdate}
       />

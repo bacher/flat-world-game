@@ -17,6 +17,7 @@ export enum FacilityType {
   GATHERING = 'GATHERING',
   WORK_SHOP = 'WORK_SHOP',
   FIELD = 'FIELD',
+  HORSE_HOUSE = 'HORSE_HOUSE',
 }
 
 export type ExactFacilityType = Exclude<

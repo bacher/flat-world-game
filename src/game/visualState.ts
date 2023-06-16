@@ -196,18 +196,9 @@ export function startGameLoop(
   visualState: VisualState,
   onTick: () => void,
 ): () => void {
-  let tickNumber = 0;
-
   const intervalId = window.setInterval(() => {
-    tickNumber += 1;
     tick(visualState.gameState);
     onTick();
-
-    // TODO: While developing
-    if (tickNumber === 200) {
-      console.log('Game stopped');
-      window.clearInterval(intervalId);
-    }
   }, 1000);
 
   return () => {

@@ -69,6 +69,9 @@ export function Canvas() {
 
   const gameStateWatcher = useMemo(createGameStateWatcher, []);
 
+  const currentTickRef = useRef(0);
+  const lastInteractionTick = useRef(0);
+
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
       alpha: false,
@@ -94,10 +97,19 @@ export function Canvas() {
 
     forceUpdate();
 
-    return startGameLoop(visualStateRef.current, () => {
+    const stopGameLoop = startGameLoop(visualStateRef.current, () => {
+      currentTickRef.current += 1;
       renderGameToCanvas(visualState);
       gameStateWatcher.emitTick();
+
+      // TODO: While developing
+      if (currentTickRef.current > lastInteractionTick.current + 200) {
+        console.log('Game stopped');
+        stopGameLoop();
+      }
     });
+
+    return stopGameLoop;
   }, []);
 
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
@@ -126,7 +138,7 @@ export function Canvas() {
       const dx = mouseState.mouseDownPosition[0] - mousePos[0];
       const dy = mouseState.mouseDownPosition[1] - mousePos[1];
 
-      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+      if (Math.abs(dx) + Math.abs(dy) > 3) {
         mouseState.isDrag = true;
       }
     }
@@ -143,6 +155,8 @@ export function Canvas() {
   }
 
   function onKeyDown(event: KeyboardEvent): void {
+    lastInteractionTick.current = currentTickRef.current;
+
     if (!visualStateRef.current || event.defaultPrevented) {
       return;
     }

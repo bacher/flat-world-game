@@ -23,6 +23,8 @@ import {
   isAllowToConstructAtPosition,
   isPointsSame,
 } from '../game/visualState';
+import { drawStructureObject } from './renderStructures';
+import { drawResourceIcon } from './renderResource';
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
@@ -233,126 +235,13 @@ function drawObjects(visualState: VisualState): void {
 
 function drawObject(visualState: VisualState, facility: Structure): void {
   if (isCellInRectInclsive(visualState.viewportBounds, facility.position)) {
-    const { ctx, cellSize } = visualState;
+    const { ctx } = visualState;
 
     ctx.save();
     const cellCenter = getCellCenter(visualState, facility.position);
     ctx.translate(cellCenter[0], cellCenter[1]);
 
-    let drawFacilityType = facility.type;
-
-    if (facility.type === FacilityType.CONSTRUCTION) {
-      drawFacilityType = facility.buildingFacilityType;
-    }
-
-    switch (drawFacilityType) {
-      case FacilityType.CITY:
-        ctx.beginPath();
-        ctx.arc(0, 0, 14, 0, 2 * Math.PI, true);
-        ctx.fillStyle = 'black';
-        ctx.fill();
-        break;
-      case FacilityType.LUMBERT:
-        ctx.beginPath();
-        ctx.moveTo(0, -15);
-        ctx.lineTo(-15, 12);
-        ctx.lineTo(15, 12);
-        ctx.closePath();
-        ctx.fillStyle = 'green';
-        ctx.fill();
-        break;
-      case FacilityType.CHOP_WOOD:
-        ctx.beginPath();
-        ctx.moveTo(-12, -8);
-        ctx.lineTo(-8, -12);
-        ctx.lineTo(12, 8);
-        ctx.lineTo(8, 12);
-        ctx.closePath();
-        ctx.fillStyle = 'black';
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(-12, -8);
-        ctx.lineTo(-15, 6);
-        ctx.lineTo(2, 6);
-        ctx.closePath();
-        ctx.fillStyle = 'gray';
-        ctx.fill();
-        break;
-      case FacilityType.GATHERING:
-        ctx.beginPath();
-        ctx.moveTo(-12, -4);
-        ctx.lineTo(-9, 8);
-        ctx.lineTo(9, 8);
-        ctx.lineTo(12, -4);
-        ctx.closePath();
-        ctx.fillStyle = 'brown';
-        ctx.fill();
-        ctx.rect(-2, -12, 4, 8);
-        ctx.fill();
-        break;
-      case FacilityType.WORK_SHOP:
-        ctx.beginPath();
-        ctx.moveTo(-10, -7);
-        ctx.lineTo(-10, 8);
-        ctx.lineTo(10, 8);
-        ctx.lineTo(10, -7);
-        ctx.lineTo(0, -11);
-        ctx.closePath();
-        ctx.fillStyle = 'brown';
-        ctx.fill();
-        break;
-      default:
-        ctx.beginPath();
-        ctx.moveTo(-10, -10);
-        ctx.lineTo(10, 10);
-        ctx.moveTo(10, -10);
-        ctx.lineTo(-10, 10);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'black';
-        ctx.stroke();
-        ctx.lineWidth = 1;
-        console.warn(`No render function for facility ${drawFacilityType}`);
-    }
-
-    if (facility.type === FacilityType.CONSTRUCTION) {
-      ctx.beginPath();
-      ctx.rect(
-        -cellSize[0] / 2 + 1,
-        -cellSize[1] / 2 + 1,
-        cellSize[0] - 2,
-        cellSize[1] - 2,
-      );
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.fill();
-    }
-
-    if (facility.type === FacilityType.CITY) {
-      const city = facility;
-
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'alphabetic';
-      ctx.strokeStyle = 'white';
-      ctx.fillStyle = 'black';
-      ctx.lineWidth = 3;
-
-      ctx.strokeText(facility.name, 0, 28);
-      ctx.fillText(facility.name, 0, 28);
-
-      const populationText = Math.floor(city.population).toString();
-      const needPopulationText = city.lastTickNeedPopulation.toString();
-      const text = `${needPopulationText}/${populationText}`;
-      if (city.population >= city.lastTickNeedPopulation) {
-        ctx.fillStyle = 'green';
-      } else {
-        ctx.fillStyle = 'red';
-      }
-      ctx.textAlign = 'right';
-      ctx.strokeText(text, 18, 14);
-      ctx.fillText(text, 18, 14);
-
-      ctx.lineWidth = 1;
-    }
-
+    drawStructureObject(visualState, facility);
     drawFacilityStorage(visualState, facility);
 
     ctx.restore();
@@ -492,50 +381,7 @@ function drawStorage(
 
     const { resourceType, quantity } = storage[i];
 
-    switch (resourceType) {
-      case ResourceType.LOG:
-        ctx.beginPath();
-        ctx.moveTo(-5, -3);
-        ctx.lineTo(5, -3);
-        ctx.lineTo(5, 3);
-        ctx.lineTo(-5, 3);
-        ctx.fillStyle = 'brown';
-        ctx.fill();
-        break;
-      case ResourceType.ROUTH_LUMBER:
-        ctx.fillStyle = 'brown';
-        ctx.beginPath();
-        ctx.moveTo(-4, -6);
-        ctx.lineTo(-6, -4);
-        ctx.lineTo(4, 6);
-        ctx.lineTo(6, 4);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(-4, 6);
-        ctx.lineTo(-6, 4);
-        ctx.lineTo(4, -6);
-        ctx.lineTo(6, -4);
-        ctx.closePath();
-        ctx.fill();
-        break;
-      case ResourceType.FOOD:
-        ctx.beginPath();
-        ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-        ctx.beginPath();
-        ctx.rect(2, -6, 2, 4);
-        ctx.fillStyle = 'green';
-        ctx.fill();
-        break;
-      default:
-        ctx.beginPath();
-        ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
-        ctx.fillStyle = 'black';
-        ctx.fill();
-        console.warn(`No render function for resource ${resourceType}`);
-    }
+    drawResourceIcon(ctx, resourceType);
 
     ctx.textBaseline = 'middle';
     const value = quantity.toFixed(1);
