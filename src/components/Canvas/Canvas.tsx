@@ -113,6 +113,8 @@ export function Canvas() {
   }, []);
 
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
+    lastInteractionTick.current = currentTickRef.current;
+
     if (showDialogForFacilityRef.current) {
       return;
     }

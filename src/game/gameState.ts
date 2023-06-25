@@ -18,8 +18,13 @@ import {
   facilitiesIterationInfo,
 } from './facilities';
 
-const PEOPLE_DAY_PER_CELL = 0.02;
-const WEIGHT_PER_PEOPLE_DAY = 2.5;
+const BASE_PEOPLE_DAY_PER_CELL = 0.02;
+const BASE_HORSE_DAY_PER_CELL = 0.02;
+const BASE_WEIGHT_PER_PEOPLE_DAY = 2.5;
+const BASE_WEIGHT_PER_HORSE_DAY = 3.5;
+const BASE_PEOPLE_WORK_MODIFIER = 1;
+const BASE_HORSE_WORK_MODIFIER = 0.5;
+const HORSES_PER_WORKER = 0.1;
 const BUFFER_DAYS = 2;
 const MINIMAL_CITY_PEOPLE = 3;
 const PEOPLE_FOOD_PER_DAY = 0.2;
@@ -48,6 +53,10 @@ export type City = StructureBase & {
   name: string;
   population: number;
   carrierPaths: CarrierPath[];
+  peopleDayPerCell: number;
+  weightPerPeopleDay: number;
+  peopleWorkModifier: number;
+  totalWorkersCount: number;
   lastTickNeedPopulation: number;
   lastTickWorkingPaths: WorkingPath[];
 };
@@ -179,6 +188,13 @@ type PlannedJob = [number, number, number, JobObject];
 export function tick(gameState: GameState): void {
   // PLANING PHASE
 
+  const grabbedHorsesPerCity = new Map<CityId, number>();
+
+  for (const city of gameState.cities) {
+    actualizeCityTotalWorkersCount(gameState, city);
+    calculateCityModificators(grabbedHorsesPerCity, city);
+  }
+
   const planPerCity = new Map<CityId, { jobs: PlannedJob[] }>();
 
   for (const city of gameState.cities) {
@@ -208,11 +224,13 @@ export function tick(gameState: GameState): void {
       const iterationInfo = getStructureIterationStorageInfo(facility);
 
       if (iterationInfo) {
+        const iterationPeopleDays =
+          iterationInfo.iterationPeopleDays / city.peopleWorkModifier;
+
         let needPeople = 0;
 
         if (facility.inProcess > 0) {
-          needPeople +=
-            (1 - facility.inProcess) * iterationInfo.iterationPeopleDays;
+          needPeople += (1 - facility.inProcess) * iterationPeopleDays;
         }
 
         const resourcesForIterations =
@@ -224,7 +242,7 @@ export function tick(gameState: GameState): void {
           iterationsUntilOverDone =
             getIterationsUntilConstructionComplete(facility);
         } else {
-          iterationsUntilOverDone = getIterationsUntilOverDone(facility);
+          iterationsUntilOverDone = getIterationsUntilOverDone(facility, city);
         }
 
         needPeople +=
@@ -234,7 +252,7 @@ export function tick(gameState: GameState): void {
               0,
               iterationsUntilOverDone + (facility.inProcess > 0 ? -1 : 0),
             ),
-          ) * iterationInfo.iterationPeopleDays;
+          ) * iterationPeopleDays;
 
         if (needPeople > 0) {
           const max = facility.assignedWorkersCount;
@@ -292,7 +310,8 @@ export function tick(gameState: GameState): void {
           maxInput =
             resourceIterationInfo.quantity *
             (toFacility.assignedWorkersCount /
-              constructInfo.iterationPeopleDays) *
+              constructInfo.iterationPeopleDays /
+              city.peopleWorkModifier) *
             constructInfo.iterations;
         } else {
           const toFacilityIterationInfo =
@@ -305,7 +324,8 @@ export function tick(gameState: GameState): void {
           maxInput =
             resourceIterationInfo.quantity *
             (toFacility.assignedWorkersCount /
-              toFacilityIterationInfo.iterationPeopleDays) *
+              toFacilityIterationInfo.iterationPeopleDays /
+              city.peopleWorkModifier) *
             BUFFER_DAYS;
         }
 
@@ -325,10 +345,10 @@ export function tick(gameState: GameState): void {
 
       const needToMove = maxInput - toCount;
 
-      const remains = 1 - commingDistance * PEOPLE_DAY_PER_CELL;
+      const remains = 1 - commingDistance * city.peopleDayPerCell;
 
       const needPeople = Math.ceil(
-        ((needToMove / WEIGHT_PER_PEOPLE_DAY) * moveDistance) / remains,
+        ((needToMove / city.weightPerPeopleDay) * moveDistance) / remains,
       );
 
       registerJob(
@@ -370,6 +390,26 @@ export function tick(gameState: GameState): void {
     planPerCity.set(city.cityId, { jobs });
   }
 
+  // Return unused horses
+
+  for (const city of gameState.cities) {
+    const { jobs } = planPerCity.get(city.cityId)!;
+    const grabbedHorses = grabbedHorsesPerCity.get(city.cityId)!;
+
+    const actualTotalWorkersCount = jobs.reduce((acc, job) => acc + job[1], 0);
+
+    const usedHorses = actualTotalWorkersCount * HORSES_PER_WORKER;
+
+    const unusedHorses = grabbedHorses - usedHorses;
+
+    if (unusedHorses > 0) {
+      addResource(city.input, {
+        resourceType: ResourceType.HORSE,
+        quantity: unusedHorses,
+      });
+    }
+  }
+
   // Carriers get items
 
   const currentlyMovingProducts: {
@@ -391,11 +431,11 @@ export function tick(gameState: GameState): void {
           moveDistance,
         } = jobObject;
 
-        const remains = 1 - commingDistance * PEOPLE_DAY_PER_CELL;
+        const remains = 1 - commingDistance * city.peopleDayPerCell;
 
         const power = remains * people;
 
-        let movedWeight = (power / moveDistance) * WEIGHT_PER_PEOPLE_DAY;
+        let movedWeight = (power / moveDistance) * city.weightPerPeopleDay;
         movedWeight = Math.floor(movedWeight * 10) / 10;
 
         const grabbedItem = grabResource(fromFacility.output, {
@@ -425,7 +465,9 @@ export function tick(gameState: GameState): void {
         const iteration = getStructureIterationStorageInfo(facility);
 
         let peopleIterationsRemains =
-          peopleAfterWalk / iteration.iterationPeopleDays;
+          peopleAfterWalk /
+          iteration.iterationPeopleDays /
+          city.peopleWorkModifier;
         let overallDone = 0;
 
         if (facility.inProcess > 0) {
@@ -449,7 +491,7 @@ export function tick(gameState: GameState): void {
           iterationsUntilOverDone =
             getIterationsUntilConstructionComplete(facility);
         } else {
-          iterationsUntilOverDone = getIterationsUntilOverDone(facility);
+          iterationsUntilOverDone = getIterationsUntilOverDone(facility, city);
         }
 
         const finalIterationsUntilOverDone = Math.max(
@@ -599,6 +641,46 @@ export function tick(gameState: GameState): void {
   }
 }
 
+function actualizeCityTotalWorkersCount(
+  gameState: GameState,
+  city: City,
+): void {
+  const carriers = city.carrierPaths.reduce(
+    (acc, path) => acc + path.people,
+    0,
+  );
+
+  const workers =
+    gameState.facilitiesByCityId
+      .get(city.cityId)
+      ?.reduce((acc, facility) => acc + facility.assignedWorkersCount, 0) ?? 0;
+
+  city.totalWorkersCount = Math.min(city.population, carriers + workers);
+}
+
+function calculateCityModificators(
+  grabbedHorsesPerCity: Map<CityId, number>,
+  city: City,
+): void {
+  const horsesNeeded = city.totalWorkersCount * HORSES_PER_WORKER;
+
+  const grabbedHorses = grabResource(city.input, {
+    resourceType: ResourceType.HORSE,
+    quantity: horsesNeeded,
+  });
+
+  const horseRatio = Math.min(1, grabbedHorses.quantity / horsesNeeded);
+
+  city.peopleWorkModifier =
+    BASE_PEOPLE_WORK_MODIFIER + horseRatio * BASE_HORSE_WORK_MODIFIER;
+  city.peopleDayPerCell =
+    BASE_PEOPLE_DAY_PER_CELL + horseRatio * BASE_HORSE_DAY_PER_CELL;
+  city.weightPerPeopleDay =
+    BASE_WEIGHT_PER_PEOPLE_DAY + horseRatio * BASE_WEIGHT_PER_HORSE_DAY;
+
+  grabbedHorsesPerCity.set(city.cityId, grabbedHorses.quantity);
+}
+
 function calculateDistance(cell1: CellPosition, cell2: CellPosition): number {
   const x = cell1[0] - cell2[0];
   const y = cell1[1] - cell2[1];
@@ -713,7 +795,7 @@ function getMaximumIterationsByResources(
   return minIterations;
 }
 
-function getIterationsUntilOverDone(facility: Facility): number {
+function getIterationsUntilOverDone(facility: Facility, city: City): number {
   let minIterations = Infinity;
 
   const info = getStructureIterationStorageInfo(facility);
@@ -721,7 +803,9 @@ function getIterationsUntilOverDone(facility: Facility): number {
   for (let resource of info.output) {
     const maxPerDay =
       resource.quantity *
-      (facility.assignedWorkersCount / info.iterationPeopleDays);
+      (facility.assignedWorkersCount /
+        info.iterationPeopleDays /
+        city.peopleWorkModifier);
 
     const iterations = Math.ceil(
       (maxPerDay * BUFFER_DAYS -
@@ -830,6 +914,10 @@ export function addCity(
     cellId: cellId,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
+    totalWorkersCount: 0,
+    peopleDayPerCell: BASE_PEOPLE_DAY_PER_CELL,
+    weightPerPeopleDay: BASE_WEIGHT_PER_PEOPLE_DAY,
+    peopleWorkModifier: BASE_PEOPLE_WORK_MODIFIER,
     lastTickNeedPopulation: 0,
     lastTickWorkingPaths: [],
     input: [],

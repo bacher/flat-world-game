@@ -40,7 +40,7 @@ export type StorageItem = {
   quantity: number;
 };
 
-export const citiesInputResourceTypes = [ResourceType.FOOD];
+export const citiesInputResourceTypes = [ResourceType.FOOD, ResourceType.HORSE];
 
 export type CarrierPath = {
   path: CellPath;
