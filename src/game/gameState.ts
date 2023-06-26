@@ -1115,3 +1115,21 @@ export function getNearestCity(gameState: GameState, cell: CellPosition): City {
 
   return nearestCity;
 }
+
+export function getFacilityBindedCity(
+  gameState: GameState,
+  facility: Structure,
+): City {
+  if (facility.type === FacilityType.CITY) {
+    return facility;
+  }
+
+  facility.position;
+  for (const [cityId, facilities] of gameState.facilitiesByCityId) {
+    if (facilities.includes(facility)) {
+      return gameState.cities.find((city) => city.cityId === cityId)!;
+    }
+  }
+
+  throw new Error('No binded city');
+}

@@ -11,6 +11,7 @@ import {
   addCityCarrierPaths,
   addConstructionStructure,
   convertCellToCellId,
+  getFacilityBindedCity,
   getNearestCity,
   startGame,
 } from '../../game/gameState';
@@ -306,20 +307,18 @@ export function Canvas() {
               ) {
                 console.log('already path, do nothing');
               } else {
-                addCityCarrierPaths(
-                  gameState,
-                  [...gameState.cities.values()][0],
-                  [
-                    {
-                      path: {
-                        from: fromFacility.position,
-                        to: toFacility.position,
-                      },
-                      people: 1,
-                      resourceType: action.resourceType,
+                const bindCity = getFacilityBindedCity(gameState, fromFacility);
+
+                addCityCarrierPaths(gameState, bindCity, [
+                  {
+                    path: {
+                      from: fromFacility.position,
+                      to: toFacility.position,
                     },
-                  ],
-                );
+                    people: 1,
+                    resourceType: action.resourceType,
+                  },
+                ]);
                 visualState.interactiveAction = undefined;
                 visualState.onUpdate();
               }
