@@ -182,8 +182,8 @@ export function visualStateMoveToCell(
   const [cellWidth, cellHeight] = visualState.cellSize;
 
   updateVisualStateOffset(visualState, [
-    cell[0] * cellWidth,
-    cell[1] * cellHeight,
+    -cell[0] * cellWidth,
+    -cell[1] * cellHeight,
   ]);
 }
 

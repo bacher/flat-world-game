@@ -11,6 +11,7 @@ import {
   addCityCarrierPaths,
   addConstructionStructure,
   convertCellToCellId,
+  getNearestCity,
   startGame,
 } from '../../game/gameState';
 import {
@@ -125,11 +126,7 @@ export function Canvas() {
     mousePos[0] = event.clientX;
     mousePos[1] = event.clientY;
 
-    if (!mouseState.isMouseDown && event.buttons === 1) {
-      mouseState.isMouseDown = true;
-      mouseState.mouseDownPosition = [mousePos[0], mousePos[1]];
-      forceUpdate();
-    } else if (mouseState.isMouseDown && event.buttons !== 1) {
+    if (mouseState.isMouseDown && event.buttons !== 1) {
       mouseState.isMouseDown = false;
       mouseState.mouseDownPosition = undefined;
       forceUpdate();
@@ -195,6 +192,17 @@ export function Canvas() {
 
   function onMouseDown(event: React.MouseEvent) {
     event.preventDefault();
+
+    if (showDialogForFacilityRef.current) {
+      return;
+    }
+
+    mousePos[0] = event.clientX;
+    mousePos[1] = event.clientY;
+
+    mouseState.isMouseDown = true;
+    mouseState.mouseDownPosition = [mousePos[0], mousePos[1]];
+    forceUpdate();
   }
 
   function onClick(event: React.MouseEvent) {
@@ -239,7 +247,7 @@ export function Canvas() {
               ) {
                 addCity(gameState, { position: cell });
               } else {
-                const nearestCity = [...gameState.cities.values()][0];
+                const nearestCity = getNearestCity(gameState, cell);
 
                 addConstructionStructure(
                   gameState,

@@ -1090,3 +1090,28 @@ function getMaximumAddingLimit(
     iterationInput.quantity * restIterations - alreadyQuantity,
   );
 }
+
+export function getNearestCity(gameState: GameState, cell: CellPosition): City {
+  let nearestCity: City | undefined;
+  let nearestCityDistance = Infinity;
+
+  for (const city of gameState.cities.values()) {
+    const distance = calculateDistance(city.position, cell);
+
+    if (
+      distance < nearestCityDistance ||
+      (nearestCity &&
+        distance === nearestCityDistance &&
+        nearestCity.population < city.population)
+    ) {
+      nearestCity = city;
+      nearestCityDistance = distance;
+    }
+  }
+
+  if (!nearestCity) {
+    throw new Error('Invariant');
+  }
+
+  return nearestCity;
+}
