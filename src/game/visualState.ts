@@ -169,8 +169,27 @@ export function visualStateOnMouseMove(
 }
 
 export function visualStateMove(visualState: VisualState, point: Point): void {
-  visualState.offset[0] += point[0];
-  visualState.offset[1] += point[1];
+  updateVisualStateOffset(visualState, [
+    visualState.offset[0] + point[0],
+    visualState.offset[1] + point[1],
+  ]);
+}
+
+export function visualStateMoveToCell(
+  visualState: VisualState,
+  cell: CellPosition,
+): void {
+  const [cellWidth, cellHeight] = visualState.cellSize;
+
+  updateVisualStateOffset(visualState, [
+    cell[0] * cellWidth,
+    cell[1] * cellHeight,
+  ]);
+}
+
+function updateVisualStateOffset(visualState: VisualState, point: Point): void {
+  visualState.offset[0] = point[0];
+  visualState.offset[1] = point[1];
 
   actualizeViewportBounds(visualState);
 

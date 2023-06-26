@@ -1,9 +1,10 @@
 import type React from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import styles from './Canvas.module.scss';
 
 import {
+  City,
   Facility,
   Structure,
   addCity,
@@ -26,6 +27,7 @@ import {
   startGameLoop,
   visualStateMove,
   visualStateOnMouseMove,
+  visualStateMoveToCell,
 } from '../../game/visualState';
 import { FacilityType, Point } from '../../game/types';
 import { useForceUpdate } from '../hooks/forceUpdate';
@@ -36,6 +38,7 @@ import {
 } from '../contexts/GameStateWatcher';
 import { BuildingsPanel } from '../BuildingsPanel';
 import { StatusText } from '../StatusText';
+import { CitiesPanel } from '../CitiesPanel';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -45,7 +48,7 @@ export function Canvas() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const gameState = useMemo(() => startGame(), []);
+  const [gameState] = useState(() => startGame());
 
   const mouseState = useMemo<{
     isMouseDown: boolean;
@@ -325,19 +328,24 @@ export function Canvas() {
     }
   }
 
+  function onCityClick(city: City): void {
+    visualStateMoveToCell(visualStateRef.current!, city.position);
+  }
+
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.canvasWrapper}>
-        <canvas
-          ref={canvasRef}
-          className={styles.canvas}
-          data-drag={mouseState.isMouseDown || undefined}
-          width={INITIAL_CANVAS_WIDTH}
-          height={INITIAL_CANVAS_HEIGHT}
-          onMouseDown={onMouseDown}
-          onClick={onClick}
-        />
-        <GameStateWatcherProvider value={gameStateWatcher}>
+    <GameStateWatcherProvider value={gameStateWatcher}>
+      <div className={styles.wrapper}>
+        <div className={styles.canvasWrapper}>
+          <canvas
+            ref={canvasRef}
+            className={styles.canvas}
+            data-drag={mouseState.isMouseDown || undefined}
+            width={INITIAL_CANVAS_WIDTH}
+            height={INITIAL_CANVAS_HEIGHT}
+            onMouseDown={onMouseDown}
+            onClick={onClick}
+          />
+
           {visualStateRef.current && (
             <>
               <StatusText visualState={visualStateRef.current} />
@@ -365,18 +373,19 @@ export function Canvas() {
               )}
             </>
           )}
-        </GameStateWatcherProvider>
+        </div>
+        <div className={styles.sidePanel}>
+          <BuildingsPanel
+            onBuildingClick={({ facilityType }) => {
+              visualStateRef.current!.interactiveAction = {
+                actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
+                facilityType,
+              };
+            }}
+          />
+          <CitiesPanel gameState={gameState} onCityClick={onCityClick} />
+        </div>
       </div>
-      <div className={styles.sidePanel}>
-        <BuildingsPanel
-          onBuildingClick={({ facilityType }) => {
-            visualStateRef.current!.interactiveAction = {
-              actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
-              facilityType,
-            };
-          }}
-        />
-      </div>
-    </div>
+    </GameStateWatcherProvider>
   );
 }
