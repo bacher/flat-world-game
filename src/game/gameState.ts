@@ -42,6 +42,7 @@ export type GameState = {
   completedResearches: Set<ResearchId>;
   inProgressResearches: Map<ResearchId, { points: number }>;
   currentResearchId: ResearchId | undefined;
+  unlockedFacilities: Set<ExactFacilityType>;
 };
 
 export type CityId = Branded<number, 'cityId'>;
@@ -95,6 +96,7 @@ export function startGame(): GameState {
     completedResearches: new Set(),
     inProgressResearches: new Map(),
     currentResearchId: undefined,
+    unlockedFacilities: new Set(),
   };
 
   const initialCity = addCity(initialGameState, {
@@ -681,6 +683,10 @@ export function tick(gameState: GameState): void {
       gameState.completedResearches.add(gameState.currentResearchId);
       gameState.inProgressResearches.delete(gameState.currentResearchId);
       gameState.currentResearchId = undefined;
+
+      for (const facilityType of researchInfo.unlockFacilities) {
+        gameState.unlockedFacilities.add(facilityType);
+      }
     }
   }
 }

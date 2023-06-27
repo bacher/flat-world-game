@@ -75,7 +75,7 @@ export function drawStructureObject(
       ctx.fillStyle = 'orange';
       ctx.fill();
       break;
-    case FacilityType.HORSE_HOUSE:
+    case FacilityType.STABLE:
       ctx.beginPath();
       ctx.rect(-10, -5, 20, 9);
       ctx.rect(-12, -12, 5, 7);

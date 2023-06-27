@@ -60,7 +60,12 @@ export function CurrentResearchIcon({
       </span>
     );
   } else {
-    content = <span className={styles.researchTitle}>Not set</span>;
+    content = (
+      <>
+        <span className={styles.researchTitle}>Research</span>
+        <span>not set</span>
+      </>
+    );
   }
 
   return (

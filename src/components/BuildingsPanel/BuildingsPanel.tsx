@@ -1,13 +1,21 @@
 import { useMemo } from 'react';
 
 import { ExactFacilityType, FacilityType } from '../../game/types';
-import { facilitiesDescription } from '../../game/facilities';
+import {
+  facilitiesDescription,
+  initiallyUnlockedFacilities,
+} from '../../game/facilities';
+import { GameState } from '../../game/gameState';
+import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
 
 type Props = {
+  gameState: GameState;
   onBuildingClick: (params: { facilityType: ExactFacilityType }) => void;
 };
 
-export function BuildingsPanel({ onBuildingClick }: Props) {
+export function BuildingsPanel({ gameState, onBuildingClick }: Props) {
+  useRenderOnGameTick();
+
   const facilityTypes = useMemo<ExactFacilityType[]>(
     () =>
       [...Object.values(FacilityType)].filter(
@@ -18,10 +26,17 @@ export function BuildingsPanel({ onBuildingClick }: Props) {
     [],
   );
 
+  const availableFacilities = [
+    ...initiallyUnlockedFacilities,
+    ...facilityTypes.filter((facilityType) =>
+      gameState.unlockedFacilities.has(facilityType),
+    ),
+  ];
+
   return (
     <div>
       <h2>Build new building:</h2>
-      {facilityTypes.map((facilityType) => (
+      {availableFacilities.map((facilityType) => (
         <div key={facilityType}>
           <button
             type="button"

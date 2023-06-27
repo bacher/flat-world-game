@@ -115,7 +115,7 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
-  [FacilityType.HORSE_HOUSE]: {
+  [FacilityType.STABLE]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: [
@@ -200,7 +200,7 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
-  [FacilityType.HORSE_HOUSE]: {
+  [FacilityType.STABLE]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterations: 2,
     iterationPeopleDays: 3,
@@ -214,6 +214,10 @@ export const facilitiesConstructionInfo: Record<
   },
 };
 
+export const initiallyUnlockedFacilities: ExactFacilityType[] = [
+  FacilityType.GATHERING,
+];
+
 export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CITY]: 'City',
   [FacilityType.CONSTRUCTION]: 'Building',
@@ -222,5 +226,5 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CHOP_WOOD]: 'Chop wood',
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
-  [FacilityType.HORSE_HOUSE]: 'Horse house',
+  [FacilityType.STABLE]: 'Stable',
 };

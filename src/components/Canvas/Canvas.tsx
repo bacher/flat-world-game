@@ -449,6 +449,7 @@ export function Canvas() {
         </div>
         <div className={styles.sidePanel}>
           <BuildingsPanel
+            gameState={gameState}
             onBuildingClick={({ facilityType }) => {
               visualStateRef.current!.interactiveAction = {
                 actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
