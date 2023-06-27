@@ -2,6 +2,8 @@
 
 .modal {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 400px;
   height: 400px;
   padding: 10px 16px;
@@ -20,12 +22,20 @@
   cursor: pointer;
 }
 
+.block {
+  padding: 3px 0;
+}
+
 .researchList {
   overflow: auto;
   overflow-x: hidden;
 }
 
 .researchItem {
+  margin: 0 0 6px;
+}
+
+.researchButton {
   @include button-reset;
   display: block;
   width: 100%;
@@ -33,7 +43,7 @@
   padding: 10px 14px;
 
   &Completed {
-    background: green;
+    background: rgb(172, 236, 172);
   }
 
   &Available {
@@ -42,12 +52,26 @@
   }
 
   &InProgress {
-    background: blue;
+    background: rgb(180, 194, 236);
   }
 
   &Blocked {
-    background: rgb(197, 197, 197);
+    background: rgb(234, 234, 234);
   }
+}
+
+.researchHeader {
+  display: flex;
+  align-items: center;
+  padding: 0 0 3px;
+}
+
+.researchTitle {
+  flex-grow: 1;
+}
+
+.researchCost {
+  flex-shrink: 0;
 }
 
 .completed {

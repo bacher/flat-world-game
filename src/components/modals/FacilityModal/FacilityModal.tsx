@@ -29,6 +29,7 @@ import { useForceUpdate } from '../../hooks/forceUpdate';
 import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
 import { InteractiveActionType, VisualState } from '../../../game/visualState';
 import type { ModalRef } from '../types';
+import { ModalCloseButton } from '../ModalCloseButton';
 
 type Props = {
   gameState: GameState;
@@ -71,14 +72,7 @@ export function FacilityModal({
         controlRef={controlRef}
         onCloseClick={onCloseClick}
       />
-      <button
-        className={styles.closeButton}
-        title="close"
-        type="button"
-        onClick={onCloseClick}
-      >
-        x
-      </button>
+      <ModalCloseButton onClick={onCloseClick} />
     </div>
   );
 }

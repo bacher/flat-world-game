@@ -11,6 +11,8 @@ import {
 } from '../../../game/research';
 import type { GameState } from '../../../game/gameState';
 import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
+import { facilitiesDescription } from '../../../game/facilities';
+import { ModalCloseButton } from '../ModalCloseButton';
 
 // Enum should stay numerical because of sorting
 enum ResearchStatus {
@@ -93,16 +95,17 @@ export function ResearchModal({
       </div>
       <ul className={styles.researchList}>
         {extendedResearches.map(({ research, status }) => (
-          <li key={research.researchId}>
+          <li key={research.researchId} className={styles.researchItem}>
             <button
               type="button"
-              className={cn(styles.researchItem, {
-                [styles.researchItemAvailable]:
+              className={cn(styles.researchButton, {
+                [styles.researchButtonAvailable]:
                   status === ResearchStatus.AVAILABLE,
-                [styles.researchItemBlocked]: status === ResearchStatus.BLOCKED,
-                [styles.researchItemCompleted]:
+                [styles.researchButtonBlocked]:
+                  status === ResearchStatus.BLOCKED,
+                [styles.researchButtonCompleted]:
                   status === ResearchStatus.COMPLETED,
-                [styles.researchItemInProgress]:
+                [styles.researchButtonInProgress]:
                   status === ResearchStatus.IN_PROGRESS,
               })}
               onClick={() => {
@@ -111,30 +114,53 @@ export function ResearchModal({
                 }
               }}
             >
-              <h3>{researchTranslations[research.researchId]}</h3>
-              {research.requires.length > 0 && (
-                <>
-                  <h4>Requirements:</h4>
+              <div className={styles.researchHeader}>
+                <h3 className={styles.researchTitle}>
+                  {researchTranslations[research.researchId]}
+                </h3>
+                <span className={styles.researchCost}>
+                  Cost: {research.points}
+                </span>
+              </div>
+              <div className={styles.block}>
+                <h4>Unlocks:</h4>
+                {research.unlockFacilities.length ? (
                   <ul>
-                    {research.requires.map((researchId) => (
-                      <li key={researchId}>
-                        <span
-                          className={cn({
-                            [styles.completed]:
-                              completedResearches.has(researchId),
-                          })}
-                        >
-                          {researchTranslations[researchId]}
-                        </span>
+                    {research.unlockFacilities.map((facilityType) => (
+                      <li key={facilityType}>
+                        {facilitiesDescription[facilityType]}
                       </li>
                     ))}
                   </ul>
-                </>
-              )}
+                ) : (
+                  <span>Nothing</span>
+                )}
+              </div>
+              {status !== ResearchStatus.COMPLETED &&
+                research.requires.length > 0 && (
+                  <div className={styles.block}>
+                    <h4>Requirements:</h4>
+                    <ul>
+                      {research.requires.map((researchId) => (
+                        <li key={researchId}>
+                          <span
+                            className={cn({
+                              [styles.completed]:
+                                completedResearches.has(researchId),
+                            })}
+                          >
+                            {researchTranslations[researchId]}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
             </button>
           </li>
         ))}
       </ul>
+      <ModalCloseButton onClick={onClose} />
     </div>
   );
 }
