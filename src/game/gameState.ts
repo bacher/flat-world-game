@@ -17,6 +17,7 @@ import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from './facilities';
+import { ResearchId, researches } from './research';
 
 const BASE_PEOPLE_DAY_PER_CELL = 0.02;
 const BASE_HORSE_DAY_PER_CELL = 0.02;
@@ -24,6 +25,8 @@ const BASE_WEIGHT_PER_PEOPLE_DAY = 2.5;
 const BASE_WEIGHT_PER_HORSE_DAY = 3.5;
 const BASE_PEOPLE_WORK_MODIFIER = 1;
 const BASE_HORSE_WORK_MODIFIER = 0.5;
+const RESEARCH_POINTS_PER_FREE_PERSON = 3;
+const RESEARCH_POINTS_PER_WORKER = RESEARCH_POINTS_PER_FREE_PERSON / 2;
 const HORSES_PER_WORKER = 0.1;
 const BUFFER_DAYS = 2;
 const MINIMAL_CITY_PEOPLE = 3;
@@ -36,6 +39,9 @@ export type GameState = {
   carrierPathsFromCellId: Map<CellId, CarrierPath[]>;
   carrierPathsToCellId: Map<CellId, CarrierPath[]>;
   alreadyCityNames: Set<string>;
+  completedResearches: Set<ResearchId>;
+  inProgressResearches: Map<ResearchId, { points: number }>;
+  currentResearchId: ResearchId | undefined;
 };
 
 export type CityId = Branded<number, 'cityId'>;
@@ -56,7 +62,7 @@ export type City = StructureBase & {
   peopleDayPerCell: number;
   weightPerPeopleDay: number;
   peopleWorkModifier: number;
-  totalWorkersCount: number;
+  totalAssignedWorkersCount: number;
   lastTickNeedPopulation: number;
   lastTickWorkingPaths: WorkingPath[];
 };
@@ -85,7 +91,10 @@ export function startGame(): GameState {
     carrierPathsFromCellId: new Map(),
     carrierPathsToCellId: new Map(),
     structuresByCellId: new Map(),
-    alreadyCityNames: new Set<string>(),
+    alreadyCityNames: new Set(),
+    completedResearches: new Set(),
+    inProgressResearches: new Map(),
+    currentResearchId: undefined,
   };
 
   const initialCity = addCity(initialGameState, {
@@ -191,11 +200,13 @@ export function tick(gameState: GameState): void {
   const grabbedHorsesPerCity = new Map<CityId, number>();
 
   for (const city of gameState.cities) {
-    actualizeCityTotalWorkersCount(gameState, city);
+    actualizeCityTotalAssignedWorkersCount(gameState, city);
     calculateCityModificators(grabbedHorsesPerCity, city);
   }
 
   const planPerCity = new Map<CityId, { jobs: PlannedJob[] }>();
+
+  let researchPoints = 0;
 
   for (const city of gameState.cities) {
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
@@ -408,6 +419,11 @@ export function tick(gameState: GameState): void {
         quantity: unusedHorses,
       });
     }
+
+    researchPoints +=
+      (city.population - actualTotalWorkersCount) *
+        RESEARCH_POINTS_PER_FREE_PERSON +
+      actualTotalWorkersCount * RESEARCH_POINTS_PER_WORKER;
   }
 
   // Carriers get items
@@ -639,9 +655,37 @@ export function tick(gameState: GameState): void {
       }
     }
   }
+
+  // Research progress
+
+  if (gameState.currentResearchId) {
+    let currentPoints = gameState.inProgressResearches.get(
+      gameState.currentResearchId,
+    );
+
+    if (!currentPoints) {
+      currentPoints = {
+        points: 0,
+      };
+
+      gameState.inProgressResearches.set(
+        gameState.currentResearchId,
+        currentPoints,
+      );
+    }
+
+    currentPoints.points += researchPoints;
+    const researchInfo = researches[gameState.currentResearchId];
+
+    if (currentPoints.points >= researchInfo.points) {
+      gameState.completedResearches.add(gameState.currentResearchId);
+      gameState.inProgressResearches.delete(gameState.currentResearchId);
+      gameState.currentResearchId = undefined;
+    }
+  }
 }
 
-function actualizeCityTotalWorkersCount(
+function actualizeCityTotalAssignedWorkersCount(
   gameState: GameState,
   city: City,
 ): void {
@@ -655,14 +699,17 @@ function actualizeCityTotalWorkersCount(
       .get(city.cityId)
       ?.reduce((acc, facility) => acc + facility.assignedWorkersCount, 0) ?? 0;
 
-  city.totalWorkersCount = Math.min(city.population, carriers + workers);
+  city.totalAssignedWorkersCount = Math.min(
+    city.population,
+    carriers + workers,
+  );
 }
 
 function calculateCityModificators(
   grabbedHorsesPerCity: Map<CityId, number>,
   city: City,
 ): void {
-  const horsesNeeded = city.totalWorkersCount * HORSES_PER_WORKER;
+  const horsesNeeded = city.totalAssignedWorkersCount * HORSES_PER_WORKER;
 
   const grabbedHorses = grabResource(city.input, {
     resourceType: ResourceType.HORSE,
@@ -914,7 +961,7 @@ export function addCity(
     cellId: cellId,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
-    totalWorkersCount: 0,
+    totalAssignedWorkersCount: 0,
     peopleDayPerCell: BASE_PEOPLE_DAY_PER_CELL,
     weightPerPeopleDay: BASE_WEIGHT_PER_PEOPLE_DAY,
     peopleWorkModifier: BASE_PEOPLE_WORK_MODIFIER,

@@ -33,7 +33,8 @@ import {
 } from '../../game/visualState';
 import { FacilityType, Point } from '../../game/types';
 import { useForceUpdate } from '../hooks/forceUpdate';
-import { FacilityModal, FacilityModalRef } from '../FacilityModal';
+import { ModalRef } from '../modals/types';
+import { FacilityModal } from '../modals/FacilityModal';
 import {
   GameStateWatcherProvider,
   createGameStateWatcher,
@@ -41,9 +42,25 @@ import {
 import { BuildingsPanel } from '../BuildingsPanel';
 import { StatusText } from '../StatusText';
 import { CitiesPanel } from '../CitiesPanel';
+import { CurrentResearchIcon } from '../CurrentResearchIcon';
+import { ResearchModal } from '../modals/ResearchModal';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
+
+const enum ModalModeType {
+  FACILITY = 'FACILITY',
+  RESEARCH = 'RESEARCH',
+}
+
+type ModalMode =
+  | {
+      modeType: ModalModeType.FACILITY;
+      facility: Structure;
+    }
+  | {
+      modeType: ModalModeType.RESEARCH;
+    };
 
 export function Canvas() {
   const forceUpdate = useForceUpdate();
@@ -68,9 +85,9 @@ export function Canvas() {
 
   const visualStateRef = useRef<VisualState | undefined>();
 
-  const showDialogForFacilityRef = useRef<Structure | undefined>();
+  const modalModeRef = useRef<ModalMode | undefined>();
 
-  const facilityModalRef = useRef<FacilityModalRef>(null);
+  const modalRef = useRef<ModalRef>(null);
 
   const gameStateWatcher = useMemo(createGameStateWatcher, []);
 
@@ -120,7 +137,7 @@ export function Canvas() {
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
     lastInteractionTick.current = currentTickRef.current;
 
-    if (showDialogForFacilityRef.current) {
+    if (modalModeRef.current) {
       return;
     }
 
@@ -173,6 +190,12 @@ export function Canvas() {
           visualState.interactiveAction = undefined;
           visualState.onUpdate();
         }
+
+        if (modalModeRef.current) {
+          event.preventDefault();
+          modalRef.current?.close();
+        }
+
         break;
     }
   }
@@ -194,7 +217,7 @@ export function Canvas() {
   function onMouseDown(event: React.MouseEvent) {
     event.preventDefault();
 
-    if (showDialogForFacilityRef.current) {
+    if (modalModeRef.current) {
       return;
     }
 
@@ -224,8 +247,8 @@ export function Canvas() {
       return;
     }
 
-    if (showDialogForFacilityRef.current) {
-      facilityModalRef.current?.close();
+    if (modalModeRef.current) {
+      modalRef.current?.close();
       return;
     }
 
@@ -327,12 +350,25 @@ export function Canvas() {
           }
         }
       } else {
-        showDialogForFacilityRef.current = facility;
+        if (facility) {
+          modalModeRef.current = {
+            modeType: ModalModeType.FACILITY,
+            facility,
+          };
+        } else {
+          modalModeRef.current = undefined;
+        }
+
         visualStateOnMouseMove(visualState, undefined);
 
         forceUpdate();
       }
     }
+  }
+
+  function closeModal() {
+    modalModeRef.current = undefined;
+    forceUpdate();
   }
 
   function onCityClick(city: City): void {
@@ -353,28 +389,58 @@ export function Canvas() {
             onClick={onClick}
           />
 
+          <div className={styles.researchPanel}>
+            <CurrentResearchIcon
+              gameState={gameState}
+              onChooseResearchClick={() => {
+                modalModeRef.current = {
+                  modeType: ModalModeType.RESEARCH,
+                };
+                forceUpdate();
+              }}
+            />
+          </div>
+
           {visualStateRef.current && (
             <>
               <StatusText visualState={visualStateRef.current} />
-              {showDialogForFacilityRef.current && (
+              {modalModeRef.current && (
                 <>
                   <div
                     className={styles.modalShadow}
                     onClick={() => {
-                      facilityModalRef.current?.close();
+                      modalRef.current?.close();
                     }}
                   />
                   <div className={styles.modalWrapper}>
-                    <FacilityModal
-                      ref={facilityModalRef}
-                      gameState={gameState}
-                      visualState={visualStateRef.current}
-                      facility={showDialogForFacilityRef.current}
-                      onClose={() => {
-                        showDialogForFacilityRef.current = undefined;
-                        forceUpdate();
-                      }}
-                    />
+                    {(() => {
+                      switch (modalModeRef.current.modeType) {
+                        case ModalModeType.FACILITY:
+                          return (
+                            <FacilityModal
+                              modalRef={modalRef}
+                              gameState={gameState}
+                              visualState={visualStateRef.current}
+                              facility={modalModeRef.current.facility}
+                              onClose={closeModal}
+                            />
+                          );
+                        case ModalModeType.RESEARCH:
+                          return (
+                            <ResearchModal
+                              modalRef={modalRef}
+                              gameState={gameState}
+                              onStartResearchClick={(research) => {
+                                gameState.currentResearchId =
+                                  research.researchId;
+                                closeModal();
+                                forceUpdate();
+                              }}
+                              onClose={closeModal}
+                            />
+                          );
+                      }
+                    })()}
                   </div>
                 </>
               )}

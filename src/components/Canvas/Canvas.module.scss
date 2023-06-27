@@ -38,3 +38,10 @@
 .sidePanel {
   width: 300px;
 }
+
+.researchPanel {
+  grid-area: A;
+  align-self: start;
+  justify-self: start;
+  margin: 20px;
+}

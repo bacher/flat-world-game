@@ -1,6 +1,5 @@
 import {
   RefObject,
-  forwardRef,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -13,7 +12,7 @@ import styles from './FacilityModal.module.scss';
 import {
   facilitiesConstructionInfo,
   facilitiesDescription,
-} from '../../game/facilities';
+} from '../../../game/facilities';
 import {
   City,
   Construction,
@@ -21,19 +20,21 @@ import {
   GameState,
   Structure,
   getStructureIterationStorageInfo,
-} from '../../game/gameState';
-import { CarrierPath, FacilityType, StorageItem } from '../../game/types';
-import { ResourceType } from '../../game/resources';
-import { facilitiesIterationInfo } from '../../game/facilities';
-import { resourceLocalization } from '../../game/resources';
-import { useForceUpdate } from '../hooks/forceUpdate';
-import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
-import { InteractiveActionType, VisualState } from '../../game/visualState';
+} from '../../../game/gameState';
+import { CarrierPath, FacilityType, StorageItem } from '../../../game/types';
+import { ResourceType } from '../../../game/resources';
+import { facilitiesIterationInfo } from '../../../game/facilities';
+import { resourceLocalization } from '../../../game/resources';
+import { useForceUpdate } from '../../hooks/forceUpdate';
+import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
+import { InteractiveActionType, VisualState } from '../../../game/visualState';
+import type { ModalRef } from '../types';
 
 type Props = {
   gameState: GameState;
   visualState: VisualState;
   facility: Structure;
+  modalRef: RefObject<ModalRef>;
   onClose: () => void;
 };
 
@@ -43,44 +44,44 @@ type Control = {
 
 type ControlRef = RefObject<Control | undefined>;
 
-export type FacilityModalRef = {
-  close: () => void;
-};
+export function FacilityModal({
+  gameState,
+  visualState,
+  facility,
+  modalRef,
+  onClose,
+}: Props) {
+  const controlRef = useRef<Control | undefined>();
 
-export const FacilityModal = forwardRef<FacilityModalRef, Props>(
-  ({ gameState, visualState, facility, onClose }, ref) => {
-    const controlRef = useRef<Control | undefined>();
+  function onCloseClick() {
+    controlRef.current?.applyChanges();
+    onClose();
+  }
 
-    function onCloseClick() {
-      controlRef.current?.applyChanges();
-      onClose();
-    }
+  useImperativeHandle(modalRef, () => ({
+    close: onCloseClick,
+  }));
 
-    useImperativeHandle(ref, () => ({
-      close: onCloseClick,
-    }));
-
-    return (
-      <div className={styles.modalWindow}>
-        <Content
-          gameState={gameState}
-          visualState={visualState}
-          facility={facility}
-          controlRef={controlRef}
-          onCloseClick={onCloseClick}
-        />
-        <button
-          className={styles.closeButton}
-          title="close"
-          type="button"
-          onClick={onCloseClick}
-        >
-          x
-        </button>
-      </div>
-    );
-  },
-);
+  return (
+    <div className={styles.modalWindow}>
+      <Content
+        gameState={gameState}
+        visualState={visualState}
+        facility={facility}
+        controlRef={controlRef}
+        onCloseClick={onCloseClick}
+      />
+      <button
+        className={styles.closeButton}
+        title="close"
+        type="button"
+        onClick={onCloseClick}
+      >
+        x
+      </button>
+    </div>
+  );
+}
 
 function Content({
   gameState,

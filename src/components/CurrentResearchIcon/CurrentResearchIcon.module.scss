@@ -1,0 +1,53 @@
+@import '../mixins.scss';
+
+.button {
+  @include button-reset;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100px;
+  height: 50px;
+  white-space: nowrap;
+  border: 1px solid gray;
+  background: rgb(232, 232, 232);
+  cursor: pointer;
+
+  &Done {
+    animation: color-blink 3s forwards ease-in-out;
+  }
+}
+
+@keyframes color-blink {
+  0% {
+    background-color: rgb(232, 232, 232);
+  }
+  16.6% {
+    background-color: rgb(0, 217, 0);
+  }
+  33.2% {
+    background-color: rgb(232, 232, 232);
+  }
+  50% {
+    background-color: rgb(0, 217, 0);
+  }
+  66.6% {
+    background-color: rgb(232, 232, 232);
+  }
+  83.3% {
+    background-color: rgb(0, 217, 0);
+  }
+  100% {
+    background-color: rgb(171, 236, 171);
+  }
+}
+
+.researchTitle {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.researchProgress {
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+}

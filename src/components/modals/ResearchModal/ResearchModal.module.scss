@@ -1,0 +1,55 @@
+@import '../../mixins';
+
+.modal {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #777;
+}
+
+.panel {
+  display: flex;
+  justify-content: end;
+  padding: 0 0 8px;
+}
+
+.panelElement {
+  user-select: none;
+  cursor: pointer;
+}
+
+.researchList {
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+.researchItem {
+  @include button-reset;
+  display: block;
+  width: 100%;
+  text-align: initial;
+  padding: 10px 14px;
+
+  &Completed {
+    background: green;
+  }
+
+  &Available {
+    background: azure;
+    cursor: pointer;
+  }
+
+  &InProgress {
+    background: blue;
+  }
+
+  &Blocked {
+    background: rgb(197, 197, 197);
+  }
+}
+
+.completed {
+  text-decoration: line-through;
+}
