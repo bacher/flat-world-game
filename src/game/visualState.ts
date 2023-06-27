@@ -2,6 +2,8 @@ import { renderGameToCanvas } from '../gameRender/render';
 import {
   City,
   GameState,
+  MAX_EXPEDITION_DISTANCE_SQUARE,
+  MIN_EXPEDITION_DISTANCE_SQUARE,
   Structure,
   convertCellToCellId,
   tick,
@@ -225,8 +227,6 @@ export function startGameLoop(
   };
 }
 
-const MAX_EXPEDITION_DISTANCE_SQUARE = 7 ** 2;
-
 export function isAllowToConstructAtPosition(
   visualState: VisualState,
   cell: CellPosition,
@@ -245,8 +245,12 @@ export function isAllowToConstructAtPosition(
   ) {
     const expeditionStart =
       visualState.interactiveAction.expeditionFromCity.position;
+
+    const distance = cellDistanceSquare(expeditionStart, cell);
+
     return (
-      cellDistanceSquare(expeditionStart, cell) < MAX_EXPEDITION_DISTANCE_SQUARE
+      distance >= MIN_EXPEDITION_DISTANCE_SQUARE &&
+      distance <= MAX_EXPEDITION_DISTANCE_SQUARE
     );
   }
 

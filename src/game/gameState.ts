@@ -31,6 +31,8 @@ const HORSES_PER_WORKER = 0.1;
 const BUFFER_DAYS = 2;
 const MINIMAL_CITY_PEOPLE = 3;
 const PEOPLE_FOOD_PER_DAY = 0.2;
+export const MIN_EXPEDITION_DISTANCE_SQUARE = 8 ** 2;
+export const MAX_EXPEDITION_DISTANCE_SQUARE = 20 ** 2;
 
 export type GameState = {
   cities: City[];
