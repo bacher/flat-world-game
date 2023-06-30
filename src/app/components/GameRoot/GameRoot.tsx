@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { generateNewRandomId } from '../../../utils/id';
 import { getNewGameSnapshot } from '../../../game/gameStatePersist';
 import { gameStateStorage, gamesListStorage } from '../../../game/persist';
-
+import { setHash } from '../../../utils/url';
 import { useWindowEvent } from '../../hooks/useWindowEvent';
+
 import { Canvas } from '../Canvas';
 import { MainMenu } from '../MainMenu';
 
@@ -21,21 +22,6 @@ type GameRouteState =
       type: GameRoute.IN_GAME;
       gameId: string;
     };
-
-function setHash(
-  hash: string | undefined,
-  options?: { replace: boolean },
-): void {
-  if (options?.replace) {
-    window.location.replace(
-      window.location.pathname +
-        window.location.search +
-        (hash ? `#${hash}` : ''),
-    );
-  } else {
-    window.location.hash = `#${hash}`;
-  }
-}
 
 function getGameRouteState(): GameRouteState {
   const hash = window.location.hash.replace(/^#/, '');
@@ -87,10 +73,15 @@ export function GameRoot() {
 
     gameStateStorage.set(gameId, newGame);
     const gamesListInfo = gamesListStorage.get() ?? { games: [] };
+
+    const now = Date.now();
+
     gamesListInfo.games.unshift({
       gameId,
       gameName,
-      snapshotCreatedAt: Date.now(),
+      snapshotCreatedAt: now,
+      lastSnapshotCreatedAt: now,
+      saves: [],
     });
     gamesListStorage.set(gamesListInfo);
 
@@ -105,8 +96,6 @@ export function GameRoot() {
     case GameRoute.MAIN_MENU:
       return <MainMenu onNewGame={onNewGame} onLoadGame={onLoadGame} />;
     case GameRoute.IN_GAME:
-      return (
-        <Canvas key={gameRouteState.gameId} gameId={gameRouteState.gameId} />
-      );
+      return <Canvas gameId={gameRouteState.gameId} />;
   }
 }

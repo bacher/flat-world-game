@@ -1,0 +1,48 @@
+@import '../../mixins.scss';
+
+.gamesBlock {
+  padding: 0 10px 10px;
+}
+
+.gamesList {
+  border: 1px solid gray;
+  height: 200px;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
+.gameButton {
+  @include button-reset;
+  display: flex;
+  width: 100%;
+  padding: 4px 6px;
+
+  &Selected {
+    background: #cccce7;
+  }
+}
+
+.gameName {
+  font-weight: 700;
+  flex-grow: 1;
+}
+
+.latestSave {
+  font-style: italic;
+}
+
+.snapshotButton {
+  @include button-reset;
+  display: flex;
+  width: 100%;
+  padding: 4px 6px;
+
+  &Selected {
+    background: #cccce7;
+  }
+}
+
+.snapshotName {
+  padding-left: 18px;
+  flex-grow: 1;
+}

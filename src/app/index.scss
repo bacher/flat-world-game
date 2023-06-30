@@ -10,6 +10,12 @@
   -webkit-text-size-adjust: 100%;
 }
 
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
 body {
   display: flex;
   flex-direction: column;

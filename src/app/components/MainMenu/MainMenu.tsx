@@ -26,7 +26,7 @@ export function MainMenu({ onNewGame, onLoadGame }: Props) {
       <h1>Flat World</h1>
       {games.length > 0 ? (
         <div className={styles.currentGames}>
-          <h2>Current games:</h2>
+          <h2>Your game worlds:</h2>
           <ul>
             {games.map(({ gameId, gameName }) => (
               <li key={gameId}>

@@ -1,5 +1,6 @@
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import cn from 'classnames';
 
 import styles from './Canvas.module.scss';
 
@@ -15,10 +16,7 @@ import {
   getFacilityBindedCity,
   getNearestCity,
 } from '../../../game/gameState';
-import {
-  getGameStateBySnapshot,
-  saveGame,
-} from '../../../game/gameStatePersist';
+import { loadGame, saveGame } from '../../../game/gameStatePersist';
 import {
   isValidCarrierPlanningTarget,
   renderGameToCanvas,
@@ -48,12 +46,15 @@ import { StatusText } from '../StatusText';
 import { CitiesPanel } from '../CitiesPanel';
 import { CurrentResearchIcon } from '../CurrentResearchIcon';
 import { ResearchModal } from '../../modals/ResearchModal';
-import { gameStateStorage } from '../../../game/persist';
+import { neverCall } from '../../../utils/typeUtils';
+import { GameMenu } from '../../modals/GameMenu';
+import { setHash } from '../../../utils/url';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
 
 const enum ModalModeType {
+  GAME_MENU = 'GAME_MENU',
   FACILITY = 'FACILITY',
   RESEARCH = 'RESEARCH',
 }
@@ -64,7 +65,7 @@ type ModalMode =
       facility: Structure;
     }
   | {
-      modeType: ModalModeType.RESEARCH;
+      modeType: ModalModeType.RESEARCH | ModalModeType.GAME_MENU;
     };
 
 type Props = {
@@ -76,25 +77,28 @@ export function Canvas({ gameId }: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [gameState] = useState<GameState>(() => {
-    const gameStateSnapshot = gameStateStorage.get(gameId);
+  const [gameState, setGameState] = useState<GameState>(() =>
+    loadGame(gameId, undefined),
+  );
 
-    if (!gameStateSnapshot) {
-      throw new Error('No game state found');
+  useEffect(() => {
+    if (gameState.gameId !== gameId) {
+      const newGameState = loadGame(gameId, undefined);
+      visualStateRef.current!.gameState = newGameState;
+      setGameState(newGameState);
+      renderGameToCanvas(visualStateRef.current!);
     }
-
-    return getGameStateBySnapshot(gameStateSnapshot);
-  });
+  }, [gameId]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      saveGame(gameState);
+      saveGame(gameState, undefined);
     }, 5000);
 
     return () => {
       window.clearInterval(intervalId);
     };
-  }, []);
+  }, [gameState]);
 
   const mouseState = useMemo<{
     isMouseDown: boolean;
@@ -121,6 +125,8 @@ export function Canvas({ gameId }: Props) {
   const currentTickRef = useRef(0);
   const lastInteractionTick = useRef(0);
 
+  const stopGameLoopRef = useRef<() => void>();
+
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
       alpha: false,
@@ -146,7 +152,21 @@ export function Canvas({ gameId }: Props) {
 
     forceUpdate();
 
-    const stopGameLoop = startGameLoop(visualStateRef.current, () => {
+    startGameLoopLogic();
+
+    return () => {
+      stopGameLoopLogic();
+    };
+  }, []);
+
+  function startGameLoopLogic() {
+    if (stopGameLoopRef.current) {
+      return;
+    }
+
+    const visualState = visualStateRef.current!;
+
+    stopGameLoopRef.current = startGameLoop(visualState, () => {
       currentTickRef.current += 1;
       renderGameToCanvas(visualState);
       gameStateWatcher.emitTick();
@@ -154,12 +174,17 @@ export function Canvas({ gameId }: Props) {
       // TODO: While developing
       if (currentTickRef.current > lastInteractionTick.current + 200) {
         console.log('Game stopped');
-        stopGameLoop();
+        stopGameLoopLogic();
       }
     });
+  }
 
-    return stopGameLoop;
-  }, []);
+  function stopGameLoopLogic() {
+    if (stopGameLoopRef.current) {
+      stopGameLoopRef.current();
+      stopGameLoopRef.current = undefined;
+    }
+  }
 
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
     lastInteractionTick.current = currentTickRef.current;
@@ -402,6 +427,16 @@ export function Canvas({ gameId }: Props) {
     visualStateMoveToCell(visualStateRef.current!, city.position);
   }
 
+  function openGameMenu() {
+    modalModeRef.current = {
+      modeType: ModalModeType.GAME_MENU,
+    };
+
+    stopGameLoopLogic();
+
+    forceUpdate();
+  }
+
   return (
     <GameStateWatcherProvider value={gameStateWatcher}>
       <div className={styles.wrapper}>
@@ -434,7 +469,11 @@ export function Canvas({ gameId }: Props) {
               {modalModeRef.current && (
                 <>
                   <div
-                    className={styles.modalShadow}
+                    className={cn(styles.modalShadow, {
+                      [styles.modalShadowFade]:
+                        modalModeRef.current.modeType ===
+                        ModalModeType.GAME_MENU,
+                    })}
                     onClick={() => {
                       modalRef.current?.close();
                     }}
@@ -466,6 +505,44 @@ export function Canvas({ gameId }: Props) {
                               onClose={closeModal}
                             />
                           );
+                        case ModalModeType.GAME_MENU:
+                          return (
+                            <GameMenu
+                              currentGameId={gameId}
+                              onResume={() => {
+                                startGameLoopLogic();
+                                closeModal();
+                              }}
+                              onLoadGame={({ gameId, saveName }) => {
+                                if (gameState.gameId !== gameId) {
+                                  setHash(`/g/${gameId}`, { replace: true });
+                                } else {
+                                  const newGameState = loadGame(
+                                    gameId,
+                                    saveName,
+                                  );
+                                  visualStateRef.current!.gameState =
+                                    newGameState;
+                                  setGameState(newGameState);
+                                  renderGameToCanvas(visualStateRef.current!);
+                                }
+
+                                startGameLoopLogic();
+                                closeModal();
+                              }}
+                              onSaveGame={({ saveName }) => {
+                                saveGame(gameState, saveName);
+                                startGameLoopLogic();
+                                closeModal();
+                              }}
+                              onExit={() => {
+                                saveGame(gameState, undefined);
+                                location.hash = '';
+                              }}
+                            />
+                          );
+                        default:
+                          throw neverCall(modalModeRef.current);
                       }
                     })()}
                   </div>
@@ -475,6 +552,9 @@ export function Canvas({ gameId }: Props) {
           )}
         </div>
         <div className={styles.sidePanel}>
+          <button type="button" onClick={openGameMenu}>
+            Menu
+          </button>
           <BuildingsPanel
             gameState={gameState}
             onBuildingClick={({ facilityType }) => {

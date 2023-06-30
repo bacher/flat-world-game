@@ -152,9 +152,18 @@ function collectUnlockedFacilities(
   return facilities;
 }
 
-export function saveGame(gameState: GameState): void {
+function getFullSnapshotName(gameId: string, saveName: string | undefined) {
+  return saveName ? `${gameId}|${saveName.toLowerCase()}` : gameId;
+}
+
+export function saveGame(
+  gameState: GameState,
+  saveName: string | undefined,
+): void {
   const snapshot = getGameStateSnapshot(gameState);
-  gameStateStorage.set(snapshot.gameId, snapshot);
+  const fullSaveName = getFullSnapshotName(gameState.gameId, saveName);
+
+  gameStateStorage.set(fullSaveName, snapshot);
 
   const gamesList = gamesListStorage.get();
 
@@ -163,12 +172,70 @@ export function saveGame(gameState: GameState): void {
       (game) => game.gameId === gameState.gameId,
     );
     if (gameMeta) {
-      gameMeta.snapshotCreatedAt = Date.now();
-      gamesList.games.sort((a, b) => a.snapshotCreatedAt - b.snapshotCreatedAt);
+      const snapshotAt = Date.now();
+
+      gameMeta.lastSnapshotCreatedAt = snapshotAt;
+
+      if (saveName) {
+        gameMeta.snapshotCreatedAt = undefined;
+        gameMeta.saves.push({
+          saveName,
+          snapshotCreatedAt: snapshotAt,
+        });
+      } else {
+        gameMeta.snapshotCreatedAt = snapshotAt;
+      }
+
       gamesListStorage.set(gamesList);
+
+      if (saveName) {
+        gameStateStorage.clear(gameState.gameId);
+      }
       return;
     }
   }
 
   console.error('No game meta found');
+}
+
+export function loadGame(
+  gameId: string,
+  saveName: string | undefined,
+): GameState {
+  let actualSaveName: string | undefined = saveName;
+
+  if (!actualSaveName) {
+    const gamesList = gamesListStorage.get();
+
+    if (!gamesList) {
+      throw new Error();
+    }
+
+    const game = gamesList.games.find((game) => game.gameId === gameId);
+
+    if (!game) {
+      throw new Error();
+    }
+
+    if (!game.snapshotCreatedAt) {
+      if (!game.saves.length) {
+        throw new Error();
+      }
+
+      game.saves.sort(
+        (save1, save2) => save2.snapshotCreatedAt - save1.snapshotCreatedAt,
+      );
+      actualSaveName = game.saves[0].saveName;
+    }
+  }
+
+  const fullSaveName = getFullSnapshotName(gameId, actualSaveName);
+
+  const snapshot = gameStateStorage.get(fullSaveName);
+
+  if (!snapshot) {
+    throw new Error('No game state found');
+  }
+
+  return getGameStateBySnapshot(snapshot);
 }

@@ -1,6 +1,6 @@
 import sample from 'lodash/sample';
 
-import type { Branded } from '../utils/types';
+import type { Branded } from '../utils/typeUtils';
 
 import { generateNewCityName } from './cityNameGenerator';
 import {
@@ -998,7 +998,7 @@ function replaceCunstructionByFacility(
 ): void {
   const facilities = gameState.facilitiesByCityId.get(facility.assignedCityId)!;
   const index = facilities.indexOf(construction);
-  if (index === 1) {
+  if (index === -1) {
     throw new Error('No construction found');
   }
 

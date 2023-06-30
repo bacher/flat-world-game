@@ -33,6 +33,10 @@
 
 .modalShadow {
   grid-area: A;
+
+  &Fade {
+    background: rgba(50, 50, 50, 0.3);
+  }
 }
 
 .sidePanel {

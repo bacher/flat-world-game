@@ -1,0 +1,31 @@
+.wrapper {
+  position: relative;
+  width: 200px;
+  padding: 10px 16px 18px;
+  background: white;
+  border: 1px solid #777;
+  user-select: none;
+}
+
+.menuHeader {
+  padding: 0 0 8px;
+}
+
+.menuTitle {
+}
+
+.menuSubTitle {
+  text-align: center;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.menuButton {
+  display: block;
+  width: 100%;
+}

@@ -1,0 +1,45 @@
+@import '../mixins.scss';
+
+.modalWindow {
+  position: relative;
+  width: 400px;
+  padding: 6px 0;
+  border: 1px solid #777;
+  background: white;
+}
+
+.modalHeader {
+  padding: 4px 0 10px;
+}
+
+.modalTitle {
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  padding: 0 10px 10px;
+  justify-content: end;
+  gap: 8px;
+}
+
+.footerButton {
+  @include button-reset;
+  height: 30px;
+  padding: 0 10px;
+  cursor: pointer;
+  background: #e6e6e6;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &Primary {
+    color: white;
+    background: #449f44;
+
+    &:disabled {
+      background: #688368;
+    }
+  }
+}
