@@ -299,7 +299,10 @@ function FacilityContent({
         facility.assignedWorkersCount = clamp(workersCount, 0, max);
       }
 
-      for (const resourcePaths of alreadyToPaths.values()) {
+      for (const resourcePaths of [
+        ...alreadyToPaths.values(),
+        ...alreadyFromPaths.values(),
+      ]) {
         for (const resourcePath of resourcePaths) {
           if (resourcePath.changed) {
             const count = parseInt(resourcePath.inputValue, 10);
@@ -314,53 +317,6 @@ function FacilityContent({
       }
     },
   }));
-
-  /*
-  function onAddPathManuallyClick(
-    resourceType: ResourceType,
-    alreadyPaths: ActualPathState,
-  ): void {
-    const coordinatesString = window
-      .prompt('Enter cell coordinates in format 3,-3:')
-      ?.trim();
-
-    if (!coordinatesString) {
-      return;
-    }
-
-    const cell = parseCoordinatesFromString(coordinatesString);
-
-    if (!cell) {
-      return;
-    }
-
-    const newPath = {
-      path: {
-        from: cell,
-        to: facility.position,
-      },
-      resourceType,
-      people: 1,
-    };
-
-    // TODO: hardcode city #1
-    addCityCarrierPaths(gameState, [...gameState.cities.values()][0], [
-      newPath,
-    ]);
-
-    let list = alreadyPaths.get(resourceType);
-    if (!list) {
-      list = [];
-      alreadyPaths.set(resourceType, list);
-    }
-
-    list.push({
-      path: newPath,
-      changed: false,
-      inputValue: '1',
-    });
-  }
-  */
 
   return (
     <div>
