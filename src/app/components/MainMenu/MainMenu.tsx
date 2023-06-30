@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import styles from './MainMenu.module.scss';
-import { gamesListStorage } from '../../game/persist';
+import { gamesListStorage } from '../../../game/persist';
 
 type Props = {
   onNewGame: (params: { gameName: string }) => void;

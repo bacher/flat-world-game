@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import { generateNewRandomId } from '../../utils/id';
-import { getNewGameSnapshot } from '../../game/gameStatePersist';
-import { gameStateStorage, gamesListStorage } from '../../game/persist';
+import { generateNewRandomId } from '../../../utils/id';
+import { getNewGameSnapshot } from '../../../game/gameStatePersist';
+import { gameStateStorage, gamesListStorage } from '../../../game/persist';
 
-import { useWindowEvent } from '../hooks/useWindowEvent';
+import { useWindowEvent } from '../../hooks/useWindowEvent';
 import { Canvas } from '../Canvas';
 import { MainMenu } from '../MainMenu';
 

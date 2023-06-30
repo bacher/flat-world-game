@@ -1,5 +1,5 @@
-import type { City, GameState } from '../../game/gameState';
-import { useRenderOnGameTick } from '../hooks/useRenderOnGameTick';
+import type { City, GameState } from '../../../game/gameState';
+import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
 
 type Props = {
   gameState: GameState;

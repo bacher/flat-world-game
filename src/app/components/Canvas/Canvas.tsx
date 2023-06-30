@@ -14,12 +14,15 @@ import {
   convertCellToCellId,
   getFacilityBindedCity,
   getNearestCity,
-} from '../../game/gameState';
-import { getGameStateBySnapshot, saveGame } from '../../game/gameStatePersist';
+} from '../../../game/gameState';
+import {
+  getGameStateBySnapshot,
+  saveGame,
+} from '../../../game/gameStatePersist';
 import {
   isValidCarrierPlanningTarget,
   renderGameToCanvas,
-} from '../../gameRender/render';
+} from '../../../gameRender/render';
 import {
   InteractiveActionType,
   VisualState,
@@ -31,21 +34,21 @@ import {
   visualStateMove,
   visualStateOnMouseMove,
   visualStateMoveToCell,
-} from '../../game/visualState';
-import { FacilityType, Point } from '../../game/types';
-import { useForceUpdate } from '../hooks/forceUpdate';
-import { ModalRef } from '../modals/types';
-import { FacilityModal } from '../modals/FacilityModal';
+} from '../../../game/visualState';
+import { FacilityType, Point } from '../../../game/types';
+import { useForceUpdate } from '../../hooks/forceUpdate';
+import { ModalRef } from '../../modals/types';
+import { FacilityModal } from '../../modals/FacilityModal';
 import {
   GameStateWatcherProvider,
   createGameStateWatcher,
-} from '../contexts/GameStateWatcher';
+} from '../../contexts/GameStateWatcher';
 import { BuildingsPanel } from '../BuildingsPanel';
 import { StatusText } from '../StatusText';
 import { CitiesPanel } from '../CitiesPanel';
 import { CurrentResearchIcon } from '../CurrentResearchIcon';
-import { ResearchModal } from '../modals/ResearchModal';
-import { gameStateStorage } from '../../game/persist';
+import { ResearchModal } from '../../modals/ResearchModal';
+import { gameStateStorage } from '../../../game/persist';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
