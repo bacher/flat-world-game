@@ -34,10 +34,14 @@ const PEOPLE_FOOD_PER_DAY = 0.2;
 export const MIN_EXPEDITION_DISTANCE_SQUARE = 8 ** 2;
 export const MAX_EXPEDITION_DISTANCE_SQUARE = 20 ** 2;
 
+export type FacilitiesByCityId = Map<CityId, (Construction | Facility)[]>;
+export type StructuresByCellId = Map<CellId, Structure>;
+
 export type GameState = {
+  gameId: string;
   cities: City[];
-  facilitiesByCityId: Map<CityId, (Construction | Facility)[]>;
-  structuresByCellId: Map<CellId, Structure>;
+  facilitiesByCityId: FacilitiesByCityId;
+  structuresByCellId: StructuresByCellId;
   carrierPathsFromCellId: Map<CellId, CarrierPath[]>;
   carrierPathsToCellId: Map<CellId, CarrierPath[]>;
   alreadyCityNames: Set<string>;
@@ -72,6 +76,7 @@ export type City = StructureBase & {
 
 export type Construction = StructureBase & {
   type: FacilityType.CONSTRUCTION;
+  assignedCityId: CityId;
   buildingFacilityType: ExactFacilityType;
   assignedWorkersCount: number;
   inProcess: number;
@@ -80,76 +85,13 @@ export type Construction = StructureBase & {
 
 export type Facility = StructureBase & {
   type: ExactFacilityType;
+  assignedCityId: CityId;
   assignedWorkersCount: number;
   inProcess: number;
   productionVariant: number;
 };
 
 export type Structure = City | Construction | Facility;
-
-export function startGame(): GameState {
-  const initialGameState: GameState = {
-    cities: [],
-    facilitiesByCityId: new Map(),
-    carrierPathsFromCellId: new Map(),
-    carrierPathsToCellId: new Map(),
-    structuresByCellId: new Map(),
-    alreadyCityNames: new Set(),
-    completedResearches: new Set(),
-    inProgressResearches: new Map(),
-    currentResearchId: undefined,
-    unlockedFacilities: new Set(),
-  };
-
-  const initialCity = addCity(initialGameState, {
-    position: [0, 0],
-  });
-
-  addConstructionStructure(
-    initialGameState,
-    { facilityType: FacilityType.LUMBERT, position: [-2, -3] },
-    initialCity,
-  );
-
-  addFacility(
-    initialGameState,
-    {
-      facilityType: FacilityType.GATHERING,
-      position: [-3, 2],
-    },
-    initialCity,
-  );
-
-  // addFacility(
-  //   initialGameState,
-  //   {
-  //     facilityType: FacilityType.CHOP_WOOD,
-  //     position: [3, -3],
-  //   },
-  //   initialCity,
-  // );
-
-  addConstructionStructure(
-    initialGameState,
-    { facilityType: FacilityType.CHOP_WOOD, position: [3, -3] },
-    initialCity,
-  );
-
-  addCityCarrierPaths(initialGameState, initialCity, [
-    {
-      path: { from: [-2, -3], to: [3, -3] },
-      resourceType: ResourceType.LOG,
-      people: 3,
-    },
-    {
-      path: { from: [-3, 2], to: [0, 0] },
-      resourceType: ResourceType.FOOD,
-      people: 3,
-    },
-  ]);
-
-  return initialGameState;
-}
 
 export function addCityCarrierPaths(
   gameState: GameState,
@@ -168,7 +110,7 @@ export function addCityCarrierPaths(
   }
 }
 
-function addPathTo(
+export function addPathTo(
   carrierPaths: Map<CellId, CarrierPath[]>,
   carrierPath: CarrierPath,
   pos: CellPosition,
@@ -1010,6 +952,7 @@ export function addConstructionStructure(
 
   const buildingFacilility: Construction = {
     type: FacilityType.CONSTRUCTION,
+    assignedCityId: city.cityId,
     position,
     cellId,
     buildingFacilityType: facilityType,
@@ -1024,41 +967,17 @@ export function addConstructionStructure(
   addCityFacility(gameState, city, buildingFacilility);
 }
 
-function addFacility(
-  gameState: GameState,
-  {
-    facilityType,
-    position,
-  }: { facilityType: ExactFacilityType; position: CellPosition },
-  city: City,
-): void {
-  const cellId = convertCellToCellId(position);
-
-  const facility: Facility = {
-    type: facilityType,
-    position,
-    cellId,
-    assignedWorkersCount:
-      facilitiesIterationInfo[facilityType].maximumPeopleAtWork,
-    productionVariant: 0,
-    input: [],
-    output: [],
-    inProcess: 0,
-  };
-
-  addCityFacility(gameState, city, facility);
-}
-
 function completeConstruction(
   gameState: GameState,
-  constuction: Construction,
+  construction: Construction,
 ): Facility {
   const facility: Facility = {
-    type: constuction.buildingFacilityType,
-    position: constuction.position,
-    cellId: constuction.cellId,
+    type: construction.buildingFacilityType,
+    assignedCityId: construction.assignedCityId,
+    position: construction.position,
+    cellId: construction.cellId,
     assignedWorkersCount:
-      facilitiesIterationInfo[constuction.buildingFacilityType]
+      facilitiesIterationInfo[construction.buildingFacilityType]
         .maximumPeopleAtWork,
     productionVariant: 0,
     input: [],
@@ -1066,20 +985,25 @@ function completeConstruction(
     inProcess: 0,
   };
 
-  for (const facilities of gameState.facilitiesByCityId.values()) {
-    const index = facilities.indexOf(constuction);
-
-    if (index !== -1) {
-      facilities[index] = facility;
-      break;
-    }
-  }
-
-  gameState.structuresByCellId.set(facility.cellId, facility);
-
   removeAllCarrierPathsTo(gameState, facility.cellId);
+  replaceCunstructionByFacility(gameState, construction, facility);
 
   return facility;
+}
+
+function replaceCunstructionByFacility(
+  gameState: GameState,
+  construction: Construction,
+  facility: Facility,
+): void {
+  const facilities = gameState.facilitiesByCityId.get(facility.assignedCityId)!;
+  const index = facilities.indexOf(construction);
+  if (index === 1) {
+    throw new Error('No construction found');
+  }
+
+  facilities[index] = facility;
+  gameState.structuresByCellId.set(facility.cellId, facility);
 }
 
 function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {

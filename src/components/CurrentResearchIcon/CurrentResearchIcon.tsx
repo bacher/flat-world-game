@@ -63,7 +63,7 @@ export function CurrentResearchIcon({
     content = (
       <>
         <span className={styles.researchTitle}>Research</span>
-        <span>not set</span>
+        <span>is not set</span>
       </>
     );
   }

@@ -1,0 +1,17 @@
+@import '../mixins.scss';
+
+.currentGames {
+  max-height: 400px;
+  padding: 0 0 16px;
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+.newGameButton {
+  @include button-reset;
+  width: 200px;
+  height: 40px;
+  border-radius: 3px;
+  background: rgb(121, 212, 121);
+  cursor: pointer;
+}

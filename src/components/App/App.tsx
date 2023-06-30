@@ -1,11 +1,11 @@
 import './App.css';
 
-import { Canvas } from '../Canvas';
+import { GameRoot } from '../GameRoot';
 
 export function App() {
   return (
     <div>
-      <Canvas />
+      <GameRoot />
     </div>
   );
 }

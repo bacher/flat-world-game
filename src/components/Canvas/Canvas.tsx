@@ -6,6 +6,7 @@ import styles from './Canvas.module.scss';
 import {
   City,
   Facility,
+  GameState,
   Structure,
   addCity,
   addCityCarrierPaths,
@@ -13,8 +14,8 @@ import {
   convertCellToCellId,
   getFacilityBindedCity,
   getNearestCity,
-  startGame,
 } from '../../game/gameState';
+import { getGameStateBySnapshot, saveGame } from '../../game/gameStatePersist';
 import {
   isValidCarrierPlanningTarget,
   renderGameToCanvas,
@@ -44,6 +45,7 @@ import { StatusText } from '../StatusText';
 import { CitiesPanel } from '../CitiesPanel';
 import { CurrentResearchIcon } from '../CurrentResearchIcon';
 import { ResearchModal } from '../modals/ResearchModal';
+import { gameStateStorage } from '../../game/persist';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -62,12 +64,34 @@ type ModalMode =
       modeType: ModalModeType.RESEARCH;
     };
 
-export function Canvas() {
+type Props = {
+  gameId: string;
+};
+
+export function Canvas({ gameId }: Props) {
   const forceUpdate = useForceUpdate();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [gameState] = useState(() => startGame());
+  const [gameState] = useState<GameState>(() => {
+    const gameStateSnapshot = gameStateStorage.get(gameId);
+
+    if (!gameStateSnapshot) {
+      throw new Error('No game state found');
+    }
+
+    return getGameStateBySnapshot(gameStateSnapshot);
+  });
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      saveGame(gameState);
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   const mouseState = useMemo<{
     isMouseDown: boolean;
