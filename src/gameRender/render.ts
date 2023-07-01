@@ -222,7 +222,7 @@ function drawBuildingMode(visualState: VisualState): void {
 function drawObjects(visualState: VisualState): void {
   const { gameState } = visualState;
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     drawObject(visualState, city);
   }
 
@@ -278,7 +278,7 @@ function addGap(point1: Point, point2: Point, gap: number): [Point, Point] {
 function drawWorkingPaths(visualState: VisualState): void {
   const { ctx, gameState } = visualState;
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     for (const { path, workers, carriers } of city.lastTickWorkingPaths) {
       // Have to check viewport
 
@@ -310,12 +310,12 @@ function drawWorkingPaths(visualState: VisualState): void {
       const peopleText = peopleTextParts.join(' + ');
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
       ctx.strokeText(peopleText, lineCenter[0], lineCenter[1]);
+      ctx.lineWidth = 1;
       ctx.fillStyle = 'black';
       ctx.fillText(peopleText, lineCenter[0], lineCenter[1]);
-      ctx.lineWidth = 1;
     }
   }
 }

@@ -1,3 +1,4 @@
+import type { CityId } from './gameState';
 import { ResourceType } from './resources';
 
 export type CellPosition = [number, number];
@@ -44,6 +45,7 @@ export const citiesInputResourceTypes = [ResourceType.FOOD, ResourceType.HORSE];
 
 export type CarrierPath = {
   path: CellPath;
+  assignedCityId: CityId;
   people: number;
   resourceType: ResourceType;
 };

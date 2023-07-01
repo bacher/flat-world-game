@@ -1,10 +1,26 @@
 .modalWindow {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 400px;
   height: 400px;
-  padding: 10px 16px;
+  padding: 10px 16px 16px;
   background: white;
   border: 1px solid #777;
+}
+
+.contentBlock {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.content {
+  flex-grow: 1;
+}
+
+.footer {
+  padding: 10px 0 0;
 }
 
 .resourceNameLine {

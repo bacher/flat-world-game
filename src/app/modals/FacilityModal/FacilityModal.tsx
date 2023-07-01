@@ -20,6 +20,7 @@ import {
   GameState,
   Structure,
   getStructureIterationStorageInfo,
+  removeFacility,
 } from '../../../game/gameState';
 import { CarrierPath, FacilityType, StorageItem } from '../../../game/types';
 import { ResourceType } from '../../../game/resources';
@@ -71,6 +72,7 @@ export function FacilityModal({
         facility={facility}
         controlRef={controlRef}
         onCloseClick={onCloseClick}
+        closeWithoutApplying={onClose}
       />
       <ModalCloseButton onClick={onCloseClick} />
     </div>
@@ -83,12 +85,14 @@ function Content({
   facility,
   controlRef,
   onCloseClick,
+  closeWithoutApplying,
 }: {
   gameState: GameState;
   visualState: VisualState;
   facility: Structure;
   controlRef: ControlRef;
   onCloseClick: () => void;
+  closeWithoutApplying: () => void;
 }) {
   if (facility.type === FacilityType.CITY) {
     return (
@@ -109,11 +113,12 @@ function Content({
 
   if (facility.type === FacilityType.CONSTRUCTION) {
     return (
-      <BuildingContent
+      <ConstructionContent
         gameState={gameState}
         visualState={visualState}
         construction={facility}
         onCloseClick={onCloseClick}
+        closeWithoutApplying={closeWithoutApplying}
       />
     );
   }
@@ -125,6 +130,7 @@ function Content({
       facility={facility}
       controlRef={controlRef}
       onCloseClick={onCloseClick}
+      closeWithoutApplying={closeWithoutApplying}
     />
   );
 }
@@ -154,16 +160,18 @@ function CityContent({
   );
 }
 
-function BuildingContent({
+function ConstructionContent({
   gameState,
   visualState,
   construction,
   onCloseClick,
+  closeWithoutApplying,
 }: {
   gameState: GameState;
   visualState: VisualState;
   construction: Construction;
   onCloseClick: () => void;
+  closeWithoutApplying: () => void;
 }) {
   const forceUpdate = useForceUpdate();
 
@@ -178,19 +186,33 @@ function BuildingContent({
   });
 
   return (
-    <div>
-      Under construction
-      <SupplySection
-        title="Input"
-        storageType={StorateType.INPUT}
-        storage={construction.input}
-        alreadyPaths={alreadyToPaths}
-        onAddPathClick={(resourceType) => {
-          addPath(visualState, construction, 'to', resourceType);
-          onCloseClick();
-        }}
-        forceUpdate={forceUpdate}
-      />
+    <div className={styles.contentBlock}>
+      <h2>Under construction</h2>
+      <div className={styles.content}>
+        <SupplySection
+          title="Input"
+          storageType={StorateType.INPUT}
+          storage={construction.input}
+          alreadyPaths={alreadyToPaths}
+          onAddPathClick={(resourceType) => {
+            addPath(visualState, construction, 'to', resourceType);
+            onCloseClick();
+          }}
+          forceUpdate={forceUpdate}
+        />
+      </div>
+      <div className={styles.footer}>
+        <button
+          type="button"
+          onClick={() => {
+            removeFacility(gameState, construction);
+            visualState.onUpdate();
+            closeWithoutApplying();
+          }}
+        >
+          Demolish
+        </button>
+      </div>
     </div>
   );
 }
@@ -255,12 +277,14 @@ function FacilityContent({
   facility,
   controlRef,
   onCloseClick,
+  closeWithoutApplying,
 }: {
   visualState: VisualState;
   gameState: GameState;
   facility: Facility;
   controlRef: ControlRef;
   onCloseClick: () => void;
+  closeWithoutApplying: () => void;
 }) {
   const forceUpdate = useForceUpdate();
   useRenderOnGameTick();
@@ -319,41 +343,54 @@ function FacilityContent({
   }));
 
   return (
-    <div>
+    <div className={styles.contentBlock}>
       <h2>{facilitiesDescription[facility.type]}</h2>
-      <label>
-        Assigned Workers (max={max}):{' '}
-        <input
-          type="number"
-          value={workersCountString}
-          onChange={(event) => {
-            setWorkersCountString(event.target.value);
+      <div className={styles.content}>
+        <label>
+          Assigned Workers (max={max}):{' '}
+          <input
+            type="number"
+            value={workersCountString}
+            onChange={(event) => {
+              setWorkersCountString(event.target.value);
+            }}
+          />
+        </label>
+        <SupplySection
+          title="Input"
+          storageType={StorateType.INPUT}
+          storage={facility.input}
+          alreadyPaths={alreadyToPaths}
+          onAddPathClick={(resourceType) => {
+            addPath(visualState, facility, 'to', resourceType);
+            onCloseClick();
           }}
+          forceUpdate={forceUpdate}
         />
-      </label>
-
-      <SupplySection
-        title="Input"
-        storageType={StorateType.INPUT}
-        storage={facility.input}
-        alreadyPaths={alreadyToPaths}
-        onAddPathClick={(resourceType) => {
-          addPath(visualState, facility, 'to', resourceType);
-          onCloseClick();
-        }}
-        forceUpdate={forceUpdate}
-      />
-      <SupplySection
-        title="Output"
-        storageType={StorateType.OUTPUT}
-        storage={facility.output}
-        alreadyPaths={alreadyFromPaths}
-        onAddPathClick={(resourceType) => {
-          addPath(visualState, facility, 'from', resourceType);
-          onCloseClick();
-        }}
-        forceUpdate={forceUpdate}
-      />
+        <SupplySection
+          title="Output"
+          storageType={StorateType.OUTPUT}
+          storage={facility.output}
+          alreadyPaths={alreadyFromPaths}
+          onAddPathClick={(resourceType) => {
+            addPath(visualState, facility, 'from', resourceType);
+            onCloseClick();
+          }}
+          forceUpdate={forceUpdate}
+        />
+      </div>
+      <div className={styles.footer}>
+        <button
+          type="button"
+          onClick={() => {
+            removeFacility(gameState, facility);
+            visualState.onUpdate();
+            closeWithoutApplying();
+          }}
+        >
+          Demolish
+        </button>
+      </div>
     </div>
   );
 }

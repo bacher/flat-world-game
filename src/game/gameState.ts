@@ -18,6 +18,7 @@ import {
   facilitiesIterationInfo,
 } from './facilities';
 import { ResearchId, researches } from './research';
+import { removeArrayItem } from '../utils/helpers';
 
 const BASE_PEOPLE_DAY_PER_CELL = 0.02;
 const BASE_HORSE_DAY_PER_CELL = 0.02;
@@ -39,7 +40,7 @@ export type StructuresByCellId = Map<CellId, Structure>;
 
 export type GameState = {
   gameId: string;
-  cities: City[];
+  cities: Map<CityId, City>;
   facilitiesByCityId: FacilitiesByCityId;
   structuresByCellId: StructuresByCellId;
   carrierPathsFromCellId: Map<CellId, CarrierPath[]>;
@@ -145,7 +146,7 @@ export function tick(gameState: GameState): void {
 
   const grabbedHorsesPerCity = new Map<CityId, number>();
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     actualizeCityTotalAssignedWorkersCount(gameState, city);
     calculateCityModificators(grabbedHorsesPerCity, city);
   }
@@ -154,7 +155,7 @@ export function tick(gameState: GameState): void {
 
   let researchPoints = 0;
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
     let jobs: PlannedJob[] = [];
@@ -349,7 +350,7 @@ export function tick(gameState: GameState): void {
 
   // Return unused horses
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     const { jobs } = planPerCity.get(city.cityId)!;
     const grabbedHorses = grabbedHorsesPerCity.get(city.cityId)!;
 
@@ -380,7 +381,7 @@ export function tick(gameState: GameState): void {
     resource: StorageItem;
   }[] = [];
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     const { jobs } = planPerCity.get(city.cityId)!;
 
     for (const [, people, , jobObject] of jobs) {
@@ -416,7 +417,7 @@ export function tick(gameState: GameState): void {
 
   // Facilities make products
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     const { jobs } = planPerCity.get(city.cityId)!;
 
     for (const [, people, , jobObject] of jobs) {
@@ -532,7 +533,7 @@ export function tick(gameState: GameState): void {
 
   // Apply cities' working paths
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     const { jobs } = planPerCity.get(city.cityId)!;
 
     city.lastTickWorkingPaths = [];
@@ -576,7 +577,7 @@ export function tick(gameState: GameState): void {
 
   // Population grow phase
 
-  for (const city of gameState.cities) {
+  for (const city of gameState.cities.values()) {
     const roundedPopulation = Math.floor(city.population);
     const needFood = roundedPopulation * PEOPLE_FOOD_PER_DAY;
 
@@ -921,7 +922,7 @@ export function addCity(
     output: [],
   };
 
-  gameState.cities.push(city);
+  gameState.cities.set(city.cityId, city);
   gameState.facilitiesByCityId.set(city.cityId, []);
   gameState.structuresByCellId.set(cellId, city);
 
@@ -1013,28 +1014,38 @@ function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
     for (const path of paths) {
       const fromPaths = gameState.carrierPathsFromCellId.get(
         convertCellToCellId(path.path.from),
-      );
+      )!;
+      removeArrayItem(fromPaths, path);
 
-      if (fromPaths) {
-        removeArrayItem(fromPaths, path);
-      }
-    }
-
-    for (const city of gameState.cities) {
-      for (const path of paths) {
-        removeArrayItem(city.carrierPaths, path);
-      }
+      const assignedCity = gameState.cities.get(path.assignedCityId)!;
+      removeArrayItem(assignedCity.carrierPaths, path);
     }
 
     gameState.carrierPathsToCellId.delete(cellId);
   }
 }
 
-function removeArrayItem<T>(array: T[], item: T): void {
-  const index = array.indexOf(item);
-  if (index !== -1) {
-    array.splice(index, 1);
+function removeAllCarrierPathsFrom(gameState: GameState, cellId: CellId): void {
+  const paths = gameState.carrierPathsFromCellId.get(cellId);
+
+  if (paths) {
+    for (const path of paths) {
+      const fromPaths = gameState.carrierPathsToCellId.get(
+        convertCellToCellId(path.path.from),
+      )!;
+      removeArrayItem(fromPaths, path);
+
+      const assignedCity = gameState.cities.get(path.assignedCityId)!;
+      removeArrayItem(assignedCity.carrierPaths, path);
+    }
+
+    gameState.carrierPathsFromCellId.delete(cellId);
   }
+}
+
+function removeAllCarrierPathsVia(gameState: GameState, cellId: CellId): void {
+  removeAllCarrierPathsTo(gameState, cellId);
+  removeAllCarrierPathsFrom(gameState, cellId);
 }
 
 function getMaximumAddingLimit(
@@ -1103,12 +1114,18 @@ export function getFacilityBindedCity(
     return facility;
   }
 
-  facility.position;
-  for (const [cityId, facilities] of gameState.facilitiesByCityId) {
-    if (facilities.includes(facility)) {
-      return gameState.cities.find((city) => city.cityId === cityId)!;
-    }
-  }
+  return gameState.cities.get(facility.assignedCityId)!;
+}
 
-  throw new Error('No binded city');
+export function removeFacility(
+  gameState: GameState,
+  facility: Facility | Construction,
+): void {
+  const facilities = gameState.facilitiesByCityId.get(facility.assignedCityId)!;
+
+  removeArrayItem(facilities, facility);
+
+  gameState.structuresByCellId.delete(facility.cellId);
+
+  removeAllCarrierPathsVia(gameState, facility.cellId);
 }

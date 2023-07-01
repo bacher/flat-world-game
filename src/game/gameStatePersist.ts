@@ -16,7 +16,7 @@ import { CarrierPath, ExactFacilityType } from './types';
 function getNewGame({ gameId }: { gameId: string }) {
   const gameState: GameState = {
     gameId,
-    cities: [],
+    cities: new Map(),
     facilitiesByCityId: new Map(),
     carrierPathsFromCellId: new Map(),
     carrierPathsToCellId: new Map(),
@@ -64,7 +64,7 @@ export function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
 
   return {
     gameId,
-    cities,
+    cities: [...cities.values()],
     facilities: [...facilitiesByCityId.values()].flat(),
     completedResearches: [...completedResearches.values()],
     currentResearchId,
@@ -103,7 +103,7 @@ export function getGameStateBySnapshot(
 
   return {
     gameId,
-    cities,
+    cities: new Map(cities.map((city) => [city.cityId, city])),
     completedResearches: new Set(completedResearches),
     currentResearchId,
     inProgressResearches: new Map(inProgressResearches),

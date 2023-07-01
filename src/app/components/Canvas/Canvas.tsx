@@ -386,12 +386,13 @@ export function Canvas({ gameId }: Props) {
 
                 addCityCarrierPaths(gameState, bindCity, [
                   {
+                    assignedCityId: bindCity.cityId,
+                    people: 1,
+                    resourceType: action.resourceType,
                     path: {
                       from: fromFacility.position,
                       to: toFacility.position,
                     },
-                    people: 1,
-                    resourceType: action.resourceType,
                   },
                 ]);
                 visualState.interactiveAction = undefined;
