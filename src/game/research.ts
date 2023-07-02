@@ -1,18 +1,4 @@
-import { ExactFacilityType, FacilityType } from './types';
-
-export const enum ResearchId {
-  WOOD_WORK = 'WOOD_WORK',
-  WORK_SHOP = 'WORK_SHOP',
-  AGRO_1 = 'AGRO_1',
-  HORSES = 'HORSES',
-}
-
-export type Research = {
-  researchId: ResearchId;
-  points: number;
-  requires: ResearchId[];
-  unlockFacilities: ExactFacilityType[];
-};
+import { FacilityType, Research, ResearchId } from './types';
 
 export const researches: Record<ResearchId, Research> = {
   [ResearchId.WOOD_WORK]: {

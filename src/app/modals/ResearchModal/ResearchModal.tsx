@@ -2,14 +2,12 @@ import { RefObject, useImperativeHandle, useState } from 'react';
 import cn from 'classnames';
 
 import styles from './ResearchModal.module.scss';
-import {
-  Research,
-  researchTranslations,
-  researches,
-} from '../../../game/research';
-import type { GameState } from '../../../game/types';
-import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
+
+import type { GameState, Research } from '../../../game/types';
+import { researchTranslations, researches } from '../../../game/research';
 import { facilitiesDescription } from '../../../game/facilities';
+
+import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
 
 import { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';

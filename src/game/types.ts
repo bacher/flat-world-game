@@ -1,6 +1,5 @@
 import type { Branded } from '../utils/typeUtils';
 
-import type { ResearchId } from './research';
 import { ResourceType } from './resources';
 
 export type CellPosition = [number, number];
@@ -49,6 +48,15 @@ export type GameState = {
   inProgressResearches: Map<ResearchId, { points: number }>;
   currentResearchId: ResearchId | undefined;
   unlockedFacilities: Set<ExactFacilityType>;
+};
+
+export type GameStateSnapshot = {
+  gameId: string;
+  cities: City[];
+  facilities: (Facility | Construction)[];
+  completedResearches: ResearchId[];
+  currentResearchId: ResearchId | undefined;
+  inProgressResearches: [ResearchId, { points: number }][];
 };
 
 export type CityId = Branded<number, 'cityId'>;
@@ -116,4 +124,18 @@ export type WorkingPath = {
   path: CellPath;
   workers: number;
   carriers: number;
+};
+
+export const enum ResearchId {
+  WOOD_WORK = 'WOOD_WORK',
+  WORK_SHOP = 'WORK_SHOP',
+  AGRO_1 = 'AGRO_1',
+  HORSES = 'HORSES',
+}
+
+export type Research = {
+  researchId: ResearchId;
+  points: number;
+  requires: ResearchId[];
+  unlockFacilities: ExactFacilityType[];
 };

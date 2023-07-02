@@ -1,12 +1,9 @@
 import { ReactNode, useRef } from 'react';
 import cn from 'classnames';
 
-import type { GameState } from '../../../game/types';
-import {
-  ResearchId,
-  researchTranslations,
-  researches,
-} from '../../../game/research';
+import type { GameState, ResearchId } from '../../../game/types';
+import { researchTranslations, researches } from '../../../game/research';
+
 import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
 
 import styles from './CurrentResearchIcon.module.scss';

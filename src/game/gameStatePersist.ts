@@ -1,17 +1,17 @@
 import {
   CellId,
   City,
-  Construction,
   FacilitiesByCityId,
-  Facility,
   GameState,
   StructuresByCellId,
   CarrierPath,
   ExactFacilityType,
+  ResearchId,
+  GameStateSnapshot,
 } from './types';
 import { addCity, addPathTo } from './gameState';
 import { gameStateStorage, gamesListStorage } from './persist';
-import { ResearchId, researches } from './research';
+import { researches } from './research';
 
 function getNewGame({ gameId }: { gameId: string }) {
   const gameState: GameState = {
@@ -42,15 +42,6 @@ export function getNewGameSnapshot({
 }): GameStateSnapshot {
   return getGameStateSnapshot(getNewGame({ gameId }));
 }
-
-export type GameStateSnapshot = {
-  gameId: string;
-  cities: City[];
-  facilities: (Facility | Construction)[];
-  completedResearches: ResearchId[];
-  currentResearchId: ResearchId | undefined;
-  inProgressResearches: [ResearchId, { points: number }][];
-};
 
 export function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
   const {
