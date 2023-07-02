@@ -12,6 +12,7 @@ import {
 import { addCity, addPathTo } from './gameState';
 import { gameStateStorage, gamesListStorage } from './persist';
 import { researches } from './research';
+import { newCellPosition } from './helpers';
 
 function getNewGame({ gameId }: { gameId: string }) {
   const gameState: GameState = {
@@ -29,7 +30,7 @@ function getNewGame({ gameId }: { gameId: string }) {
   };
 
   addCity(gameState, {
-    position: [0, 0],
+    position: newCellPosition({ i: 0, j: 0 }),
   });
 
   return gameState;
@@ -77,7 +78,7 @@ export function getGameStateBySnapshot(
 
   const structuresByCellId: StructuresByCellId = new Map();
   for (const city of cities) {
-    structuresByCellId.set(city.cellId, city);
+    structuresByCellId.set(city.position.cellId, city);
   }
 
   const { carrierPathsFromCellId, carrierPathsToCellId } =
@@ -88,7 +89,7 @@ export function getGameStateBySnapshot(
   );
 
   for (const facility of facilities) {
-    structuresByCellId.set(facility.cellId, facility);
+    structuresByCellId.set(facility.position.cellId, facility);
     facilitiesByCityId.get(facility.assignedCityId)!.push(facility);
   }
 

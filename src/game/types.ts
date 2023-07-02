@@ -2,14 +2,15 @@ import type { Branded } from '@/utils/typeUtils';
 
 import { ResourceType } from './resources';
 
-export type CellPosition = [number, number];
+export type CellCoordinates = { i: number; j: number };
+export type CellPosition = CellCoordinates & { cellId: CellId };
 export type CellId = Branded<number, 'cellId'>;
 
 export type Point = [number, number];
 
 export type CellRect = {
-  start: CellPosition;
-  end: CellPosition;
+  start: CellCoordinates;
+  end: CellCoordinates;
 };
 
 export enum FacilityType {
@@ -63,7 +64,6 @@ export type CityId = Branded<number, 'cityId'>;
 
 type StructureBase = {
   position: CellPosition;
-  cellId: CellId;
   input: StorageItem[];
   output: StorageItem[];
 };

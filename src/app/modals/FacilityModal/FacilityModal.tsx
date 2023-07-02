@@ -18,6 +18,7 @@ import {
   CarrierPath,
   FacilityType,
   StorageItem,
+  CellPosition,
 } from '@/game/types';
 import {
   facilitiesConstructionInfo,
@@ -186,7 +187,9 @@ function ConstructionContent({
 
   const alreadyToPaths = useAlreadyPathsState({
     availableResources: iterationInfo.input.map((item) => item.resourceType),
-    actualPaths: gameState.carrierPathsToCellId.get(construction.cellId),
+    actualPaths: gameState.carrierPathsToCellId.get(
+      construction.position.cellId,
+    ),
   });
 
   return (
@@ -309,12 +312,12 @@ function FacilityContent({
 
   const alreadyToPaths = useAlreadyPathsState({
     availableResources: iterationInfo.input.map((item) => item.resourceType),
-    actualPaths: gameState.carrierPathsToCellId.get(facility.cellId),
+    actualPaths: gameState.carrierPathsToCellId.get(facility.position.cellId),
   });
 
   const alreadyFromPaths = useAlreadyPathsState({
     availableResources: iterationInfo.output.map((item) => item.resourceType),
-    actualPaths: gameState.carrierPathsFromCellId.get(facility.cellId),
+    actualPaths: gameState.carrierPathsFromCellId.get(facility.position.cellId),
   });
 
   const max = facilityInfo.maximumPeopleAtWork;
@@ -456,19 +459,9 @@ function SupplySection({
                         forceUpdate();
                       }}
                     />
-                    {storageType === StorateType.INPUT ? (
-                      <>
-                        {' from ('}
-                        {resourcePath.path.path.from.join(',')}
-                        {')'}
-                      </>
-                    ) : (
-                      <>
-                        {' to ('}
-                        {resourcePath.path.path.to.join(',')}
-                        {')'}
-                      </>
-                    )}
+                    {storageType === StorateType.INPUT
+                      ? ` from ${formatCell(resourcePath.path.path.from)}`
+                      : ` to ${formatCell(resourcePath.path.path.to)}`}
                   </label>
                 ))}
               </div>
@@ -480,4 +473,8 @@ function SupplySection({
       )}
     </div>
   );
+}
+
+function formatCell(cell: CellPosition): string {
+  return `(${cell.i},${cell.j})`;
 }

@@ -19,7 +19,6 @@ import {
   getFacilityBindedCity,
   getNearestCity,
 } from '@/game/gameState';
-import { convertCellToCellId } from '@/game/helpers';
 import { loadGame, saveGame } from '@/game/gameStatePersist';
 import {
   isValidCarrierPlanningTarget,
@@ -30,12 +29,12 @@ import {
   VisualState,
   createVisualState,
   isAllowToConstructAtPosition,
-  isPointsSame,
   lookupGridByPoint,
   startGameLoop,
   visualStateMove,
   visualStateOnMouseMove,
   visualStateMoveToCell,
+  isSameCellPoints,
 } from '@/game/visualState';
 
 import { useForceUpdate } from '@hooks/forceUpdate';
@@ -314,8 +313,7 @@ export function Canvas({ gameId }: Props) {
     const cell = lookupGridByPoint(visualState, [event.clientX, event.clientY]);
 
     if (cell) {
-      const cellId = convertCellToCellId(cell);
-      const facility = gameState.structuresByCellId.get(cellId);
+      const facility = gameState.structuresByCellId.get(cell.cellId);
 
       if (visualState.interactiveAction) {
         switch (visualState.interactiveAction.actionType) {
@@ -346,7 +344,7 @@ export function Canvas({ gameId }: Props) {
             break;
           }
           case InteractiveActionType.CARRIER_PATH_PLANNING: {
-            const facility = gameState.structuresByCellId.get(cellId);
+            const facility = gameState.structuresByCellId.get(cell.cellId);
 
             if (
               facility &&
@@ -356,12 +354,8 @@ export function Canvas({ gameId }: Props) {
                 visualState.interactiveAction,
               )
             ) {
-              const cellId = convertCellToCellId(
-                visualState.interactiveAction.cell,
-              );
-
               const originFacility = gameState.structuresByCellId.get(
-                cellId,
+                visualState.interactiveAction.cell.cellId,
               ) as Facility;
 
               const action = visualState.interactiveAction;
@@ -373,7 +367,7 @@ export function Canvas({ gameId }: Props) {
                 direction === 'from' ? facility : originFacility;
 
               const alreadyCarrierPaths = gameState.carrierPathsFromCellId.get(
-                fromFacility.cellId,
+                fromFacility.position.cellId,
               );
 
               if (
@@ -381,8 +375,8 @@ export function Canvas({ gameId }: Props) {
                 alreadyCarrierPaths.some(
                   (path) =>
                     path.resourceType === action.resourceType &&
-                    isPointsSame(path.path.from, fromFacility.position) &&
-                    isPointsSame(path.path.to, toFacility.position),
+                    isSameCellPoints(path.path.from, fromFacility.position) &&
+                    isSameCellPoints(path.path.to, toFacility.position),
                 )
               ) {
                 console.log('already path, do nothing');

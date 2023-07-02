@@ -13,13 +13,13 @@ import {
 } from '@/game/types';
 import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { ResourceType, resourceLocalization } from '@/game/resources';
-import { convertCellToCellId } from '@/game/helpers';
+import { newCellPosition } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,
   VisualState,
   isAllowToConstructAtPosition,
-  isPointsSame,
+  isSameCellPoints,
 } from '@/game/visualState';
 
 import { drawStructureObject } from './renderStructures';
@@ -82,8 +82,9 @@ function drawCarrierPlanningMode(
     return;
   }
 
-  const cellId = convertCellToCellId(visualState.hoverCell);
-  const hoverFacility = visualState.gameState.structuresByCellId.get(cellId);
+  const hoverFacility = visualState.gameState.structuresByCellId.get(
+    visualState.hoverCell.cellId,
+  );
 
   const isValid =
     hoverFacility &&
@@ -112,7 +113,7 @@ export function isValidCarrierPlanningTarget(
   hoverFacility: Structure,
   action: InteractActionCarrierPlanning,
 ): boolean {
-  if (hoverFacility && !isPointsSame(visualState.hoverCell, action.cell)) {
+  if (hoverFacility && !isSameCellPoints(visualState.hoverCell, action.cell)) {
     let input: ResourceType[];
     let output: ResourceType[];
 
@@ -140,13 +141,13 @@ function drawGrid(visualState: VisualState): void {
   ctx.save();
   ctx.beginPath();
   ctx.translate(-cellWidth / 2, -cellHeight / 2);
-  for (let i = start[0]; i < end[0]; i += 1) {
-    ctx.moveTo(i * cellWidth, start[1] * cellHeight);
-    ctx.lineTo(i * cellWidth, end[1] * cellWidth);
+  for (let i = start.i; i < end.i; i += 1) {
+    ctx.moveTo(i * cellWidth, start.j * cellHeight);
+    ctx.lineTo(i * cellWidth, end.j * cellWidth);
   }
-  for (let j = start[1]; j < end[1]; j += 1) {
-    ctx.moveTo(start[0] * cellWidth, j * cellHeight);
-    ctx.lineTo(end[0] * cellWidth, j * cellWidth);
+  for (let j = start.j; j < end.j; j += 1) {
+    ctx.moveTo(start.i * cellWidth, j * cellHeight);
+    ctx.lineTo(end.i * cellWidth, j * cellWidth);
   }
   ctx.stroke();
   ctx.restore();
@@ -162,9 +163,9 @@ function drawHighlights(visualState: VisualState): void {
       if (visualState.interactiveAction.facilityType === FacilityType.CITY) {
         const { start, end } = visualState.viewportBounds;
 
-        for (let col = start[0]; col < end[0]; col += 1) {
-          for (let row = start[1]; row < end[1]; row += 1) {
-            const cell = [col, row] as CellPosition;
+        for (let col = start.i; col < end.i; col += 1) {
+          for (let row = start.j; row < end.j; row += 1) {
+            const cell = newCellPosition({ i: col, j: row });
 
             if (isAllowToConstructAtPosition(visualState, cell)) {
               highlightCell(visualState, cell, '#aea');
@@ -195,7 +196,7 @@ function highlightCell(
   ctx.beginPath();
   ctx.translate(-cellWidth / 2, -cellHeight / 2);
 
-  const [i, j] = cellPosition;
+  const { i, j } = cellPosition;
 
   ctx.rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
   ctx.fillStyle = cellColor;
@@ -248,15 +249,15 @@ function drawObject(visualState: VisualState, facility: Structure): void {
 }
 
 function getCellCenter(visualState: VisualState, cell: CellPosition): Point {
-  return [cell[0] * visualState.cellSize[0], cell[1] * visualState.cellSize[1]];
+  return [cell.i * visualState.cellSize[0], cell.j * visualState.cellSize[1]];
 }
 
 function isCellInRectInclsive(rect: CellRect, point: CellPosition): boolean {
   return (
-    point[0] < rect.start[0] ||
-    point[0] > rect.end[0] ||
-    point[1] < rect.start[1] ||
-    point[1] < rect.end[1]
+    point.i < rect.start.i ||
+    point.i > rect.end.i ||
+    point.j < rect.start.j ||
+    point.j < rect.end.j
   );
 }
 
@@ -408,7 +409,7 @@ function drawStorage(
 function drawTopOverlay(visualState: VisualState): void {
   if (visualState.hoverCell) {
     const { ctx } = visualState;
-    const drawText = `(${visualState.hoverCell.join(',')})`;
+    const drawText = `(${visualState.hoverCell.i},${visualState.hoverCell.j})`;
     const [x, y] = visualState.canvasSize;
 
     ctx.save();

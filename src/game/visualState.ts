@@ -12,7 +12,7 @@ import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
-import { convertCellToCellId } from './helpers';
+import { newCellPosition } from './helpers';
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
 
@@ -77,7 +77,10 @@ export function createVisualState(
     canvasHalfSize: [halfWidth, halfHeight],
     cellSize,
     offset: [0, 0],
-    viewportBounds: { start: [0, 0], end: [0, 0] },
+    viewportBounds: {
+      start: { i: 0, j: 0 },
+      end: { i: 0, j: 0 },
+    },
     hoverCell: undefined,
     interactiveAction: undefined,
     onUpdate,
@@ -98,14 +101,14 @@ function actualizeViewportBounds(visualState: VisualState): void {
   const offsetY = baseOffsetY + halfHeight - cellHeight / 2;
 
   visualState.viewportBounds = {
-    start: [
-      Math.floor(-offsetX / cellWidth),
-      Math.floor(-offsetY / cellHeight),
-    ],
-    end: [
-      Math.ceil((canvasWidth - offsetX) / cellWidth),
-      Math.ceil((canvasHeight - offsetY) / cellHeight),
-    ],
+    start: {
+      i: Math.floor(-offsetX / cellWidth),
+      j: Math.floor(-offsetY / cellHeight),
+    },
+    end: {
+      i: Math.ceil((canvasWidth - offsetX) / cellWidth),
+      j: Math.ceil((canvasHeight - offsetY) / cellHeight),
+    },
   };
 }
 
@@ -130,7 +133,10 @@ export function lookupGridByPoint(
   const canvasX = x - offsetX - halfWidth + cellWidth / 2;
   const canvasY = y - offsetY - halfHeight + cellHeight / 2;
 
-  return [Math.floor(canvasX / cellWidth), Math.floor(canvasY / cellHeight)];
+  return newCellPosition({
+    i: Math.floor(canvasX / cellWidth),
+    j: Math.floor(canvasY / cellHeight),
+  });
 }
 
 export function lookupFacilityByPoint(
@@ -143,9 +149,7 @@ export function lookupFacilityByPoint(
     return undefined;
   }
 
-  const cellId = convertCellToCellId(cell);
-
-  return visualState.gameState.structuresByCellId.get(cellId);
+  return visualState.gameState.structuresByCellId.get(cell.cellId);
 }
 
 export function visualStateOnMouseMove(
@@ -160,7 +164,7 @@ export function visualStateOnMouseMove(
 
   const cell = lookupGridByPoint(visualState, point);
 
-  if (!isPointsSame(visualState.hoverCell, cell)) {
+  if (!isSameCellPoints(visualState.hoverCell, cell)) {
     visualState.hoverCell = cell;
     visualState.onUpdate();
   }
@@ -180,8 +184,8 @@ export function visualStateMoveToCell(
   const [cellWidth, cellHeight] = visualState.cellSize;
 
   updateVisualStateOffset(visualState, [
-    -cell[0] * cellWidth,
-    -cell[1] * cellHeight,
+    -cell.i * cellWidth,
+    -cell.j * cellHeight,
   ]);
 }
 
@@ -193,7 +197,7 @@ function updateVisualStateOffset(visualState: VisualState, point: Point): void {
   visualState.onUpdate();
 }
 
-export function isPointsSame(
+export function isSamePoints(
   p1: Point | undefined,
   p2: Point | undefined,
 ): boolean {
@@ -206,6 +210,21 @@ export function isPointsSame(
   }
 
   return p1[0] === p2[0] && p1[1] === p2[1];
+}
+
+export function isSameCellPoints(
+  p1: CellPosition | undefined,
+  p2: CellPosition | undefined,
+): boolean {
+  if (!p1 && !p2) {
+    return true;
+  }
+
+  if (!p1 || !p2) {
+    return false;
+  }
+
+  return p1.cellId === p2.cellId;
 }
 
 export function startGameLoop(
@@ -226,9 +245,7 @@ export function isAllowToConstructAtPosition(
   visualState: VisualState,
   cell: CellPosition,
 ): boolean {
-  const cellId = convertCellToCellId(cell);
-
-  if (visualState.gameState.structuresByCellId.has(cellId)) {
+  if (visualState.gameState.structuresByCellId.has(cell.cellId)) {
     return false;
   }
 
@@ -253,5 +270,5 @@ export function isAllowToConstructAtPosition(
 }
 
 function cellDistanceSquare(pos1: CellPosition, pos2: CellPosition): number {
-  return (pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2;
+  return (pos1.i - pos2.i) ** 2 + (pos1.j - pos2.j) ** 2;
 }

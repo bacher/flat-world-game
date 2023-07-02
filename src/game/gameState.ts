@@ -28,7 +28,7 @@ import {
   BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
 } from './consts';
-import { calculateDistance, convertCellToCellId, isSamePos } from './helpers';
+import { calculateDistance, isSamePos } from './helpers';
 
 export function addCityCarrierPaths(
   gameState: GameState,
@@ -52,12 +52,11 @@ export function addPathTo(
   carrierPath: CarrierPath,
   pos: CellPosition,
 ): void {
-  const cellId = convertCellToCellId(pos);
-  let alreadyPaths = carrierPaths.get(cellId);
+  let alreadyPaths = carrierPaths.get(pos.cellId);
 
   if (!alreadyPaths) {
     alreadyPaths = [];
-    carrierPaths.set(cellId, alreadyPaths);
+    carrierPaths.set(pos.cellId, alreadyPaths);
   }
 
   alreadyPaths.push(carrierPath);
@@ -282,14 +281,11 @@ export function addCity(
   gameState: GameState,
   { position }: { position: CellPosition },
 ): City {
-  const cellId = convertCellToCellId(position);
-
   const city: City = {
-    cityId: cellId as unknown as CityId,
+    cityId: position.cellId as unknown as CityId,
     type: FacilityType.CITY,
     name: generateNewCityName(gameState.alreadyCityNames, true),
     position,
-    cellId: cellId,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
     totalAssignedWorkersCount: 0,
@@ -304,7 +300,7 @@ export function addCity(
 
   gameState.cities.set(city.cityId, city);
   gameState.facilitiesByCityId.set(city.cityId, []);
-  gameState.structuresByCellId.set(cellId, city);
+  gameState.structuresByCellId.set(city.position.cellId, city);
 
   return city;
 }
@@ -318,7 +314,7 @@ function addCityFacility(
 
   facilities.push(facility);
 
-  gameState.structuresByCellId.set(facility.cellId, facility);
+  gameState.structuresByCellId.set(facility.position.cellId, facility);
 }
 
 export function addConstructionStructure(
@@ -329,13 +325,11 @@ export function addConstructionStructure(
   }: { facilityType: ExactFacilityType; position: CellPosition },
   city: City,
 ): void {
-  const cellId = convertCellToCellId(position);
-
   const buildingFacilility: Construction = {
     type: FacilityType.CONSTRUCTION,
     assignedCityId: city.cityId,
     position,
-    cellId,
+
     buildingFacilityType: facilityType,
     assignedWorkersCount:
       facilitiesConstructionInfo[facilityType].maximumPeopleAtWork,
@@ -356,7 +350,6 @@ export function completeConstruction(
     type: construction.buildingFacilityType,
     assignedCityId: construction.assignedCityId,
     position: construction.position,
-    cellId: construction.cellId,
     assignedWorkersCount:
       facilitiesIterationInfo[construction.buildingFacilityType]
         .maximumPeopleAtWork,
@@ -366,7 +359,7 @@ export function completeConstruction(
     inProcess: 0,
   };
 
-  removeAllCarrierPathsTo(gameState, facility.cellId);
+  removeAllCarrierPathsTo(gameState, facility.position.cellId);
   replaceCunstructionByFacility(gameState, construction, facility);
 
   return facility;
@@ -384,7 +377,7 @@ function replaceCunstructionByFacility(
   }
 
   facilities[index] = facility;
-  gameState.structuresByCellId.set(facility.cellId, facility);
+  gameState.structuresByCellId.set(facility.position.cellId, facility);
 }
 
 function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
@@ -393,7 +386,7 @@ function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
   if (paths) {
     for (const path of paths) {
       const fromPaths = gameState.carrierPathsFromCellId.get(
-        convertCellToCellId(path.path.from),
+        path.path.from.cellId,
       )!;
       removeArrayItem(fromPaths, path);
 
@@ -411,7 +404,7 @@ function removeAllCarrierPathsFrom(gameState: GameState, cellId: CellId): void {
   if (paths) {
     for (const path of paths) {
       const fromPaths = gameState.carrierPathsToCellId.get(
-        convertCellToCellId(path.path.from),
+        path.path.from.cellId,
       )!;
       removeArrayItem(fromPaths, path);
 
@@ -505,7 +498,7 @@ export function removeFacility(
 
   removeArrayItem(facilities, facility);
 
-  gameState.structuresByCellId.delete(facility.cellId);
+  gameState.structuresByCellId.delete(facility.position.cellId);
 
-  removeAllCarrierPathsVia(gameState, facility.cellId);
+  removeAllCarrierPathsVia(gameState, facility.position.cellId);
 }

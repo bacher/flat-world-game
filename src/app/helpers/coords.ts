@@ -1,24 +1,23 @@
-import type { CellPosition } from '@/game/types';
+import type { CellCoordinates } from '@/game/types';
 
 export function parseCoordinatesFromString(
   coordsString: string,
-): CellPosition | undefined {
+): CellCoordinates | undefined {
   const coordStringPair = coordsString.split(/\s*[,;:]\s*/);
 
   if (coordStringPair.length !== 2) {
     return;
   }
 
-  const coords = [];
+  const i = Number.parseInt(coordStringPair[0]);
+  const j = Number.parseInt(coordStringPair[1]);
 
-  for (const coordString of coordStringPair) {
-    const num = Number.parseInt(coordString);
-    if (Number.isNaN(num)) {
-      return undefined;
-    }
-
-    coords.push(num);
+  if (Number.isNaN(i) || Number.isNaN(j)) {
+    return undefined;
   }
 
-  return coords as CellPosition;
+  return {
+    i,
+    j,
+  };
 }
