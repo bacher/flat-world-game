@@ -11,11 +11,9 @@ import {
   Facility,
   Structure,
 } from '../game/types';
-import {
-  convertCellToCellId,
-  getStructureIterationStorageInfo,
-} from '../game/gameState';
+import { getStructureIterationStorageInfo } from '../game/gameState';
 import { ResourceType, resourceLocalization } from '../game/resources';
+import { convertCellToCellId } from '../game/helpers';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,
@@ -23,6 +21,7 @@ import {
   isAllowToConstructAtPosition,
   isPointsSame,
 } from '../game/visualState';
+
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 

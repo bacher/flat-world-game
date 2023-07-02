@@ -1,5 +1,3 @@
-import sample from 'lodash/sample';
-
 import { removeArrayItem } from '../utils/helpers';
 
 import { generateNewCityName } from './cityNameGenerator';
@@ -17,29 +15,20 @@ import {
   GameState,
   StorageItem,
   Structure,
-  WorkingPath,
 } from './types';
 import { ResourceType } from './resources';
 import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from './facilities';
-import { researches } from './research';
-
-const BASE_PEOPLE_DAY_PER_CELL = 0.02;
-const BASE_HORSE_DAY_PER_CELL = 0.02;
-const BASE_WEIGHT_PER_PEOPLE_DAY = 2.5;
-const BASE_WEIGHT_PER_HORSE_DAY = 3.5;
-const BASE_PEOPLE_WORK_MODIFIER = 1;
-const BASE_HORSE_WORK_MODIFIER = 0.5;
-const RESEARCH_POINTS_PER_FREE_PERSON = 3;
-const RESEARCH_POINTS_PER_WORKER = RESEARCH_POINTS_PER_FREE_PERSON / 2;
-const HORSES_PER_WORKER = 0.1;
-const BUFFER_DAYS = 2;
-const MINIMAL_CITY_PEOPLE = 3;
-const PEOPLE_FOOD_PER_DAY = 0.2;
-export const MIN_EXPEDITION_DISTANCE_SQUARE = 8 ** 2;
-export const MAX_EXPEDITION_DISTANCE_SQUARE = 20 ** 2;
+import {
+  BASE_PEOPLE_DAY_PER_CELL,
+  BASE_PEOPLE_WORK_MODIFIER,
+  BASE_WEIGHT_PER_PEOPLE_DAY,
+  BUFFER_DAYS,
+  MINIMAL_CITY_PEOPLE,
+} from './consts';
+import { calculateDistance, convertCellToCellId, isSamePos } from './helpers';
 
 export function addCityCarrierPaths(
   gameState: GameState,
@@ -74,516 +63,7 @@ export function addPathTo(
   alreadyPaths.push(carrierPath);
 }
 
-type JobObject =
-  | { type: 'facility'; facility: Facility | Construction; distance: number }
-  | {
-      type: 'carrier';
-      carrierPath: CarrierPath;
-      fromFacility: Structure;
-      toFacility: Structure;
-      commingDistance: number;
-      moveDistance: number;
-    };
-
-// [temp, current, maximum, facility]
-type PlannedJob = [number, number, number, JobObject];
-
-export function tick(gameState: GameState): void {
-  // PLANING PHASE
-
-  const grabbedHorsesPerCity = new Map<CityId, number>();
-
-  for (const city of gameState.cities.values()) {
-    actualizeCityTotalAssignedWorkersCount(gameState, city);
-    calculateCityModificators(grabbedHorsesPerCity, city);
-  }
-
-  const planPerCity = new Map<CityId, { jobs: PlannedJob[] }>();
-
-  let researchPoints = 0;
-
-  for (const city of gameState.cities.values()) {
-    const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
-
-    let jobs: PlannedJob[] = [];
-    let needPeople = 0;
-    let maxRatio = -Infinity;
-
-    function registerJob(
-      item: JobObject,
-      people: number,
-      maxPeople: number,
-    ): void {
-      const nextRatio = (people - 1) / maxPeople;
-      jobs.push([nextRatio, people, maxPeople, item]);
-      needPeople += people;
-
-      if (nextRatio > maxRatio) {
-        maxRatio = nextRatio;
-      }
-    }
-
-    for (const facility of facilities) {
-      const distance = calculateDistance(city.position, facility.position);
-
-      const iterationInfo = getStructureIterationStorageInfo(facility);
-
-      if (iterationInfo) {
-        const iterationPeopleDays =
-          iterationInfo.iterationPeopleDays / city.peopleWorkModifier;
-
-        let needPeople = 0;
-
-        if (facility.inProcess > 0) {
-          needPeople += (1 - facility.inProcess) * iterationPeopleDays;
-        }
-
-        const resourcesForIterations =
-          getMaximumIterationsByResources(facility);
-
-        let iterationsUntilOverDone;
-
-        if (facility.type === FacilityType.CONSTRUCTION) {
-          iterationsUntilOverDone =
-            getIterationsUntilConstructionComplete(facility);
-        } else {
-          iterationsUntilOverDone = getIterationsUntilOverDone(facility, city);
-        }
-
-        needPeople +=
-          Math.min(
-            resourcesForIterations,
-            Math.max(
-              0,
-              iterationsUntilOverDone + (facility.inProcess > 0 ? -1 : 0),
-            ),
-          ) * iterationPeopleDays;
-
-        if (needPeople > 0) {
-          const max = facility.assignedWorkersCount;
-
-          const onePersonWork = 1 - distance * 0.05;
-          const people = Math.min(max, Math.ceil(needPeople / onePersonWork));
-
-          registerJob({ type: 'facility', facility, distance }, people, max);
-        }
-      }
-    }
-
-    for (const carrierPath of city.carrierPaths) {
-      const { from: fromFacility, to: toFacility } = getPathFacilities(
-        city,
-        facilities,
-        carrierPath.path,
-      );
-
-      if (!fromFacility || !toFacility) {
-        console.error('No facility found!');
-        continue;
-      }
-
-      const fromCount = getCountOf(
-        fromFacility.output,
-        carrierPath.resourceType,
-      );
-
-      if (fromCount === 0) {
-        continue;
-      }
-
-      // TODO: Calculate how many people we need based on input and needed output
-
-      const toCount = getCountOf(toFacility.input, carrierPath.resourceType);
-
-      let maxInput = 0;
-
-      if (toFacility.type === FacilityType.CITY) {
-        maxInput = toFacility.population * 2;
-      } else {
-        if (toFacility.type === FacilityType.CONSTRUCTION) {
-          const constructInfo =
-            facilitiesConstructionInfo[toFacility.buildingFacilityType];
-
-          const resourceIterationInfo = constructInfo.input.find(
-            (input) => input.resourceType === carrierPath.resourceType,
-          )!;
-
-          if (!resourceIterationInfo) {
-            debugger;
-          }
-
-          maxInput =
-            resourceIterationInfo.quantity *
-            (toFacility.assignedWorkersCount /
-              constructInfo.iterationPeopleDays /
-              city.peopleWorkModifier) *
-            constructInfo.iterations;
-        } else {
-          const toFacilityIterationInfo =
-            getStructureIterationStorageInfo(toFacility);
-
-          const resourceIterationInfo = toFacilityIterationInfo.input.find(
-            (input) => input.resourceType === carrierPath.resourceType,
-          )!;
-
-          maxInput =
-            resourceIterationInfo.quantity *
-            (toFacility.assignedWorkersCount /
-              toFacilityIterationInfo.iterationPeopleDays /
-              city.peopleWorkModifier) *
-            BUFFER_DAYS;
-        }
-
-        if (toCount >= maxInput) {
-          continue;
-        }
-      }
-
-      const commingDistance =
-        calculateDistance(city.position, fromFacility.position) +
-        calculateDistance(toFacility.position, city.position);
-
-      const moveDistance = calculateDistance(
-        fromFacility.position,
-        toFacility.position,
-      );
-
-      const needToMove = maxInput - toCount;
-
-      const remains = 1 - commingDistance * city.peopleDayPerCell;
-
-      const needPeople = Math.ceil(
-        ((needToMove / city.weightPerPeopleDay) * moveDistance) / remains,
-      );
-
-      registerJob(
-        {
-          type: 'carrier',
-          carrierPath,
-          fromFacility,
-          toFacility,
-          commingDistance,
-          moveDistance,
-        },
-        Math.min(needPeople, carrierPath.people),
-        carrierPath.people,
-      );
-    }
-
-    city.lastTickNeedPopulation = needPeople;
-
-    while (city.population < needPeople) {
-      const cutJobs = jobs.filter((job) => job[0] === maxRatio);
-
-      const cutJob = sample(cutJobs)!;
-      cutJob[1] -= 1;
-      cutJob[0] = (cutJob[1] - 1) / cutJob[2];
-      needPeople -= 1;
-
-      if (cutJobs.length === 1) {
-        maxRatio = -Infinity;
-        for (const job of jobs) {
-          if (job[0] > maxRatio) {
-            maxRatio = job[0];
-          }
-        }
-      }
-    }
-
-    jobs = jobs.filter((job) => job[1] > 0);
-
-    planPerCity.set(city.cityId, { jobs });
-  }
-
-  // Return unused horses
-
-  for (const city of gameState.cities.values()) {
-    const { jobs } = planPerCity.get(city.cityId)!;
-    const grabbedHorses = grabbedHorsesPerCity.get(city.cityId)!;
-
-    const actualTotalWorkersCount = jobs.reduce((acc, job) => acc + job[1], 0);
-
-    const usedHorses = actualTotalWorkersCount * HORSES_PER_WORKER;
-
-    const unusedHorses = grabbedHorses - usedHorses;
-
-    if (unusedHorses > 0) {
-      addResource(city.input, {
-        resourceType: ResourceType.HORSE,
-        quantity: unusedHorses,
-      });
-    }
-
-    researchPoints +=
-      (city.population - actualTotalWorkersCount) *
-        RESEARCH_POINTS_PER_FREE_PERSON +
-      actualTotalWorkersCount * RESEARCH_POINTS_PER_WORKER;
-  }
-
-  // Carriers get items
-
-  const currentlyMovingProducts: {
-    fromFacility: Structure;
-    toFacility: Structure;
-    resource: StorageItem;
-  }[] = [];
-
-  for (const city of gameState.cities.values()) {
-    const { jobs } = planPerCity.get(city.cityId)!;
-
-    for (const [, people, , jobObject] of jobs) {
-      if (jobObject.type === 'carrier') {
-        const {
-          carrierPath,
-          fromFacility,
-          toFacility,
-          commingDistance,
-          moveDistance,
-        } = jobObject;
-
-        const remains = 1 - commingDistance * city.peopleDayPerCell;
-
-        const power = remains * people;
-
-        let movedWeight = (power / moveDistance) * city.weightPerPeopleDay;
-        movedWeight = Math.floor(movedWeight * 10) / 10;
-
-        const grabbedItem = grabResource(fromFacility.output, {
-          resourceType: carrierPath.resourceType,
-          quantity: movedWeight,
-        });
-
-        currentlyMovingProducts.push({
-          fromFacility,
-          toFacility,
-          resource: grabbedItem,
-        });
-      }
-    }
-  }
-
-  // Facilities make products
-
-  for (const city of gameState.cities.values()) {
-    const { jobs } = planPerCity.get(city.cityId)!;
-
-    for (const [, people, , jobObject] of jobs) {
-      if (jobObject.type === 'facility') {
-        const { facility, distance } = jobObject;
-        const peopleAfterWalk = people * (1 - distance * 0.05);
-
-        const iteration = getStructureIterationStorageInfo(facility);
-
-        let peopleIterationsRemains =
-          peopleAfterWalk /
-          iteration.iterationPeopleDays /
-          city.peopleWorkModifier;
-        let overallDone = 0;
-
-        if (facility.inProcess > 0) {
-          const iterationLeft = 1 - facility.inProcess;
-
-          if (peopleIterationsRemains < iterationLeft) {
-            facility.inProcess += peopleIterationsRemains;
-            continue;
-          }
-
-          peopleIterationsRemains -= iterationLeft;
-          facility.inProcess = 0;
-          overallDone += 1;
-        }
-
-        const resourceForIterations = getMaximumIterationsByResources(facility);
-
-        let iterationsUntilOverDone;
-
-        if (facility.type === FacilityType.CONSTRUCTION) {
-          iterationsUntilOverDone =
-            getIterationsUntilConstructionComplete(facility);
-        } else {
-          iterationsUntilOverDone = getIterationsUntilOverDone(facility, city);
-        }
-
-        const finalIterationsUntilOverDone = Math.max(
-          0,
-          iterationsUntilOverDone - overallDone,
-        );
-
-        const resourceIterations = Math.min(
-          finalIterationsUntilOverDone,
-          resourceForIterations,
-          Math.ceil(peopleIterationsRemains),
-        );
-
-        if (resourceIterations > 0) {
-          removeIterationInput(facility, resourceIterations);
-        }
-
-        if (peopleIterationsRemains >= resourceIterations) {
-          overallDone += resourceIterations;
-        } else {
-          const doneNewIterations = Math.floor(peopleIterationsRemains);
-          overallDone += doneNewIterations;
-          facility.inProcess = peopleIterationsRemains % 1;
-        }
-
-        if (facility.type === FacilityType.CONSTRUCTION) {
-          facility.iterationsComplete += overallDone;
-
-          const constructionInfo =
-            facilitiesConstructionInfo[facility.buildingFacilityType];
-
-          if (facility.iterationsComplete >= constructionInfo.iterations) {
-            completeConstruction(gameState, facility);
-          }
-        } else {
-          if (overallDone > 0) {
-            addIterationOutput(facility, overallDone);
-          }
-        }
-      }
-    }
-  }
-
-  // Carriers have brought items
-
-  for (const {
-    fromFacility,
-    toFacility,
-    resource,
-  } of currentlyMovingProducts) {
-    if (toFacility.type === FacilityType.CONSTRUCTION) {
-      const addingLimit = getMaximumAddingLimit(
-        toFacility,
-        resource.resourceType,
-      );
-
-      if (resource.quantity > addingLimit) {
-        if (addingLimit > 0) {
-          addResource(toFacility.input, {
-            quantity: addingLimit,
-            resourceType: resource.resourceType,
-          });
-        }
-
-        addResource(fromFacility.output, {
-          quantity: resource.quantity - addingLimit,
-          resourceType: resource.resourceType,
-        });
-      } else {
-        addResource(toFacility.input, resource);
-      }
-    } else {
-      addResource(toFacility.input, resource);
-    }
-  }
-
-  // Apply cities' working paths
-
-  for (const city of gameState.cities.values()) {
-    const { jobs } = planPerCity.get(city.cityId)!;
-
-    city.lastTickWorkingPaths = [];
-
-    for (const job of jobs) {
-      let workingPath: WorkingPath;
-
-      switch (job[3].type) {
-        case 'facility': {
-          const facility = job[3].facility;
-          workingPath = {
-            path: { from: city.position, to: facility.position },
-            workers: job[1],
-            carriers: 0,
-          };
-          break;
-        }
-        case 'carrier': {
-          const { from, to } = job[3].carrierPath.path;
-          workingPath = {
-            path: { from, to },
-            workers: 0,
-            carriers: job[1],
-          };
-          break;
-        }
-      }
-
-      const alreadyPath = city.lastTickWorkingPaths.find((path) =>
-        isSamePath(path.path, workingPath.path),
-      );
-
-      if (alreadyPath) {
-        alreadyPath.workers += workingPath.workers;
-        alreadyPath.carriers += workingPath.carriers;
-      } else {
-        city.lastTickWorkingPaths.push(workingPath);
-      }
-    }
-  }
-
-  // Population grow phase
-
-  for (const city of gameState.cities.values()) {
-    const roundedPopulation = Math.floor(city.population);
-    const needFood = roundedPopulation * PEOPLE_FOOD_PER_DAY;
-
-    const grabbedFood = grabResource(city.input, {
-      resourceType: ResourceType.FOOD,
-      quantity: needFood,
-    });
-
-    if (grabbedFood.quantity === needFood) {
-      if (getCountOf(city.input, ResourceType.FOOD) > 0) {
-        city.population *= 1.01;
-      }
-    } else {
-      if (city.population > MINIMAL_CITY_PEOPLE) {
-        const shortage = (needFood - grabbedFood.quantity) / needFood;
-        const poorPeople = shortage * city.population;
-        city.population -= poorPeople / 10;
-
-        if (city.population < MINIMAL_CITY_PEOPLE) {
-          city.population = MINIMAL_CITY_PEOPLE;
-        }
-      }
-    }
-  }
-
-  // Research progress
-
-  if (gameState.currentResearchId) {
-    let currentPoints = gameState.inProgressResearches.get(
-      gameState.currentResearchId,
-    );
-
-    if (!currentPoints) {
-      currentPoints = {
-        points: 0,
-      };
-
-      gameState.inProgressResearches.set(
-        gameState.currentResearchId,
-        currentPoints,
-      );
-    }
-
-    currentPoints.points += researchPoints;
-    const researchInfo = researches[gameState.currentResearchId];
-
-    if (currentPoints.points >= researchInfo.points) {
-      gameState.completedResearches.add(gameState.currentResearchId);
-      gameState.inProgressResearches.delete(gameState.currentResearchId);
-      gameState.currentResearchId = undefined;
-
-      for (const facilityType of researchInfo.unlockFacilities) {
-        gameState.unlockedFacilities.add(facilityType);
-      }
-    }
-  }
-}
-
-function actualizeCityTotalAssignedWorkersCount(
+export function actualizeCityTotalAssignedWorkersCount(
   gameState: GameState,
   city: City,
 ): void {
@@ -603,37 +83,10 @@ function actualizeCityTotalAssignedWorkersCount(
   );
 }
 
-function calculateCityModificators(
-  grabbedHorsesPerCity: Map<CityId, number>,
-  city: City,
+export function addResource(
+  storage: StorageItem[],
+  addItem: StorageItem,
 ): void {
-  const horsesNeeded = city.totalAssignedWorkersCount * HORSES_PER_WORKER;
-
-  const grabbedHorses = grabResource(city.input, {
-    resourceType: ResourceType.HORSE,
-    quantity: horsesNeeded,
-  });
-
-  const horseRatio = Math.min(1, grabbedHorses.quantity / horsesNeeded);
-
-  city.peopleWorkModifier =
-    BASE_PEOPLE_WORK_MODIFIER + horseRatio * BASE_HORSE_WORK_MODIFIER;
-  city.peopleDayPerCell =
-    BASE_PEOPLE_DAY_PER_CELL + horseRatio * BASE_HORSE_DAY_PER_CELL;
-  city.weightPerPeopleDay =
-    BASE_WEIGHT_PER_PEOPLE_DAY + horseRatio * BASE_WEIGHT_PER_HORSE_DAY;
-
-  grabbedHorsesPerCity.set(city.cityId, grabbedHorses.quantity);
-}
-
-function calculateDistance(cell1: CellPosition, cell2: CellPosition): number {
-  const x = cell1[0] - cell2[0];
-  const y = cell1[1] - cell2[1];
-
-  return Math.sqrt(x ** 2 + y ** 2);
-}
-
-function addResource(storage: StorageItem[], addItem: StorageItem): void {
   if (addItem.quantity === 0) {
     return;
   }
@@ -649,7 +102,7 @@ function addResource(storage: StorageItem[], addItem: StorageItem): void {
   }
 }
 
-function grabResource(
+export function grabResource(
   storage: StorageItem[],
   grabItem: StorageItem,
 ): StorageItem {
@@ -677,28 +130,13 @@ function grabResource(
   return grabItem;
 }
 
-function getCountOf(
+export function getCountOfResource(
   storage: StorageItem[],
   resourceType: ResourceType,
 ): number {
   return (
     storage.find((item) => item.resourceType === resourceType)?.quantity ?? 0
   );
-}
-
-function isSamePos(cell1: CellPosition, cell2: CellPosition): boolean {
-  return cell1[0] === cell2[0] && cell1[1] === cell2[1];
-}
-
-function isSamePath(path1: CellPath, path2: CellPath): boolean {
-  return (
-    isExactSamePath(path1, path2) ||
-    isExactSamePath(path1, { from: path2.to, to: path2.from })
-  );
-}
-
-function isExactSamePath(path1: CellPath, path2: CellPath): boolean {
-  return isSamePos(path1.from, path2.from) && isSamePos(path1.to, path2.to);
 }
 
 export function getStructureIterationStorageInfo(
@@ -722,14 +160,15 @@ export function getStructureIterationStorageInfo(
   return iterationInfo.productionVariants[facility.productionVariant];
 }
 
-function getMaximumIterationsByResources(
+export function getMaximumIterationsByResources(
   facility: Facility | Construction,
 ): number {
   let minIterations = Infinity;
 
   for (let resource of getStructureIterationStorageInfo(facility).input) {
     const iterations = Math.floor(
-      getCountOf(facility.input, resource.resourceType) / resource.quantity,
+      getCountOfResource(facility.input, resource.resourceType) /
+        resource.quantity,
     );
 
     if (iterations < minIterations) {
@@ -740,7 +179,10 @@ function getMaximumIterationsByResources(
   return minIterations;
 }
 
-function getIterationsUntilOverDone(facility: Facility, city: City): number {
+export function getIterationsUntilOverDone(
+  facility: Facility,
+  city: City,
+): number {
   let minIterations = Infinity;
 
   const info = getStructureIterationStorageInfo(facility);
@@ -754,7 +196,7 @@ function getIterationsUntilOverDone(facility: Facility, city: City): number {
 
     const iterations = Math.ceil(
       (maxPerDay * BUFFER_DAYS -
-        getCountOf(facility.output, resource.resourceType)) /
+        getCountOfResource(facility.output, resource.resourceType)) /
         resource.quantity,
     );
 
@@ -766,7 +208,7 @@ function getIterationsUntilOverDone(facility: Facility, city: City): number {
   return Math.max(0, minIterations);
 }
 
-function getIterationsUntilConstructionComplete(
+export function getIterationsUntilConstructionComplete(
   construction: Construction,
 ): number {
   const iterationInfo =
@@ -779,7 +221,7 @@ function getIterationsUntilConstructionComplete(
   );
 }
 
-function removeIterationInput(
+export function removeIterationInput(
   facility: Facility | Construction,
   iterationCount: number,
 ): void {
@@ -799,7 +241,10 @@ function removeIterationInput(
   }
 }
 
-function addIterationOutput(facility: Facility, iterationCount: number): void {
+export function addIterationOutput(
+  facility: Facility,
+  iterationCount: number,
+): void {
   const iterationInfo = getStructureIterationStorageInfo(facility);
 
   for (const resource of iterationInfo.output) {
@@ -810,7 +255,7 @@ function addIterationOutput(facility: Facility, iterationCount: number): void {
   }
 }
 
-function getPathFacilities(
+export function getPathFacilities(
   city: City,
   facilities: (Facility | Construction)[],
   path: CellPath,
@@ -831,16 +276,6 @@ function getFacilityByPos(
   }
 
   return facilities.find((facility) => isSamePos(facility.position, pos));
-}
-
-const ROW_SIZE = 2 ** 26;
-const ROW_HALF_SIZE = ROW_SIZE / 2;
-
-export function convertCellToCellId(cell: CellPosition): CellId {
-  const x = cell[0] + ROW_HALF_SIZE;
-  const y = cell[1] + ROW_HALF_SIZE;
-
-  return (y * ROW_SIZE + x) as CellId;
 }
 
 export function addCity(
@@ -913,7 +348,7 @@ export function addConstructionStructure(
   addCityFacility(gameState, city, buildingFacilility);
 }
 
-function completeConstruction(
+export function completeConstruction(
   gameState: GameState,
   construction: Construction,
 ): Facility {
@@ -993,7 +428,7 @@ function removeAllCarrierPathsVia(gameState: GameState, cellId: CellId): void {
   removeAllCarrierPathsFrom(gameState, cellId);
 }
 
-function getMaximumAddingLimit(
+export function getMaximumAddingLimit(
   facility: Construction,
   resourceType: ResourceType,
 ): number {

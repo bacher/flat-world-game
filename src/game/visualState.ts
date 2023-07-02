@@ -11,9 +11,9 @@ import {
 import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
-  convertCellToCellId,
-  tick,
-} from './gameState';
+} from './consts';
+import { convertCellToCellId } from './helpers';
+import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
 
 export type VisualState = {

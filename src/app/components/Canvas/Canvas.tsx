@@ -16,10 +16,10 @@ import {
   addCity,
   addCityCarrierPaths,
   addConstructionStructure,
-  convertCellToCellId,
   getFacilityBindedCity,
   getNearestCity,
 } from '../../../game/gameState';
+import { convertCellToCellId } from '../../../game/helpers';
 import { loadGame, saveGame } from '../../../game/gameStatePersist';
 import {
   isValidCarrierPlanningTarget,
