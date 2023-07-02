@@ -1,4 +1,4 @@
-import type { Branded } from '../utils/typeUtils';
+import type { Branded } from '@/utils/typeUtils';
 
 import { ResourceType } from './resources';
 

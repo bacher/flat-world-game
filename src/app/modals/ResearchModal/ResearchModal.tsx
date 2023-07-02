@@ -3,11 +3,11 @@ import cn from 'classnames';
 
 import styles from './ResearchModal.module.scss';
 
-import type { GameState, Research } from '../../../game/types';
-import { researchTranslations, researches } from '../../../game/research';
-import { facilitiesDescription } from '../../../game/facilities';
+import type { GameState, Research } from '@/game/types';
+import { researchTranslations, researches } from '@/game/research';
+import { facilitiesDescription } from '@/game/facilities';
 
-import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
+import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 
 import { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';

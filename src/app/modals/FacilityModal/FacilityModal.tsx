@@ -18,21 +18,21 @@ import {
   CarrierPath,
   FacilityType,
   StorageItem,
-} from '../../../game/types';
+} from '@/game/types';
 import {
   facilitiesConstructionInfo,
   facilitiesDescription,
-} from '../../../game/facilities';
+} from '@/game/facilities';
 import {
   getStructureIterationStorageInfo,
   removeFacility,
-} from '../../../game/gameState';
-import { ResourceType } from '../../../game/resources';
-import { facilitiesIterationInfo } from '../../../game/facilities';
-import { resourceLocalization } from '../../../game/resources';
-import { useForceUpdate } from '../../hooks/forceUpdate';
-import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
-import { InteractiveActionType, VisualState } from '../../../game/visualState';
+} from '@/game/gameState';
+import { ResourceType } from '@/game/resources';
+import { facilitiesIterationInfo } from '@/game/facilities';
+import { resourceLocalization } from '@/game/resources';
+import { useForceUpdate } from '@hooks/forceUpdate';
+import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { InteractiveActionType, VisualState } from '@/game/visualState';
 import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
 

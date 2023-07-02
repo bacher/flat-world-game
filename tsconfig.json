@@ -23,7 +23,9 @@
     "noImplicitOverride": true,
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@components/*": ["app/components/*"],
+      "@hooks/*": ["app/hooks/*"]
     }
   },
   "include": ["src"],

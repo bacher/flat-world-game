@@ -1,4 +1,4 @@
-import type { CellPosition } from '../../game/types';
+import type { CellPosition } from '@/game/types';
 
 export function parseCoordinatesFromString(
   coordsString: string,

@@ -1,4 +1,4 @@
-import { removeArrayItem } from '../utils/helpers';
+import { removeArrayItem } from '@/utils/helpers';
 
 import { generateNewCityName } from './cityNameGenerator';
 import {

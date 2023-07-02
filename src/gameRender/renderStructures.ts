@@ -1,5 +1,5 @@
-import { Structure, FacilityType } from '../game/types';
-import { VisualState } from '../game/visualState';
+import { Structure, FacilityType } from '@/game/types';
+import { VisualState } from '@/game/visualState';
 
 export function drawStructureObject(
   visualState: VisualState,

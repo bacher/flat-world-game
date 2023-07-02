@@ -1,6 +1,6 @@
 import './App.css';
 
-import { GameRoot } from '@/app/components/GameRoot';
+import { GameRoot } from '@components/GameRoot';
 
 export function App() {
   return (

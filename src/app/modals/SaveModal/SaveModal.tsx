@@ -4,7 +4,7 @@ import cn from 'classnames';
 import shareStyles from '../share.module.scss';
 import styles from './SaveModal.module.scss';
 
-import { gamesListStorage } from '../../../game/persist';
+import { gamesListStorage } from '@/game/persist';
 
 type Props = {
   currentGameId: string;

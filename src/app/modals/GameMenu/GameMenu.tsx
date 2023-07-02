@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { neverCall } from '../../../utils/typeUtils';
+import { neverCall } from '@/utils/typeUtils';
 
 import { GameMenuMain } from '../GameMenuMain';
 import { LoadModal } from '../LoadModal';

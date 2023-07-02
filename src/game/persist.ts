@@ -1,7 +1,7 @@
 import {
   makePersistanceStorageItem,
   makePersistanceParameterizedStorageItem,
-} from '../utils/persistentStorage';
+} from '@/utils/persistentStorage';
 
 import type { GameStateSnapshot } from './types';
 

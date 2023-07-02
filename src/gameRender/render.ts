@@ -10,17 +10,17 @@ import {
   Construction,
   Facility,
   Structure,
-} from '../game/types';
-import { getStructureIterationStorageInfo } from '../game/gameState';
-import { ResourceType, resourceLocalization } from '../game/resources';
-import { convertCellToCellId } from '../game/helpers';
+} from '@/game/types';
+import { getStructureIterationStorageInfo } from '@/game/gameState';
+import { ResourceType, resourceLocalization } from '@/game/resources';
+import { convertCellToCellId } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,
   VisualState,
   isAllowToConstructAtPosition,
   isPointsSame,
-} from '../game/visualState';
+} from '@/game/visualState';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';

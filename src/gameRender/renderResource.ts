@@ -1,4 +1,4 @@
-import { ResourceType } from '../game/resources';
+import { ResourceType } from '@/game/resources';
 
 export function drawResourceIcon(
   ctx: CanvasRenderingContext2D,

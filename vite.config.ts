@@ -13,6 +13,10 @@ export default defineConfig({
     alias: {
       // @ts-ignore
       '@': path.resolve(__dirname, './src'),
+      // @ts-ignore
+      '@components': path.resolve(__dirname, './src/app/components'),
+      // @ts-ignore
+      '@hooks': path.resolve(__dirname, './src/app/hooks'),
     },
   },
 });

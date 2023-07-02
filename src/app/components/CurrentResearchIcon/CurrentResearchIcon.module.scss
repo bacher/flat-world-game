@@ -1,4 +1,4 @@
-@import '../../mixins.scss';
+@import '@/app/mixins.scss';
 
 .button {
   @include button-reset;

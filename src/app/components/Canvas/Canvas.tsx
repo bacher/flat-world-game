@@ -11,20 +11,20 @@ import {
   Structure,
   FacilityType,
   Point,
-} from '../../../game/types';
+} from '@/game/types';
 import {
   addCity,
   addCityCarrierPaths,
   addConstructionStructure,
   getFacilityBindedCity,
   getNearestCity,
-} from '../../../game/gameState';
-import { convertCellToCellId } from '../../../game/helpers';
-import { loadGame, saveGame } from '../../../game/gameStatePersist';
+} from '@/game/gameState';
+import { convertCellToCellId } from '@/game/helpers';
+import { loadGame, saveGame } from '@/game/gameStatePersist';
 import {
   isValidCarrierPlanningTarget,
   renderGameToCanvas,
-} from '../../../gameRender/render';
+} from '@/gameRender/render';
 import {
   InteractiveActionType,
   VisualState,
@@ -36,23 +36,23 @@ import {
   visualStateMove,
   visualStateOnMouseMove,
   visualStateMoveToCell,
-} from '../../../game/visualState';
+} from '@/game/visualState';
 
-import { useForceUpdate } from '../../hooks/forceUpdate';
-import { ModalRef } from '../../modals/types';
-import { FacilityModal } from '../../modals/FacilityModal';
+import { useForceUpdate } from '@hooks/forceUpdate';
+import { ModalRef } from '@/app/modals/types';
+import { FacilityModal } from '@/app/modals/FacilityModal';
 import {
   GameStateWatcherProvider,
   createGameStateWatcher,
-} from '../../contexts/GameStateWatcher';
-import { BuildingsPanel } from '../BuildingsPanel';
-import { StatusText } from '../StatusText';
-import { CitiesPanel } from '../CitiesPanel';
-import { CurrentResearchIcon } from '../CurrentResearchIcon';
-import { ResearchModal } from '../../modals/ResearchModal';
-import { neverCall } from '../../../utils/typeUtils';
-import { GameMenu } from '../../modals/GameMenu';
-import { setHash } from '../../../utils/url';
+} from '@/app/contexts/GameStateWatcher';
+import { BuildingsPanel } from '@components/BuildingsPanel';
+import { StatusText } from '@components/StatusText';
+import { CitiesPanel } from '@components/CitiesPanel';
+import { CurrentResearchIcon } from '@components/CurrentResearchIcon';
+import { ResearchModal } from '@/app/modals/ResearchModal';
+import { neverCall } from '@/utils/typeUtils';
+import { GameMenu } from '@/app/modals/GameMenu';
+import { setHash } from '@/utils/url';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
