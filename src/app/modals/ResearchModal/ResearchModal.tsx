@@ -1,17 +1,17 @@
 import { RefObject, useImperativeHandle, useState } from 'react';
 import cn from 'classnames';
 
-import { ModalRef } from '../types';
-
 import styles from './ResearchModal.module.scss';
 import {
   Research,
   researchTranslations,
   researches,
 } from '../../../game/research';
-import type { GameState } from '../../../game/gameState';
+import type { GameState } from '../../../game/types';
 import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
 import { facilitiesDescription } from '../../../game/facilities';
+
+import { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
 
 // Enum should stay numerical because of sorting

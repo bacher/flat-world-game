@@ -1,15 +1,22 @@
 import sample from 'lodash/sample';
 
-import type { Branded } from '../utils/typeUtils';
+import { removeArrayItem } from '../utils/helpers';
 
 import { generateNewCityName } from './cityNameGenerator';
 import {
   CarrierPath,
+  CellId,
   CellPath,
   CellPosition,
+  City,
+  CityId,
+  Construction,
   ExactFacilityType,
+  Facility,
   FacilityType,
+  GameState,
   StorageItem,
+  Structure,
   WorkingPath,
 } from './types';
 import { ResourceType } from './resources';
@@ -17,8 +24,7 @@ import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from './facilities';
-import { ResearchId, researches } from './research';
-import { removeArrayItem } from '../utils/helpers';
+import { researches } from './research';
 
 const BASE_PEOPLE_DAY_PER_CELL = 0.02;
 const BASE_HORSE_DAY_PER_CELL = 0.02;
@@ -34,65 +40,6 @@ const MINIMAL_CITY_PEOPLE = 3;
 const PEOPLE_FOOD_PER_DAY = 0.2;
 export const MIN_EXPEDITION_DISTANCE_SQUARE = 8 ** 2;
 export const MAX_EXPEDITION_DISTANCE_SQUARE = 20 ** 2;
-
-export type FacilitiesByCityId = Map<CityId, (Construction | Facility)[]>;
-export type StructuresByCellId = Map<CellId, Structure>;
-
-export type GameState = {
-  gameId: string;
-  cities: Map<CityId, City>;
-  facilitiesByCityId: FacilitiesByCityId;
-  structuresByCellId: StructuresByCellId;
-  carrierPathsFromCellId: Map<CellId, CarrierPath[]>;
-  carrierPathsToCellId: Map<CellId, CarrierPath[]>;
-  alreadyCityNames: Set<string>;
-  completedResearches: Set<ResearchId>;
-  inProgressResearches: Map<ResearchId, { points: number }>;
-  currentResearchId: ResearchId | undefined;
-  unlockedFacilities: Set<ExactFacilityType>;
-};
-
-export type CityId = Branded<number, 'cityId'>;
-
-type StructureBase = {
-  position: CellPosition;
-  cellId: CellId;
-  input: StorageItem[];
-  output: StorageItem[];
-};
-
-export type City = StructureBase & {
-  cityId: CityId;
-  type: FacilityType.CITY;
-  name: string;
-  population: number;
-  carrierPaths: CarrierPath[];
-  peopleDayPerCell: number;
-  weightPerPeopleDay: number;
-  peopleWorkModifier: number;
-  totalAssignedWorkersCount: number;
-  lastTickNeedPopulation: number;
-  lastTickWorkingPaths: WorkingPath[];
-};
-
-export type Construction = StructureBase & {
-  type: FacilityType.CONSTRUCTION;
-  assignedCityId: CityId;
-  buildingFacilityType: ExactFacilityType;
-  assignedWorkersCount: number;
-  inProcess: number;
-  iterationsComplete: number;
-};
-
-export type Facility = StructureBase & {
-  type: ExactFacilityType;
-  assignedCityId: CityId;
-  assignedWorkersCount: number;
-  inProcess: number;
-  productionVariant: number;
-};
-
-export type Structure = City | Construction | Facility;
 
 export function addCityCarrierPaths(
   gameState: GameState,
@@ -885,8 +832,6 @@ function getFacilityByPos(
 
   return facilities.find((facility) => isSamePos(facility.position, pos));
 }
-
-export type CellId = Branded<number, 'cellId'>;
 
 const ROW_SIZE = 2 ** 26;
 const ROW_HALF_SIZE = ROW_SIZE / 2;

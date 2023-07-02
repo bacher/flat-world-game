@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
 
-import { ExactFacilityType, FacilityType } from '../../../game/types';
+import {
+  GameState,
+  ExactFacilityType,
+  FacilityType,
+} from '../../../game/types';
 import {
   facilitiesDescription,
   initiallyUnlockedFacilities,
 } from '../../../game/facilities';
-import { GameState } from '../../../game/gameState';
 import { useRenderOnGameTick } from '../../hooks/useRenderOnGameTick';
 
 type Props = {

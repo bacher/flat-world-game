@@ -1,7 +1,7 @@
 import { ReactNode, useRef } from 'react';
 import cn from 'classnames';
 
-import type { GameState } from '../../../game/gameState';
+import type { GameState } from '../../../game/types';
 import {
   ResearchId,
   researchTranslations,

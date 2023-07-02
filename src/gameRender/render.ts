@@ -1,13 +1,4 @@
 import {
-  City,
-  Construction,
-  Facility,
-  Structure,
-  convertCellToCellId,
-  getStructureIterationStorageInfo,
-} from '../game/gameState';
-import { ResourceType, resourceLocalization } from '../game/resources';
-import {
   CellPosition,
   CellRect,
   ExactFacilityType,
@@ -15,7 +6,16 @@ import {
   Point,
   StorageItem,
   citiesInputResourceTypes,
+  City,
+  Construction,
+  Facility,
+  Structure,
 } from '../game/types';
+import {
+  convertCellToCellId,
+  getStructureIterationStorageInfo,
+} from '../game/gameState';
+import { ResourceType, resourceLocalization } from '../game/resources';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,

@@ -9,6 +9,10 @@ import {
   Facility,
   GameState,
   Structure,
+  FacilityType,
+  Point,
+} from '../../../game/types';
+import {
   addCity,
   addCityCarrierPaths,
   addConstructionStructure,
@@ -33,7 +37,7 @@ import {
   visualStateOnMouseMove,
   visualStateMoveToCell,
 } from '../../../game/visualState';
-import { FacilityType, Point } from '../../../game/types';
+
 import { useForceUpdate } from '../../hooks/forceUpdate';
 import { ModalRef } from '../../modals/types';
 import { FacilityModal } from '../../modals/FacilityModal';
@@ -138,6 +142,7 @@ export function Canvas({ gameId }: Props) {
     }
 
     const visualState = createVisualState(gameState, ctx, () => {
+      renderGameToCanvas(visualState);
       gameStateWatcher.emitVisualStateChange();
     });
 

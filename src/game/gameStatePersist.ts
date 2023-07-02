@@ -6,12 +6,12 @@ import {
   Facility,
   GameState,
   StructuresByCellId,
-  addCity,
-  addPathTo,
-} from './gameState';
+  CarrierPath,
+  ExactFacilityType,
+} from './types';
+import { addCity, addPathTo } from './gameState';
 import { gameStateStorage, gamesListStorage } from './persist';
 import { ResearchId, researches } from './research';
-import { CarrierPath, ExactFacilityType } from './types';
 
 function getNewGame({ gameId }: { gameId: string }) {
   const gameState: GameState = {

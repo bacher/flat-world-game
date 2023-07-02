@@ -1,20 +1,19 @@
-import { renderGameToCanvas } from '../gameRender/render';
-import {
-  City,
-  GameState,
-  MAX_EXPEDITION_DISTANCE_SQUARE,
-  MIN_EXPEDITION_DISTANCE_SQUARE,
-  Structure,
-  convertCellToCellId,
-  tick,
-} from './gameState';
 import {
   CellPosition,
   CellRect,
   ExactFacilityType,
   FacilityType,
   Point,
+  City,
+  GameState,
+  Structure,
 } from './types';
+import {
+  MAX_EXPEDITION_DISTANCE_SQUARE,
+  MIN_EXPEDITION_DISTANCE_SQUARE,
+  convertCellToCellId,
+  tick,
+} from './gameState';
 import { ResourceType } from './resources';
 
 export type VisualState = {
@@ -81,10 +80,7 @@ export function createVisualState(
     viewportBounds: { start: [0, 0], end: [0, 0] },
     hoverCell: undefined,
     interactiveAction: undefined,
-    onUpdate: () => {
-      renderGameToCanvas(visualState);
-      onUpdate();
-    },
+    onUpdate,
   };
 
   actualizeViewportBounds(visualState);
@@ -158,7 +154,7 @@ export function visualStateOnMouseMove(
 ): void {
   if (!point) {
     visualState.hoverCell = undefined;
-    renderGameToCanvas(visualState);
+    visualState.onUpdate();
     return;
   }
 
@@ -166,7 +162,7 @@ export function visualStateOnMouseMove(
 
   if (!isPointsSame(visualState.hoverCell, cell)) {
     visualState.hoverCell = cell;
-    renderGameToCanvas(visualState);
+    visualState.onUpdate();
   }
 }
 
@@ -194,8 +190,7 @@ function updateVisualStateOffset(visualState: VisualState, point: Point): void {
   visualState.offset[1] = point[1];
 
   actualizeViewportBounds(visualState);
-
-  renderGameToCanvas(visualState);
+  visualState.onUpdate();
 }
 
 export function isPointsSame(
