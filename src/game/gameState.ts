@@ -25,7 +25,7 @@ import {
   BASE_PEOPLE_DAY_PER_CELL,
   BASE_PEOPLE_WORK_MODIFIER,
   BASE_WEIGHT_PER_PEOPLE_DAY,
-  BUFFER_DAYS,
+  OUTPUT_BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
 } from './consts';
 import { calculateDistance, isSamePos } from './helpers';
@@ -101,6 +101,15 @@ export function addResource(
   }
 }
 
+export function addResources(
+  storage: StorageItem[],
+  addItems: StorageItem[],
+): void {
+  for (const addItem of addItems) {
+    addResource(storage, addItem);
+  }
+}
+
 export function grabResource(
   storage: StorageItem[],
   grabItem: StorageItem,
@@ -129,13 +138,42 @@ export function grabResource(
   return grabItem;
 }
 
-export function getCountOfResource(
+export function grabResourceStrict(
+  storage: StorageItem[],
+  grabItem: StorageItem,
+): void {
+  const grabbedItem = grabResource(storage, grabItem);
+  if (grabbedItem.quantity !== grabItem.quantity) {
+    throw new Error('Not enough resource');
+  }
+}
+
+export function grabResourcesStrict(
+  storage: StorageItem[],
+  grabItems: StorageItem[],
+) {
+  for (const grabItem of grabItems) {
+    grabResourceStrict(storage, grabItem);
+  }
+}
+
+export function getResourceCount(
   storage: StorageItem[],
   resourceType: ResourceType,
 ): number {
   return (
     storage.find((item) => item.resourceType === resourceType)?.quantity ?? 0
   );
+}
+
+export function multiplyResourceStorage(
+  resources: StorageItem[],
+  mul: number,
+): StorageItem[] {
+  return resources.map(({ resourceType, quantity }) => ({
+    resourceType,
+    quantity: quantity * mul,
+  }));
 }
 
 export function getStructureIterationStorageInfo(
@@ -166,7 +204,7 @@ export function getMaximumIterationsByResources(
 
   for (let resource of getStructureIterationStorageInfo(facility).input) {
     const iterations = Math.floor(
-      getCountOfResource(facility.input, resource.resourceType) /
+      getResourceCount(facility.input, resource.resourceType) /
         resource.quantity,
     );
 
@@ -194,8 +232,8 @@ export function getIterationsUntilOverDone(
         city.peopleWorkModifier);
 
     const iterations = Math.ceil(
-      (maxPerDay * BUFFER_DAYS -
-        getCountOfResource(facility.output, resource.resourceType)) /
+      (maxPerDay * OUTPUT_BUFFER_DAYS -
+        getResourceCount(facility.output, resource.resourceType)) /
         resource.quantity,
     );
 
@@ -501,4 +539,17 @@ export function removeFacility(
   gameState.structuresByCellId.delete(facility.position.cellId);
 
   removeAllCarrierPathsVia(gameState, facility.position.cellId);
+}
+
+export function getCarrierPathStructures(
+  gameState: GameState,
+  carrierPath: CarrierPath,
+): { from: Structure; to: Structure } {
+  const from = gameState.structuresByCellId.get(carrierPath.path.from.cellId)!;
+  const to = gameState.structuresByCellId.get(carrierPath.path.to.cellId)!;
+
+  return {
+    from,
+    to,
+  };
 }

@@ -24,6 +24,7 @@ import {
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
+import { humanFormat } from '@/utils/format';
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
@@ -301,10 +302,10 @@ function drawWorkingPaths(visualState: VisualState): void {
       const peopleTextParts: string[] = [];
 
       if (workers) {
-        peopleTextParts.push(`${workers}w`);
+        peopleTextParts.push(`${humanFormat(workers)}w`);
       }
       if (carriers) {
-        peopleTextParts.push(`${carriers}c`);
+        peopleTextParts.push(`${humanFormat(carriers)}c`);
       }
 
       const peopleText = peopleTextParts.join(' + ');
