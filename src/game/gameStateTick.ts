@@ -11,6 +11,7 @@ import {
 } from './consts';
 import {
   CarrierPath,
+  CarrierPathType,
   City,
   Construction,
   Facility,
@@ -99,12 +100,14 @@ export function tick(gameState: GameState): void {
     }
 
     for (const carrierPath of city.carrierPaths) {
-      const workDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
+      if (isCarrierPathAllowed(gameState, carrierPath)) {
+        const workDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
 
-      if (workDays) {
-        totalCarriersWorkDays += workDays;
-        currentCarrierPaths.push({ carrierPath, workDays });
-        console.log('Carry', carrierPath.resourceType, workDays);
+        if (workDays) {
+          totalCarriersWorkDays += workDays;
+          currentCarrierPaths.push({ carrierPath, workDays });
+          console.log('Carry', carrierPath.resourceType, workDays);
+        }
       }
     }
 
@@ -581,7 +584,11 @@ function addConstructionInputPaths(
   city: City,
   construction: Construction,
 ): void {
-  removeAllCarrierPathsTo(gameState, construction.position.cellId);
+  removeAllCarrierPathsTo(
+    gameState,
+    construction.position.cellId,
+    CarrierPathType.CONSTRUCTION,
+  );
 
   const constructionIterationInfo =
     getStructureIterationStorageInfo(construction);
@@ -601,6 +608,7 @@ function addConstructionInputPaths(
               assignedCityId: city.cityId,
               people: 1,
               resourceType,
+              pathType: CarrierPathType.CONSTRUCTION,
               path: {
                 from: facility.position,
                 to: construction.position,
@@ -623,4 +631,18 @@ function checkConstructionComplete(
   if (construction.iterationsComplete >= constructionInfo.iterations) {
     completeConstruction(gameState, construction);
   }
+}
+
+function isCarrierPathAllowed(
+  gameState: GameState,
+  carrierPath: CarrierPath,
+): boolean {
+  const to = gameState.structuresByCellId.get(carrierPath.path.to.cellId)!;
+
+  const expectedPathType =
+    to.type === FacilityType.CONSTRUCTION
+      ? CarrierPathType.CONSTRUCTION
+      : CarrierPathType.FACILITY;
+
+  return expectedPathType === carrierPath.pathType;
 }

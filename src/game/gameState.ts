@@ -1,8 +1,12 @@
+import partition from 'lodash/partition';
+
 import { removeArrayItem } from '@/utils/helpers';
 
 import { generateNewCityName } from './cityNameGenerator';
 import {
   CarrierPath,
+  CarrierPathType,
+  CarrierPathsCellIdMap,
   CellId,
   CellPath,
   CellPosition,
@@ -393,7 +397,11 @@ export function completeConstruction(
     isPaused: false,
   };
 
-  removeAllCarrierPathsTo(gameState, facility.position.cellId);
+  removeAllCarrierPathsTo(
+    gameState,
+    facility.position.cellId,
+    CarrierPathType.CONSTRUCTION,
+  );
   replaceCunstructionByFacility(gameState, construction, facility);
 
   return facility;
@@ -417,51 +425,72 @@ function replaceCunstructionByFacility(
 export function removeAllCarrierPathsTo(
   gameState: GameState,
   cellId: CellId,
+  carrierPathType: CarrierPathType,
 ): void {
-  const paths = gameState.carrierPathsToCellId.get(cellId);
-
-  if (paths) {
-    for (const path of paths) {
-      const fromPaths = gameState.carrierPathsFromCellId.get(
-        path.path.from.cellId,
-      )!;
-      removeArrayItem(fromPaths, path);
-
-      const assignedCity = gameState.cities.get(path.assignedCityId)!;
-      removeArrayItem(assignedCity.carrierPaths, path);
-    }
-
-    gameState.carrierPathsToCellId.delete(cellId);
-  }
+  removeAllCarrierPathsSystem(
+    gameState,
+    cellId,
+    carrierPathType,
+    gameState.carrierPathsToCellId,
+    gameState.carrierPathsFromCellId,
+    (path) => path.from,
+  );
 }
 
 export function removeAllCarrierPathsFrom(
   gameState: GameState,
   cellId: CellId,
+  carrierPathType: CarrierPathType,
 ): void {
-  const paths = gameState.carrierPathsFromCellId.get(cellId);
+  removeAllCarrierPathsSystem(
+    gameState,
+    cellId,
+    carrierPathType,
+    gameState.carrierPathsFromCellId,
+    gameState.carrierPathsToCellId,
+    (path) => path.to,
+  );
+}
+
+function removeAllCarrierPathsSystem(
+  gameState: GameState,
+  cellId: CellId,
+  carrierPathType: CarrierPathType,
+  storage: CarrierPathsCellIdMap,
+  opositeStorage: CarrierPathsCellIdMap,
+  getOposite: (path: CellPath) => CellPosition,
+) {
+  const paths = storage.get(cellId);
 
   if (paths) {
-    for (const path of paths) {
-      const fromPaths = gameState.carrierPathsToCellId.get(
-        path.path.from.cellId,
-      )!;
+    const [remove, stay] = partition(
+      paths,
+      (path) => path.pathType === carrierPathType,
+    );
+
+    for (const path of remove) {
+      const fromPaths = opositeStorage.get(getOposite(path.path).cellId)!;
       removeArrayItem(fromPaths, path);
 
       const assignedCity = gameState.cities.get(path.assignedCityId)!;
       removeArrayItem(assignedCity.carrierPaths, path);
     }
 
-    gameState.carrierPathsFromCellId.delete(cellId);
+    if (stay.length > 0) {
+      storage.set(cellId, stay);
+    } else {
+      storage.delete(cellId);
+    }
   }
 }
 
 export function removeAllCarrierPathsVia(
   gameState: GameState,
   cellId: CellId,
+  carrierPathType: CarrierPathType,
 ): void {
-  removeAllCarrierPathsTo(gameState, cellId);
-  removeAllCarrierPathsFrom(gameState, cellId);
+  removeAllCarrierPathsTo(gameState, cellId, carrierPathType);
+  removeAllCarrierPathsFrom(gameState, cellId, carrierPathType);
 }
 
 export function getMaximumAddingLimit(
@@ -540,7 +569,16 @@ export function removeFacility(
 
   gameState.structuresByCellId.delete(facility.position.cellId);
 
-  removeAllCarrierPathsVia(gameState, facility.position.cellId);
+  removeAllCarrierPathsVia(
+    gameState,
+    facility.position.cellId,
+    CarrierPathType.CONSTRUCTION,
+  );
+  removeAllCarrierPathsVia(
+    gameState,
+    facility.position.cellId,
+    CarrierPathType.FACILITY,
+  );
 }
 
 export function getCarrierPathStructures(

@@ -37,13 +37,15 @@ export type FacilityTypeWithoutConstruction = Exclude<
 export type FacilitiesByCityId = Map<CityId, (Construction | Facility)[]>;
 export type StructuresByCellId = Map<CellId, Structure>;
 
+export type CarrierPathsCellIdMap = Map<CellId, CarrierPath[]>;
+
 export type GameState = {
   gameId: string;
   cities: Map<CityId, City>;
   facilitiesByCityId: FacilitiesByCityId;
   structuresByCellId: StructuresByCellId;
-  carrierPathsFromCellId: Map<CellId, CarrierPath[]>;
-  carrierPathsToCellId: Map<CellId, CarrierPath[]>;
+  carrierPathsFromCellId: CarrierPathsCellIdMap;
+  carrierPathsToCellId: CarrierPathsCellIdMap;
   alreadyCityNames: Set<string>;
   completedResearches: Set<ResearchId>;
   inProgressResearches: Map<ResearchId, { points: number }>;
@@ -115,11 +117,17 @@ export type StorageItem = {
 
 export const citiesInputResourceTypes = [ResourceType.FOOD, ResourceType.HORSE];
 
+export enum CarrierPathType {
+  CONSTRUCTION,
+  FACILITY,
+}
+
 export type CarrierPath = {
   path: CellPath;
   assignedCityId: CityId;
   people: number;
   resourceType: ResourceType;
+  pathType: CarrierPathType;
 };
 
 export type WorkingPath = {
