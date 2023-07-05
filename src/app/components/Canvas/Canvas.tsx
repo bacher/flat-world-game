@@ -14,7 +14,7 @@ import {
 } from '@/game/types';
 import {
   addCity,
-  addCityCarrierPaths,
+  addCarrierPath,
   addConstructionStructure,
   getFacilityBindedCity,
   getNearestCity,
@@ -34,7 +34,6 @@ import {
   visualStateMove,
   visualStateOnMouseMove,
   visualStateMoveToCell,
-  isSameCellPoints,
 } from '@/game/visualState';
 
 import { useForceUpdate } from '@hooks/forceUpdate';
@@ -52,6 +51,7 @@ import { ResearchModal } from '@/app/modals/ResearchModal';
 import { neverCall } from '@/utils/typeUtils';
 import { GameMenu } from '@/app/modals/GameMenu';
 import { setHash } from '@/utils/url';
+import { isSameCellPoints } from '@/game/helpers';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -383,17 +383,15 @@ export function Canvas({ gameId }: Props) {
               } else {
                 const bindCity = getFacilityBindedCity(gameState, fromFacility);
 
-                addCityCarrierPaths(gameState, bindCity, [
-                  {
-                    assignedCityId: bindCity.cityId,
-                    people: 1,
-                    resourceType: action.resourceType,
-                    path: {
-                      from: fromFacility.position,
-                      to: toFacility.position,
-                    },
+                addCarrierPath(gameState, {
+                  assignedCityId: bindCity.cityId,
+                  people: 1,
+                  resourceType: action.resourceType,
+                  path: {
+                    from: fromFacility.position,
+                    to: toFacility.position,
                   },
-                ]);
+                });
                 visualState.interactiveAction = undefined;
                 visualState.onUpdate();
               }

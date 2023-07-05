@@ -212,6 +212,15 @@ function ConstructionContent({
         <button
           type="button"
           onClick={() => {
+            construction.isPaused = !construction.isPaused;
+            visualState.onUpdate();
+          }}
+        >
+          {construction.isPaused ? 'Resume' : 'Pause'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
             removeFacility(gameState, construction);
             visualState.onUpdate();
             closeWithoutApplying();
@@ -387,6 +396,15 @@ function FacilityContent({
         />
       </div>
       <div className={styles.footer}>
+        <button
+          type="button"
+          onClick={() => {
+            facility.isPaused = !facility.isPaused;
+            visualState.onUpdate();
+          }}
+        >
+          {facility.isPaused ? 'Resume' : 'Pause'}
+        </button>
         <button
           type="button"
           onClick={() => {

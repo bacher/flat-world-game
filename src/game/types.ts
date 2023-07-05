@@ -89,6 +89,7 @@ export type Construction = StructureBase & {
   assignedWorkersCount: number;
   inProcess: number;
   iterationsComplete: number;
+  isPaused: boolean;
 };
 
 export type Facility = StructureBase & {
@@ -97,6 +98,7 @@ export type Facility = StructureBase & {
   assignedWorkersCount: number;
   inProcess: number;
   productionVariant: number;
+  isPaused: boolean;
 };
 
 export type Structure = City | Construction | Facility;

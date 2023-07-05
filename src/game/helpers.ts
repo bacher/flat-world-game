@@ -1,4 +1,11 @@
-import type { CellCoordinates, CellId, CellPath, CellPosition } from './types';
+import {
+  CellCoordinates,
+  CellId,
+  CellPath,
+  CellPosition,
+  ExactFacilityType,
+  FacilityType,
+} from './types';
 
 const ROW_SIZE = 2 ** 26;
 const ROW_HALF_SIZE = ROW_SIZE / 2;
@@ -46,4 +53,23 @@ export function isSamePath(path1: CellPath, path2: CellPath): boolean {
 
 export function isExactSamePath(path1: CellPath, path2: CellPath): boolean {
   return isSamePos(path1.from, path2.from) && isSamePos(path1.to, path2.to);
+}
+
+export function isSameCellPoints(
+  p1: CellPosition | undefined,
+  p2: CellPosition | undefined,
+): boolean {
+  if (!p1 && !p2) {
+    return true;
+  }
+
+  if (!p1 || !p2) {
+    return false;
+  }
+
+  return p1.cellId === p2.cellId;
+}
+
+export function isExactFacility(type: FacilityType): type is ExactFacilityType {
+  return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
 }

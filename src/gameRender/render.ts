@@ -1,7 +1,6 @@
 import {
   CellPosition,
   CellRect,
-  ExactFacilityType,
   FacilityType,
   Point,
   StorageItem,
@@ -13,13 +12,12 @@ import {
 } from '@/game/types';
 import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { ResourceType, resourceLocalization } from '@/game/resources';
-import { newCellPosition } from '@/game/helpers';
+import { newCellPosition, isSameCellPoints } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,
   VisualState,
   isAllowToConstructAtPosition,
-  isSameCellPoints,
 } from '@/game/visualState';
 
 import { drawStructureObject } from './renderStructures';
@@ -92,10 +90,6 @@ function drawCarrierPlanningMode(
     isValidCarrierPlanningTarget(visualState, hoverFacility, action);
 
   highlightCell(visualState, visualState.hoverCell, isValid ? '#aea' : '#e99');
-}
-
-export function isExactFacility(type: FacilityType): type is ExactFacilityType {
-  return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
 }
 
 function extactResourceTypesFromStorageInfo(

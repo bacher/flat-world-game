@@ -30,21 +30,19 @@ import {
 } from './consts';
 import { calculateDistance, isSamePos } from './helpers';
 
-export function addCityCarrierPaths(
+export function addCarrierPath(
   gameState: GameState,
-  city: City,
-  carrierPaths: CarrierPath[],
+  carrierPath: CarrierPath,
 ): void {
-  for (const carrierPath of carrierPaths) {
-    city.carrierPaths.push(carrierPath);
+  const city = gameState.cities.get(carrierPath.assignedCityId)!;
+  city.carrierPaths.push(carrierPath);
 
-    addPathTo(
-      gameState.carrierPathsFromCellId,
-      carrierPath,
-      carrierPath.path.from,
-    );
-    addPathTo(gameState.carrierPathsToCellId, carrierPath, carrierPath.path.to);
-  }
+  addPathTo(
+    gameState.carrierPathsFromCellId,
+    carrierPath,
+    carrierPath.path.from,
+  );
+  addPathTo(gameState.carrierPathsToCellId, carrierPath, carrierPath.path.to);
 }
 
 export function addPathTo(
@@ -251,11 +249,7 @@ export function getIterationsUntilConstructionComplete(
   const iterationInfo =
     facilitiesConstructionInfo[construction.buildingFacilityType];
 
-  return Math.ceil(
-    iterationInfo.iterations -
-      construction.iterationsComplete -
-      construction.inProcess,
-  );
+  return iterationInfo.iterations - construction.iterationsComplete;
 }
 
 export function removeIterationInput(
@@ -375,6 +369,7 @@ export function addConstructionStructure(
     output: [],
     inProcess: 0,
     iterationsComplete: 0,
+    isPaused: false,
   };
 
   addCityFacility(gameState, city, buildingFacilility);
@@ -395,6 +390,7 @@ export function completeConstruction(
     input: [],
     output: [],
     inProcess: 0,
+    isPaused: false,
   };
 
   removeAllCarrierPathsTo(gameState, facility.position.cellId);
@@ -418,7 +414,10 @@ function replaceCunstructionByFacility(
   gameState.structuresByCellId.set(facility.position.cellId, facility);
 }
 
-function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
+export function removeAllCarrierPathsTo(
+  gameState: GameState,
+  cellId: CellId,
+): void {
   const paths = gameState.carrierPathsToCellId.get(cellId);
 
   if (paths) {
@@ -436,7 +435,10 @@ function removeAllCarrierPathsTo(gameState: GameState, cellId: CellId): void {
   }
 }
 
-function removeAllCarrierPathsFrom(gameState: GameState, cellId: CellId): void {
+export function removeAllCarrierPathsFrom(
+  gameState: GameState,
+  cellId: CellId,
+): void {
   const paths = gameState.carrierPathsFromCellId.get(cellId);
 
   if (paths) {
@@ -454,7 +456,10 @@ function removeAllCarrierPathsFrom(gameState: GameState, cellId: CellId): void {
   }
 }
 
-function removeAllCarrierPathsVia(gameState: GameState, cellId: CellId): void {
+export function removeAllCarrierPathsVia(
+  gameState: GameState,
+  cellId: CellId,
+): void {
   removeAllCarrierPathsTo(gameState, cellId);
   removeAllCarrierPathsFrom(gameState, cellId);
 }
@@ -474,10 +479,7 @@ export function getMaximumAddingLimit(
     return 0;
   }
 
-  const alreadyQuantity =
-    facility.input.find((resource) => resource.resourceType === resourceType)
-      ?.quantity ?? 0;
-
+  const alreadyQuantity = getResourceCount(facility.input, resourceType);
   const restIterations =
     constructionInfo.iterations -
     (facility.iterationsComplete + (facility.inProcess > 0 ? 1 : 0));

@@ -6,6 +6,8 @@ import {
   RESEARCH_POINTS_PER_PERSON,
   BASE_WEIGHT_PER_PEOPLE_DAY,
   CITY_BUFFER_DAYS,
+  HORSES_PER_WORKER,
+  BASE_HORSE_WORK_MODIFIER,
 } from './consts';
 import {
   CarrierPath,
@@ -18,6 +20,7 @@ import {
   WorkingPath,
 } from './types';
 import {
+  addCarrierPath,
   addResource,
   addResources,
   completeConstruction,
@@ -25,7 +28,8 @@ import {
   // actualizeCityTotalAssignedWorkersCount,
   // addIterationOutput,
   // completeConstruction,
-  // getIterationsUntilConstructionComplete,
+  getIterationsUntilConstructionComplete,
+  getMaximumAddingLimit,
   // getIterationsUntilOverDone,
   // getMaximumAddingLimit,
   // getMaximumIterationsByResources,
@@ -35,14 +39,18 @@ import {
   getResourceCount,
   getStructureIterationStorageInfo,
   grabResource,
+  grabResourceStrict,
   grabResourcesStrict,
   multiplyResourceStorage,
+  removeAllCarrierPathsTo,
 } from './gameState';
 import { researches } from './research';
-
 import { ResourceType } from './resources';
-import { facilitiesIterationInfo } from './facilities';
-import { isSamePath } from './helpers';
+import {
+  facilitiesConstructionInfo,
+  facilitiesIterationInfo,
+} from './facilities';
+import { isSamePath, isExactFacility } from './helpers';
 
 // type TickTemporalStorage = {};
 
@@ -64,19 +72,29 @@ export function tick(gameState: GameState): void {
   for (const city of gameState.cities.values()) {
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
-    let totalWorkDays = 0;
+    // TODO: Actualize only when something changed in city
+    for (const facility of facilities) {
+      if (facility.type === FacilityType.CONSTRUCTION) {
+        addConstructionInputPaths(gameState, city, facility);
+      }
+    }
+
+    let totalWorkersWorkDays = 0;
+    let totalCarriersWorkDays = 0;
 
     const facilitiesWork: FacilityWork[] = [];
 
     const currentCarrierPaths: CarrierWork[] = [];
 
     for (const facility of facilities) {
-      const workDays = getFacilityBaseWorkDays(facility);
+      if (!facility.isPaused) {
+        const workDays = getFacilityBaseWorkDays(facility);
 
-      if (workDays) {
-        totalWorkDays += workDays;
-        facilitiesWork.push({ facility, workDays });
-        console.log('Work', facility.type, workDays);
+        if (workDays) {
+          totalWorkersWorkDays += workDays;
+          facilitiesWork.push({ facility, workDays });
+          console.log('Work', facility.type, workDays);
+        }
       }
     }
 
@@ -84,27 +102,25 @@ export function tick(gameState: GameState): void {
       const workDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
 
       if (workDays) {
-        totalWorkDays += workDays;
+        totalCarriersWorkDays += workDays;
         currentCarrierPaths.push({ carrierPath, workDays });
         console.log('Carry', carrierPath.resourceType, workDays);
       }
     }
 
-    city.lastTickNeedPopulation = Math.ceil(totalWorkDays);
+    const { workRatio, totalPeopleCount } = applyCityModifiers(city, {
+      needWorkerWorkHours: totalWorkersWorkDays,
+      needCarrierWorkHours: totalCarriersWorkDays,
+    });
 
-    const workRatio = Math.min(1, city.population / totalWorkDays);
+    city.lastTickNeedPopulation = Math.ceil(totalPeopleCount);
 
-    console.log('totalWorkDays', totalWorkDays);
-    console.log('workRatio', workRatio);
+    console.log('workRatio:', workRatio);
 
     for (const { facility, workDays } of facilitiesWork) {
       const actualWorkDays = workDays * workRatio;
 
-      if (facility.type !== FacilityType.CONSTRUCTION) {
-        doFacilityWork(facility, actualWorkDays);
-      } else {
-        // DO
-      }
+      doFacilityWork(gameState, facility, actualWorkDays);
     }
 
     for (const { carrierPath, workDays } of currentCarrierPaths) {
@@ -113,7 +129,12 @@ export function tick(gameState: GameState): void {
       doCarryWork(gameState, carrierPath, actualWorkDays);
     }
 
-    fillInCityWorkingPaths(city, facilitiesWork, currentCarrierPaths);
+    fillInCityWorkingPaths(
+      city,
+      facilitiesWork,
+      currentCarrierPaths,
+      workRatio,
+    );
   }
 
   researchPhase(gameState);
@@ -125,6 +146,7 @@ function fillInCityWorkingPaths(
   city: City,
   facilitiesWork: FacilityWork[],
   carriersWork: CarrierWork[],
+  workRatio: number,
 ): void {
   const cityWorkingPaths: WorkingPath[] = [];
 
@@ -144,7 +166,7 @@ function fillInCityWorkingPaths(
   for (const { facility, workDays } of facilitiesWork) {
     addWorkingPath({
       path: { from: city.position, to: facility.position },
-      workers: workDays,
+      workers: workDays * workRatio,
       carriers: 0,
     });
   }
@@ -154,7 +176,7 @@ function fillInCityWorkingPaths(
     addWorkingPath({
       path: { from, to },
       workers: 0,
-      carriers: workDays,
+      carriers: workDays * workRatio,
     });
   }
 
@@ -174,46 +196,56 @@ function fillInCityWorkingPaths(
 };
 
 function getFacilityBaseWorkDays(facility: Facility | Construction): number {
-  //
-  if (facility.type === FacilityType.CONSTRUCTION) {
-  } else {
-    const facilityInfo = facilitiesIterationInfo[facility.type];
-    const iterationInfo = getStructureIterationStorageInfo(facility);
+  const maximumPeopleAtWork = getMaximumPeopleAtWork(facility);
+  const iterationInfo = getStructureIterationStorageInfo(facility);
 
-    const endCurrentIteration =
-      facility.inProcess > 0 ? 1 - facility.inProcess : 0;
+  const endCurrentIteration =
+    facility.inProcess > 0 ? 1 - facility.inProcess : 0;
 
-    const maxInputIterations =
-      getAssuredByResourcesIterationsCount(facility) + endCurrentIteration;
+  const maxInputIterations =
+    getAssuredByResourcesIterationsCount(facility) + endCurrentIteration;
 
-    if (maxInputIterations === 0) {
-      return 0;
-    }
-
-    const maxOutputIterations = Math.max(
-      0,
-      getIterationsCountUntilCap(facility) - facility.inProcess,
-    );
-
-    if (maxOutputIterations === 0) {
-      return 0;
-    }
-
-    const maxIterations = facilityInfo.maximumPeopleAtWork;
-
-    const actualIterations = Math.min(
-      maxInputIterations,
-      maxOutputIterations,
-      maxIterations,
-    );
-
-    return actualIterations * iterationInfo.iterationPeopleDays;
+  if (maxInputIterations === 0) {
+    return 0;
   }
 
-  return 0;
+  const maxOutpuIterationsRaw =
+    facility.type === FacilityType.CONSTRUCTION
+      ? getIterationsUntilConstructionComplete(facility)
+      : getIterationsCountUntilCap(facility);
+
+  const maxOutputIterations = Math.max(
+    0,
+    maxOutpuIterationsRaw - facility.inProcess,
+  );
+
+  if (maxOutputIterations === 0) {
+    return 0;
+  }
+
+  const maxIterations = maximumPeopleAtWork;
+
+  const actualIterations = Math.min(
+    maxInputIterations,
+    maxOutputIterations,
+    maxIterations,
+  );
+
+  return actualIterations * iterationInfo.iterationPeopleDays;
 }
 
-function getAssuredByResourcesIterationsCount(facility: Facility): number {
+function getMaximumPeopleAtWork(structure: Facility | Construction): number {
+  if (structure.type === FacilityType.CONSTRUCTION) {
+    const info = facilitiesConstructionInfo[structure.buildingFacilityType];
+    return info.maximumPeopleAtWork;
+  }
+
+  return facilitiesIterationInfo[structure.type].maximumPeopleAtWork;
+}
+
+function getAssuredByResourcesIterationsCount(
+  facility: Facility | Construction,
+): number {
   const iterationInfo = getStructureIterationStorageInfo(facility);
   return getIterationsCountByStorage(facility.input, iterationInfo.input);
 }
@@ -279,7 +311,15 @@ function getCarrierPathBaseWorkDays(
   gameState: GameState,
   carrierPath: CarrierPath,
 ): number {
+  // TODO:
+  //   paths doesn't know about others
+  //   could be over move or over grab
+
   const { to, from } = getCarrierPathStructures(gameState, carrierPath);
+
+  if (to.type !== FacilityType.CITY && to.isPaused) {
+    return 0;
+  }
 
   const outputCount = getResourceCount(from.output, carrierPath.resourceType);
 
@@ -291,44 +331,40 @@ function getCarrierPathBaseWorkDays(
 
   let needCount = 0;
 
-  switch (to.type) {
-    case FacilityType.CITY: {
-      switch (carrierPath.resourceType) {
-        case ResourceType.FOOD: {
-          const cap = to.population * PEOPLE_FOOD_PER_DAY * CITY_BUFFER_DAYS;
-
-          needCount = cap - alreadyCount;
-          break;
-        }
-        default:
-        // Do nothing
+  if (to.type === FacilityType.CITY) {
+    switch (carrierPath.resourceType) {
+      case ResourceType.FOOD: {
+        const cap = to.population * PEOPLE_FOOD_PER_DAY * CITY_BUFFER_DAYS;
+        needCount = cap - alreadyCount;
+        break;
       }
-
-      break;
+      case ResourceType.HORSE:
+        const cap = to.population * HORSES_PER_WORKER * CITY_BUFFER_DAYS;
+        needCount = cap - alreadyCount;
+        break;
+      default:
+      // Do nothing
     }
-    case FacilityType.CONSTRUCTION:
-      break;
-    default: {
-      const info = facilitiesIterationInfo[to.type];
-      const iterationInfo = getStructureIterationStorageInfo(to);
+  } else {
+    const maximumPeopleAtWork = getMaximumPeopleAtWork(to);
 
-      const iterationWorkDays =
-        iterationInfo.iterationPeopleDays / info.maximumPeopleAtWork;
+    const iterationInfo = getStructureIterationStorageInfo(to);
 
-      const maximumIterations = INPUT_BUFFER_DAYS / iterationWorkDays;
+    const iterationWorkDays =
+      iterationInfo.iterationPeopleDays / maximumPeopleAtWork;
 
-      const iterationResourceCount = getResourceCount(
-        iterationInfo.input,
-        carrierPath.resourceType,
-      );
+    const maximumIterations = INPUT_BUFFER_DAYS / iterationWorkDays;
 
-      const capResourceCount = maximumIterations * iterationResourceCount;
+    const iterationResourceCount = getResourceCount(
+      iterationInfo.input,
+      carrierPath.resourceType,
+    );
 
-      const needResourceCount = capResourceCount - alreadyCount;
+    const capResourceCount = maximumIterations * iterationResourceCount;
 
-      needCount = needResourceCount;
-      break;
-    }
+    const needResourceCount = capResourceCount - alreadyCount;
+
+    needCount = needResourceCount;
   }
 
   if (needCount <= 0) {
@@ -407,7 +443,11 @@ function researchPhase(gameState: GameState): void {
   }
 }
 
-function doFacilityWork(facility: Facility, workDays: number): void {
+function doFacilityWork(
+  gameState: GameState,
+  facility: Facility | Construction,
+  workDays: number,
+): void {
   const iterationInfo = getStructureIterationStorageInfo(facility);
 
   const doIterations = workDays / iterationInfo.iterationPeopleDays;
@@ -423,12 +463,17 @@ function doFacilityWork(facility: Facility, workDays: number): void {
     grabIterationsResources(facility, resourcesIterations);
   }
 
+  facility.inProcess = updatedIterations % 1;
+
   const doneIterations = Math.floor(updatedIterations);
   if (doneIterations > 0) {
-    addIterationsResources(facility, doneIterations);
+    if (facility.type === FacilityType.CONSTRUCTION) {
+      facility.iterationsComplete += doneIterations;
+      checkConstructionComplete(gameState, facility);
+    } else {
+      addIterationsResources(facility, doneIterations);
+    }
   }
-
-  facility.inProcess = updatedIterations % 1;
 }
 
 function doCarryWork(
@@ -438,10 +483,17 @@ function doCarryWork(
 ): void {
   const { to, from } = getCarrierPathStructures(gameState, carrierPath);
 
+  // TODO: formula
+  let moveQuantity = workDays * BASE_WEIGHT_PER_PEOPLE_DAY;
+
+  if (to.type === FacilityType.CONSTRUCTION) {
+    const maximumCount = getMaximumAddingLimit(to, carrierPath.resourceType);
+    moveQuantity = Math.min(moveQuantity, maximumCount);
+  }
+
   const movingResource: StorageItem = {
     resourceType: carrierPath.resourceType,
-    // TODO: formula
-    quantity: workDays * BASE_WEIGHT_PER_PEOPLE_DAY,
+    quantity: moveQuantity,
   };
 
   const grabbedItem = grabResource(from.output, movingResource);
@@ -455,7 +507,7 @@ function doCarryWork(
 }
 
 function grabIterationsResources(
-  facility: Facility,
+  facility: Facility | Construction,
   iterationsCount: number,
 ): void {
   const iterationInfo = getStructureIterationStorageInfo(facility);
@@ -480,4 +532,95 @@ function addIterationsResources(
   );
 
   addResources(facility.output, totalOutputResources);
+}
+
+function applyCityModifiers(
+  city: City,
+  {
+    needWorkerWorkHours,
+    needCarrierWorkHours,
+  }: { needWorkerWorkHours: number; needCarrierWorkHours: number },
+): { workRatio: number; totalPeopleCount: number } {
+  const haveHorsesCount = getResourceCount(city.input, ResourceType.HORSE);
+
+  const needHorsesCount =
+    (needCarrierWorkHours / (1 + BASE_HORSE_WORK_MODIFIER)) * HORSES_PER_WORKER;
+
+  let actualWorkerWorkHours = needWorkerWorkHours;
+  let actualCarrierWorkHours;
+  let usedHorsesCount = 0;
+
+  if (haveHorsesCount >= needHorsesCount) {
+    actualCarrierWorkHours =
+      needCarrierWorkHours / (1 + BASE_HORSE_WORK_MODIFIER);
+    usedHorsesCount = needHorsesCount;
+  } else {
+    const ratio = haveHorsesCount / needHorsesCount;
+    actualCarrierWorkHours =
+      needCarrierWorkHours * (1 - ratio) +
+      (needCarrierWorkHours * ratio) / (1 + BASE_HORSE_WORK_MODIFIER);
+    usedHorsesCount = haveHorsesCount;
+  }
+
+  grabResourceStrict(city.input, {
+    resourceType: ResourceType.HORSE,
+    quantity: usedHorsesCount,
+  });
+
+  return {
+    workRatio: Math.min(
+      1,
+      city.population / (actualWorkerWorkHours + actualCarrierWorkHours),
+    ),
+    totalPeopleCount: actualWorkerWorkHours + actualCarrierWorkHours,
+  };
+}
+
+function addConstructionInputPaths(
+  gameState: GameState,
+  city: City,
+  construction: Construction,
+): void {
+  removeAllCarrierPathsTo(gameState, construction.position.cellId);
+
+  const constructionIterationInfo =
+    getStructureIterationStorageInfo(construction);
+
+  const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
+
+  for (const facility of facilities) {
+    if (isExactFacility(facility.type)) {
+      const iterationInfo = getStructureIterationStorageInfo(facility);
+
+      for (const { resourceType } of constructionIterationInfo.input) {
+        for (const {
+          resourceType: facilityResourceType,
+        } of iterationInfo.output) {
+          if (resourceType === facilityResourceType) {
+            addCarrierPath(gameState, {
+              assignedCityId: city.cityId,
+              people: 1,
+              resourceType,
+              path: {
+                from: facility.position,
+                to: construction.position,
+              },
+            });
+          }
+        }
+      }
+    }
+  }
+}
+
+function checkConstructionComplete(
+  gameState: GameState,
+  construction: Construction,
+): void {
+  const constructionInfo =
+    facilitiesConstructionInfo[construction.buildingFacilityType];
+
+  if (construction.iterationsComplete >= constructionInfo.iterations) {
+    completeConstruction(gameState, construction);
+  }
 }

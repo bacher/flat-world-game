@@ -1,4 +1,7 @@
 # TODO
 
-1. [ ] Limit input resources quantity for constructions
-2. [ ] Use input resources while construction
+1. [x] Limit input resources quantity for constructions
+2. [x] Use input resources while construction
+3. [ ] Draw all carrier paths
+4. [ ] Randomly choose facilities and paths while game logic tick
+5. [ ] Store potential quantity change for carrier paths

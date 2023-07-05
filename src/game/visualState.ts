@@ -12,7 +12,7 @@ import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
-import { newCellPosition } from './helpers';
+import { isSameCellPoints, newCellPosition } from './helpers';
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
 
@@ -210,21 +210,6 @@ export function isSamePoints(
   }
 
   return p1[0] === p2[0] && p1[1] === p2[1];
-}
-
-export function isSameCellPoints(
-  p1: CellPosition | undefined,
-  p2: CellPosition | undefined,
-): boolean {
-  if (!p1 && !p2) {
-    return true;
-  }
-
-  if (!p1 || !p2) {
-    return false;
-  }
-
-  return p1.cellId === p2.cellId;
 }
 
 export function startGameLoop(
