@@ -358,14 +358,19 @@ export function addConstructionStructure(
   {
     facilityType,
     position,
-  }: { facilityType: ExactFacilityType; position: CellPosition },
-  city: City,
+    productionVariant,
+  }: {
+    facilityType: ExactFacilityType;
+    position: CellPosition;
+    productionVariant: number;
+  },
 ): void {
+  const city = getNearestCity(gameState, position);
+
   const buildingFacilility: Construction = {
     type: FacilityType.CONSTRUCTION,
     assignedCityId: city.cityId,
     position,
-
     buildingFacilityType: facilityType,
     assignedWorkersCount:
       facilitiesConstructionInfo[facilityType].maximumPeopleAtWork,
@@ -373,6 +378,7 @@ export function addConstructionStructure(
     output: [],
     inProcess: 0,
     iterationsComplete: 0,
+    productionVariant,
     isPaused: false,
   };
 
@@ -390,7 +396,7 @@ export function completeConstruction(
     assignedWorkersCount:
       facilitiesIterationInfo[construction.buildingFacilityType]
         .maximumPeopleAtWork,
-    productionVariant: 0,
+    productionVariant: construction.productionVariant,
     input: [],
     output: [],
     inProcess: 0,

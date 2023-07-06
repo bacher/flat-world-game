@@ -1,5 +1,9 @@
 @import '@/app/mixins.scss';
 
+.wrapper {
+  padding: 20px;
+}
+
 .currentGames {
   max-height: 400px;
   padding: 0 0 16px;
@@ -11,6 +15,7 @@
   @include button-reset;
   width: 200px;
   height: 40px;
+  padding: 0 10px;
   border-radius: 3px;
   background: rgb(121, 212, 121);
   cursor: pointer;

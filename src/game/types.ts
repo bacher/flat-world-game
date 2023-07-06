@@ -96,6 +96,7 @@ export type Construction = StructureBase & {
   assignedWorkersCount: number;
   inProcess: number;
   iterationsComplete: number;
+  productionVariant: number;
   isPaused: boolean;
 };
 

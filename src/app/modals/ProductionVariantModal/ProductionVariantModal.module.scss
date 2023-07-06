@@ -1,0 +1,35 @@
+@import '@/app/mixins';
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  height: 400px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #777;
+}
+
+.item {
+  margin: 0 0 6px;
+}
+
+.button {
+  @include button-reset;
+  display: flex;
+  width: 100%;
+  text-align: initial;
+  padding: 10px 14px;
+  border-radius: 3px;
+  border: 1px solid #999;
+  background: #f3f3f3;
+}
+
+.index {
+  flex-basis: 50px;
+}
+
+.resourcesList {
+  flex-basis: 200px;
+}

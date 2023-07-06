@@ -22,7 +22,7 @@ export function MainMenu({ onNewGame, onLoadGame }: Props) {
   }
 
   return (
-    <div>
+    <div className={styles.wrapper}>
       <h1>Flat World</h1>
       {games.length > 0 ? (
         <div className={styles.currentGames}>

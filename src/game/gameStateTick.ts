@@ -30,7 +30,6 @@ import {
   getCarrierPathStructures,
   // actualizeCityTotalAssignedWorkersCount,
   // addIterationOutput,
-  // completeConstruction,
   getIterationsUntilConstructionComplete,
   getMaximumAddingLimit,
   // getIterationsUntilOverDone,

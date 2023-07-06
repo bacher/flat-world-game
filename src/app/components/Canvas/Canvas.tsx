@@ -12,13 +12,14 @@ import {
   FacilityType,
   Point,
   CarrierPathType,
+  ExactFacilityType,
+  CellPosition,
 } from '@/game/types';
 import {
   addCity,
   addCarrierPath,
   addConstructionStructure,
   getFacilityBindedCity,
-  getNearestCity,
 } from '@/game/gameState';
 import { loadGame, saveGame } from '@/game/gameStatePersist';
 import {
@@ -53,6 +54,8 @@ import { neverCall } from '@/utils/typeUtils';
 import { GameMenu } from '@/app/modals/GameMenu';
 import { setHash } from '@/utils/url';
 import { isSameCellPoints } from '@/game/helpers';
+import { facilitiesIterationInfo } from '@/game/facilities';
+import { ProductionVariantModal } from '@/app/modals/ProductionVariantModal';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -61,6 +64,7 @@ const enum ModalModeType {
   GAME_MENU = 'GAME_MENU',
   FACILITY = 'FACILITY',
   RESEARCH = 'RESEARCH',
+  PRODUCTION_VARIANT_CHOOSE = 'PRODUCTION_VARIANT_CHOOSE',
 }
 
 type ModalMode =
@@ -70,6 +74,11 @@ type ModalMode =
     }
   | {
       modeType: ModalModeType.RESEARCH | ModalModeType.GAME_MENU;
+    }
+  | {
+      modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE;
+      facilityType: ExactFacilityType;
+      position: CellPosition;
     };
 
 type Props = {
@@ -322,21 +331,27 @@ export function Canvas({ gameId }: Props) {
             const isAllow = isAllowToConstructAtPosition(visualState, cell);
 
             if (isAllow) {
-              if (
-                visualState.interactiveAction.facilityType === FacilityType.CITY
-              ) {
+              const { facilityType } = visualState.interactiveAction;
+
+              if (facilityType === FacilityType.CITY) {
                 addCity(gameState, { position: cell });
               } else {
-                const nearestCity = getNearestCity(gameState, cell);
+                const facilityInfo = facilitiesIterationInfo[facilityType];
 
-                addConstructionStructure(
-                  gameState,
-                  {
-                    facilityType: visualState.interactiveAction.facilityType,
+                if (facilityInfo.productionVariants.length > 1) {
+                  modalModeRef.current = {
+                    modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
+                    facilityType,
                     position: cell,
-                  },
-                  nearestCity,
-                );
+                  };
+                  forceUpdate();
+                } else {
+                  addConstructionStructure(gameState, {
+                    facilityType,
+                    position: cell,
+                    productionVariant: 0,
+                  });
+                }
               }
 
               visualState.interactiveAction = undefined;
@@ -541,6 +556,28 @@ export function Canvas({ gameId }: Props) {
                               }}
                             />
                           );
+                        case ModalModeType.PRODUCTION_VARIANT_CHOOSE: {
+                          const { facilityType, position } =
+                            modalModeRef.current;
+
+                          return (
+                            <ProductionVariantModal
+                              facilityType={facilityType}
+                              onClose={closeModal}
+                              onProductionVariantChoose={(
+                                productionVariant,
+                              ) => {
+                                closeModal();
+                                addConstructionStructure(gameState, {
+                                  facilityType,
+                                  position,
+                                  productionVariant,
+                                });
+                                visualStateRef.current?.onUpdate();
+                              }}
+                            />
+                          );
+                        }
                         default:
                           throw neverCall(modalModeRef.current);
                       }

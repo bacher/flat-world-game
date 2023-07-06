@@ -92,6 +92,21 @@ export const facilitiesIterationInfo: Record<
           },
         ],
       },
+      {
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.REED,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.PAPYRUS,
+            quantity: 1,
+          },
+        ],
+      },
     ],
   },
   [FacilityType.FIELD]: {
@@ -110,6 +125,21 @@ export const facilitiesIterationInfo: Record<
           {
             resourceType: ResourceType.HAY,
             quantity: 2,
+          },
+        ],
+      },
+      {
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.AGRICULTURAL_TOOLS,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.REED,
+            quantity: 1,
           },
         ],
       },

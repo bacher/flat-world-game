@@ -1,4 +1,5 @@
 import { ResourceType } from '@/game/resources';
+import { neverCall } from '@/utils/typeUtils';
 
 export function drawResourceIcon(
   ctx: CanvasRenderingContext2D,
@@ -68,11 +69,34 @@ export function drawResourceIcon(
       ctx.fillStyle = 'brown';
       ctx.fill();
       break;
+    case ResourceType.REED:
+      ctx.beginPath();
+      ctx.rect(-1, -4, 2, 12);
+      ctx.closePath();
+      ctx.fillStyle = 'black';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(0, -4, 3, 4, 0, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.fillStyle = 'green';
+      ctx.fill();
+      break;
+    case ResourceType.PAPYRUS:
+      ctx.beginPath();
+      ctx.rect(-4, -4, 8, 8);
+      ctx.closePath();
+      ctx.fillStyle = 'yellow';
+      ctx.fill();
+      ctx.strokeStyle = 'black';
+      ctx.stroke();
+      break;
     default:
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = 'black';
       ctx.fill();
       console.warn(`No render function for resource ${resourceType}`);
+      neverCall(resourceType, true);
   }
 }

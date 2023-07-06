@@ -34,6 +34,8 @@ import { resourceLocalization } from '@/game/resources';
 import { useForceUpdate } from '@hooks/forceUpdate';
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 import { InteractiveActionType, VisualState } from '@/game/visualState';
+import { humanFormat } from '@/utils/format';
+
 import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
 
@@ -454,7 +456,7 @@ function SupplySection({
               <div className={styles.resourceNameLine}>
                 <div className={styles.resourceName}>
                   {resourceLocalization[resourceType]}:{' '}
-                  <span>{storageResource?.quantity ?? 0}</span>
+                  <span>{humanFormat(storageResource?.quantity ?? 0)}</span>
                 </div>
                 <button
                   type="button"
