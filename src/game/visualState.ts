@@ -12,7 +12,11 @@ import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
-import { isSameCellPoints, newCellPosition } from './helpers';
+import {
+  calculateDistanceSquare,
+  isSameCellPoints,
+  newCellPosition,
+} from './helpers';
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
 import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
@@ -246,7 +250,7 @@ export function isAllowToConstructAtPosition(
     const expeditionStart =
       visualState.interactiveAction.expeditionFromCity.position;
 
-    const distance = cellDistanceSquare(expeditionStart, cell);
+    const distance = calculateDistanceSquare(expeditionStart, cell);
 
     return (
       distance >= MIN_EXPEDITION_DISTANCE_SQUARE &&
@@ -255,8 +259,4 @@ export function isAllowToConstructAtPosition(
   }
 
   return true;
-}
-
-function cellDistanceSquare(pos1: CellPosition, pos2: CellPosition): number {
-  return (pos1.i - pos2.i) ** 2 + (pos1.j - pos2.j) ** 2;
 }

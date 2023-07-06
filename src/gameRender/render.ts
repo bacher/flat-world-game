@@ -17,6 +17,7 @@ import {
   newCellPosition,
   isSameCellPoints,
   calculateDistance,
+  calculateDistanceSquare,
 } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
@@ -24,10 +25,11 @@ import {
   VisualState,
   isAllowToConstructAtPosition,
 } from '@/game/visualState';
+import { humanFormat } from '@/utils/format';
+import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
-import { humanFormat } from '@/utils/format';
 import { drawText } from './canvasUtils';
 
 const DRAW_RESOURCE_NAMES = false;
@@ -161,6 +163,8 @@ function drawHighlights(visualState: VisualState): void {
     return;
   }
 
+  const { gameState } = visualState;
+
   switch (visualState.interactiveAction.actionType) {
     case InteractiveActionType.CONSTRUCTION_PLANNING: {
       if (visualState.interactiveAction.facilityType === FacilityType.CITY) {
@@ -170,8 +174,35 @@ function drawHighlights(visualState: VisualState): void {
           for (let row = start.j; row < end.j; row += 1) {
             const cell = newCellPosition({ i: col, j: row });
 
-            if (isAllowToConstructAtPosition(visualState, cell)) {
-              highlightCell(visualState, cell, '#aea');
+            let isInsideNewCity = false;
+            let isPartOfAnotherCity = false;
+
+            for (const city of gameState.cities.values()) {
+              if (isCellInsideCityBorder(city.position, cell)) {
+                isPartOfAnotherCity = true;
+                break;
+              }
+            }
+
+            if (visualState.hoverCell) {
+              isInsideNewCity = isCellInsideCityBorder(
+                visualState.hoverCell,
+                cell,
+              );
+            }
+
+            let color: string | undefined;
+
+            if (isPartOfAnotherCity && isInsideNewCity) {
+              color = '#e5c0c0';
+            } else if (isPartOfAnotherCity) {
+              color = '#e0e0e0';
+            } else if (isInsideNewCity) {
+              color = '#aea';
+            }
+
+            if (color) {
+              highlightCell(visualState, cell, color);
             }
           }
         }
@@ -179,6 +210,13 @@ function drawHighlights(visualState: VisualState): void {
       break;
     }
   }
+}
+
+function isCellInsideCityBorder(
+  cityCell: CellPosition,
+  cell: CellPosition,
+): boolean {
+  return calculateDistanceSquare(cityCell, cell) < CITY_BORDER_RADIUS_SQUARE;
 }
 
 function highlightHoverCell(visualState: VisualState): void {

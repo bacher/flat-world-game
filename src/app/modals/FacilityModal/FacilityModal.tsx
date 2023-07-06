@@ -151,7 +151,7 @@ function CityContent({
     <div>
       <h2>City: {city.name}</h2>
       <div>People moving speed: {city.peopleDayPerCell}</div>
-      <div>People carriying weight: {city.weightPerPeopleDay}</div>
+      <div>People carrying weight: {city.weightPerPeopleDay}</div>
       <div>People working modificator: {city.peopleWorkModifier}</div>
       <button
         type="button"

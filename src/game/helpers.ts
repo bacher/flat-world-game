@@ -35,14 +35,18 @@ export function getCarrierPathDistance(carrierPath: CarrierPath): number {
   return calculateDistance(carrierPath.path.from, carrierPath.path.to);
 }
 
+export function calculateDistanceSquare(
+  pos1: CellPosition,
+  pos2: CellPosition,
+): number {
+  return (pos1.i - pos2.i) ** 2 + (pos1.j - pos2.j) ** 2;
+}
+
 export function calculateDistance(
   cell1: CellPosition,
   cell2: CellPosition,
 ): number {
-  const x = cell1.i - cell2.i;
-  const y = cell1.j - cell2.j;
-
-  return Math.sqrt(x ** 2 + y ** 2);
+  return Math.sqrt(calculateDistanceSquare(cell1, cell2));
 }
 
 export function isSamePos(cell1: CellPosition, cell2: CellPosition): boolean {
