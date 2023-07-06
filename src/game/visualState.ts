@@ -15,6 +15,7 @@ import {
 import { isSameCellPoints, newCellPosition } from './helpers';
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
+import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
 
 export type VisualState = {
   gameState: GameState;
@@ -64,6 +65,8 @@ export function createVisualState(
 ): VisualState {
   const canvasWidth = ctx.canvas.width;
   const canvasHeight = ctx.canvas.height;
+
+  ctx.font = DEFAULT_FONT;
 
   const halfWidth = Math.floor(canvasWidth / 2);
   const halfHeight = Math.floor(canvasHeight / 2);

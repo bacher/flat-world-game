@@ -9,10 +9,15 @@ import {
   Construction,
   Facility,
   Structure,
+  CellPath,
 } from '@/game/types';
 import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { ResourceType, resourceLocalization } from '@/game/resources';
-import { newCellPosition, isSameCellPoints } from '@/game/helpers';
+import {
+  newCellPosition,
+  isSameCellPoints,
+  calculateDistance,
+} from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,
@@ -23,6 +28,7 @@ import {
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { humanFormat } from '@/utils/format';
+import { drawText } from './canvasUtils';
 
 const DRAW_RESOURCE_NAMES = false;
 
@@ -45,7 +51,7 @@ export function renderGameToCanvas(visualState: VisualState): void {
   drawHighlights(visualState);
   drawInteractiveAction(visualState);
   drawGrid(visualState);
-  drawWorkingPaths(visualState);
+  drawCarrierPaths(visualState);
   drawObjects(visualState);
 
   ctx.restore();
@@ -231,7 +237,7 @@ function drawObjects(visualState: VisualState): void {
 }
 
 function drawObject(visualState: VisualState, facility: Structure): void {
-  if (isCellInRectInclsive(visualState.viewportBounds, facility.position)) {
+  if (isCellInRectInclusive(visualState.viewportBounds, facility.position)) {
     const { ctx } = visualState;
 
     ctx.save();
@@ -239,6 +245,7 @@ function drawObject(visualState: VisualState, facility: Structure): void {
     ctx.translate(cellCenter[0], cellCenter[1]);
 
     drawStructureObject(visualState, facility);
+    drawStructureInfo(visualState, facility);
     drawFacilityStorage(visualState, facility);
 
     ctx.restore();
@@ -249,7 +256,7 @@ function getCellCenter(visualState: VisualState, cell: CellPosition): Point {
   return [cell.i * visualState.cellSize[0], cell.j * visualState.cellSize[1]];
 }
 
-function isCellInRectInclsive(rect: CellRect, point: CellPosition): boolean {
+function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
   return (
     point.i < rect.start.i ||
     point.i > rect.end.i ||
@@ -272,53 +279,114 @@ function addGap(point1: Point, point2: Point, gap: number): [Point, Point] {
   ];
 }
 
-function drawWorkingPaths(visualState: VisualState): void {
-  const { ctx, gameState } = visualState;
+function getCarrierPathPoints(
+  visualState: VisualState,
+  path: CellPath,
+): [Point, Point] {
+  const fromCenter = getCellCenter(visualState, path.from);
+  const toCenter = getCellCenter(visualState, path.to);
+  return addGap(fromCenter, toCenter, 20);
+}
+
+function drawCarrierPath(
+  visualState: VisualState,
+  path: CellPath,
+  { color, text }: { color: string; text?: string },
+): void {
+  const { ctx } = visualState;
+  const [fromGapped, toGapped] = getCarrierPathPoints(visualState, path);
+  const distance = calculateDistance(path.from, path.to);
+
+  const center = {
+    x: (fromGapped[0] + toGapped[0]) / 2,
+    y: (fromGapped[1] + toGapped[1]) / 2,
+  };
+
+  const dx = fromGapped[0] - toGapped[0];
+  const dy = fromGapped[1] - toGapped[1];
+
+  const angle = Math.atan2(dy, dx) + Math.PI / 2;
+
+  const bezierOffset = distance * 3;
+
+  const bx = bezierOffset * Math.cos(angle);
+  const by = bezierOffset * Math.sin(angle);
+
+  const cp = {
+    x: center.x + bx,
+    y: center.y + by,
+  };
+
+  ctx.beginPath();
+  ctx.moveTo(fromGapped[0], fromGapped[1]);
+  // ctx.lineTo(toGapped[0], toGapped[1]);
+  ctx.bezierCurveTo(cp.x, cp.y, cp.x, cp.y, toGapped[0], toGapped[1]);
+  ctx.strokeStyle = color;
+  ctx.stroke();
+
+  if (text) {
+    const textCenter = {
+      x: center.x + bx / 2,
+      y: center.y + by / 2,
+    };
+
+    drawText(ctx, text, textCenter, {
+      align: 'center',
+      baseline: 'middle',
+      lineWidth: 2,
+    });
+  }
+}
+
+function drawCarrierPaths(visualState: VisualState): void {
+  const { gameState } = visualState;
+
+  // TODO: Optimize, draw only paths in viewport
 
   for (const city of gameState.cities.values()) {
-    for (const { path, workers, carriers } of city.lastTickWorkingPaths) {
-      // Have to check viewport
+    for (const { path } of city.carrierPaths) {
+      drawCarrierPath(visualState, path, { color: '#a0a0a0' });
+    }
 
-      const fromCenter = getCellCenter(visualState, path.from);
-      const toCenter = getCellCenter(visualState, path.to);
-
-      const [fromGapped, toGapped] = addGap(fromCenter, toCenter, 20);
-
-      ctx.beginPath();
-      ctx.moveTo(fromGapped[0], fromGapped[1]);
-      ctx.lineTo(toGapped[0], toGapped[1]);
-      ctx.strokeStyle = 'black';
-      ctx.stroke();
-
-      const lineCenter = [
-        (fromCenter[0] + toCenter[0]) / 2,
-        (fromCenter[1] + toCenter[1]) / 2,
-      ];
-
-      const peopleTextParts: string[] = [];
-
-      if (workers) {
-        peopleTextParts.push(`${humanFormat(workers)}w`);
-      }
-      if (carriers) {
-        peopleTextParts.push(`${humanFormat(carriers)}c`);
-      }
-
-      const peopleText = peopleTextParts.join(' + ');
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.strokeText(peopleText, lineCenter[0], lineCenter[1]);
-      ctx.lineWidth = 1;
-      ctx.fillStyle = 'black';
-      ctx.fillText(peopleText, lineCenter[0], lineCenter[1]);
+    for (const { path, carriers } of city.lastTickReport.carrierPathReports) {
+      drawCarrierPath(visualState, path, {
+        text: humanFormat(carriers),
+        color: 'black',
+      });
     }
   }
 }
 
 function isCity(structure: Structure): structure is City {
   return structure.type === FacilityType.CITY;
+}
+
+function drawStructureInfo(
+  visualState: VisualState,
+  facility: Structure,
+): void {
+  const { ctx, gameState } = visualState;
+
+  if (facility.type !== FacilityType.CITY) {
+    const city = gameState.cities.get(facility.assignedCityId)!;
+
+    const report = city.lastTickReport.facilityWorkerReports.find(
+      (info) => info.facility === facility,
+    );
+
+    if (report) {
+      drawText(
+        ctx,
+        humanFormat(report.workers),
+        { x: 14, y: -14 },
+        {
+          align: 'right',
+          baseline: 'middle',
+          color: 'black',
+        },
+      );
+    }
+  }
 }
 
 function drawFacilityStorage(
@@ -362,7 +430,6 @@ function combineStorageWithIteration(
 
 function drawStorage(
   visualState: VisualState,
-
   storage: StorageItem[],
   align: 'left' | 'right',
 ): void {
@@ -380,12 +447,7 @@ function drawStorage(
 
     drawResourceIcon(ctx, resourceType);
 
-    ctx.textBaseline = 'middle';
     const value = quantity.toFixed(1);
-
-    ctx.fillStyle = 'black';
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 3;
 
     let text = value;
 
@@ -394,15 +456,16 @@ function drawStorage(
       text += ` ${resourceName}`;
     }
 
-    if (align === 'left') {
-      ctx.textAlign = 'left';
-      ctx.strokeText(text, 10, 0);
-      ctx.fillText(text, 10, 0);
-    } else {
-      ctx.textAlign = 'right';
-      ctx.strokeText(text, -10, 0);
-      ctx.fillText(text, -10, 0);
-    }
+    drawText(
+      ctx,
+      text,
+      { x: align === 'left' ? 10 : -10, y: 0 },
+      {
+        align,
+        baseline: 'middle',
+        lineWidth: 3,
+      },
+    );
 
     ctx.restore();
   }
@@ -411,18 +474,20 @@ function drawStorage(
 function drawTopOverlay(visualState: VisualState): void {
   if (visualState.hoverCell) {
     const { ctx } = visualState;
-    const drawText = `(${visualState.hoverCell.i},${visualState.hoverCell.j})`;
     const [x, y] = visualState.canvasSize;
 
-    ctx.save();
-    ctx.font = '18px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 5;
-    ctx.strokeText(drawText, x, y);
-    ctx.fillStyle = 'black';
-    ctx.fillText(drawText, x, y);
-    ctx.restore();
+    const text = `(${visualState.hoverCell.i},${visualState.hoverCell.j})`;
+
+    drawText(
+      ctx,
+      text,
+      { x, y },
+      {
+        align: 'right',
+        baseline: 'bottom',
+        lineWidth: 5,
+        fontSize: 18,
+      },
+    );
   }
 }

@@ -93,6 +93,14 @@ export function getGameStateBySnapshot(
     facilitiesByCityId.get(facility.assignedCityId)!.push(facility);
   }
 
+  for (const city of cities) {
+    city.lastTickReport = city.lastTickReport ?? {
+      carrierPathReports: [],
+      facilityWorkerReports: [],
+      needPopulation: 0,
+    };
+  }
+
   return {
     gameId,
     cities: new Map(cities.map((city) => [city.cityId, city])),

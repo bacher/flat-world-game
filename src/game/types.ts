@@ -80,8 +80,13 @@ export type City = StructureBase & {
   weightPerPeopleDay: number;
   peopleWorkModifier: number;
   totalAssignedWorkersCount: number;
-  lastTickNeedPopulation: number;
-  lastTickWorkingPaths: WorkingPath[];
+  lastTickReport: CityReportInfo;
+};
+
+export type CityReportInfo = {
+  carrierPathReports: CarrierPathReport[];
+  facilityWorkerReports: FacilityWorkReport[];
+  needPopulation: number;
 };
 
 export type Construction = StructureBase & {
@@ -130,10 +135,14 @@ export type CarrierPath = {
   pathType: CarrierPathType;
 };
 
-export type WorkingPath = {
+export type CarrierPathReport = {
   path: CellPath;
-  workers: number;
   carriers: number;
+};
+
+export type FacilityWorkReport = {
+  facility: Facility | Construction;
+  workers: number;
 };
 
 export const enum ResearchId {

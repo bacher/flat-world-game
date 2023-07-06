@@ -12,6 +12,7 @@ import {
   CellPosition,
   City,
   CityId,
+  CityReportInfo,
   Construction,
   ExactFacilityType,
   Facility,
@@ -328,8 +329,7 @@ export function addCity(
     peopleDayPerCell: BASE_PEOPLE_DAY_PER_CELL,
     weightPerPeopleDay: BASE_WEIGHT_PER_PEOPLE_DAY,
     peopleWorkModifier: BASE_PEOPLE_WORK_MODIFIER,
-    lastTickNeedPopulation: 0,
-    lastTickWorkingPaths: [],
+    lastTickReport: createEmptyCityReport(),
     input: [],
     output: [],
   };
@@ -591,5 +591,13 @@ export function getCarrierPathStructures(
   return {
     from,
     to,
+  };
+}
+
+export function createEmptyCityReport(): CityReportInfo {
+  return {
+    carrierPathReports: [],
+    facilityWorkerReports: [],
+    needPopulation: 0,
   };
 }

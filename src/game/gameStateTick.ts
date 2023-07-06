@@ -18,13 +18,15 @@ import {
   FacilityType,
   GameState,
   StorageItem,
-  WorkingPath,
+  CarrierPathReport,
+  FacilityWorkReport,
 } from './types';
 import {
   addCarrierPath,
   addResource,
   addResources,
   completeConstruction,
+  createEmptyCityReport,
   getCarrierPathStructures,
   // actualizeCityTotalAssignedWorkersCount,
   // addIterationOutput,
@@ -71,6 +73,8 @@ export function tick(gameState: GameState): void {
   console.log('===');
 
   for (const city of gameState.cities.values()) {
+    city.lastTickReport = createEmptyCityReport();
+
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
     // TODO: Actualize only when something changed in city
@@ -116,7 +120,7 @@ export function tick(gameState: GameState): void {
       needCarrierWorkHours: totalCarriersWorkDays,
     });
 
-    city.lastTickNeedPopulation = Math.ceil(totalPeopleCount);
+    city.lastTickReport.needPopulation = Math.ceil(totalPeopleCount);
 
     console.log('workRatio:', workRatio);
 
@@ -132,12 +136,7 @@ export function tick(gameState: GameState): void {
       doCarryWork(gameState, carrierPath, actualWorkDays);
     }
 
-    fillInCityWorkingPaths(
-      city,
-      facilitiesWork,
-      currentCarrierPaths,
-      workRatio,
-    );
+    fillInCityWorkReport(city, facilitiesWork, currentCarrierPaths, workRatio);
   }
 
   researchPhase(gameState);
@@ -145,45 +144,43 @@ export function tick(gameState: GameState): void {
   growPhase(gameState);
 }
 
-function fillInCityWorkingPaths(
+function fillInCityWorkReport(
   city: City,
   facilitiesWork: FacilityWork[],
   carriersWork: CarrierWork[],
   workRatio: number,
 ): void {
-  const cityWorkingPaths: WorkingPath[] = [];
-
-  function addWorkingPath(workingPath: WorkingPath) {
-    const alreadyPath = cityWorkingPaths.find((path) =>
-      isSamePath(path.path, workingPath.path),
-    );
-
-    if (alreadyPath) {
-      alreadyPath.workers += workingPath.workers;
-      alreadyPath.carriers += workingPath.carriers;
-    } else {
-      cityWorkingPaths.push(workingPath);
-    }
-  }
+  const carrierPathReports: CarrierPathReport[] = [];
+  const facilityWorkerReports: FacilityWorkReport[] = [];
 
   for (const { facility, workDays } of facilitiesWork) {
-    addWorkingPath({
-      path: { from: city.position, to: facility.position },
+    facilityWorkerReports.push({
+      facility,
       workers: workDays * workRatio,
-      carriers: 0,
     });
   }
 
   for (const { carrierPath, workDays } of carriersWork) {
     const { from, to } = carrierPath.path;
-    addWorkingPath({
-      path: { from, to },
-      workers: 0,
-      carriers: workDays * workRatio,
-    });
+
+    const alreadyPath = carrierPathReports.find((path) =>
+      isSamePath(path.path, carrierPath.path),
+    );
+
+    const carriersCount = workDays * workRatio;
+
+    if (alreadyPath) {
+      alreadyPath.carriers += carriersCount;
+    } else {
+      carrierPathReports.push({
+        path: { from, to },
+        carriers: carriersCount,
+      });
+    }
   }
 
-  city.lastTickWorkingPaths = cityWorkingPaths;
+  city.lastTickReport.carrierPathReports = carrierPathReports;
+  city.lastTickReport.facilityWorkerReports = facilityWorkerReports;
 }
 
 (window as any).completeAllConstruction = () => {
