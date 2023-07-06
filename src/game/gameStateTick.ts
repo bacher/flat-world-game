@@ -51,7 +51,7 @@ import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from './facilities';
-import { isSamePath, isExactFacility } from './helpers';
+import { isSamePath, isExactFacility, getCarrierPathDistance } from './helpers';
 
 // type TickTemporalStorage = {};
 
@@ -330,6 +330,9 @@ function getCarrierPathBaseWorkDays(
     return 0;
   }
 
+  // TODO: Precalculate
+  const distance = getCarrierPathDistance(carrierPath);
+
   const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
 
   let needCount = 0;
@@ -376,8 +379,7 @@ function getCarrierPathBaseWorkDays(
 
   const moveCount = Math.min(outputCount, needCount);
 
-  // TODO:
-  return moveCount / BASE_WEIGHT_PER_PEOPLE_DAY;
+  return (moveCount * distance) / BASE_WEIGHT_PER_PEOPLE_DAY;
 }
 
 function growPhase(gameState: GameState): void {
@@ -486,8 +488,8 @@ function doCarryWork(
 ): void {
   const { to, from } = getCarrierPathStructures(gameState, carrierPath);
 
-  // TODO: formula
-  let moveQuantity = workDays * BASE_WEIGHT_PER_PEOPLE_DAY;
+  const distance = getCarrierPathDistance(carrierPath);
+  let moveQuantity = (workDays * BASE_WEIGHT_PER_PEOPLE_DAY) / distance;
 
   if (to.type === FacilityType.CONSTRUCTION) {
     const maximumCount = getMaximumAddingLimit(to, carrierPath.resourceType);

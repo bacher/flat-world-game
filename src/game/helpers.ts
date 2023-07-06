@@ -1,4 +1,5 @@
 import {
+  CarrierPath,
   CellCoordinates,
   CellId,
   CellPath,
@@ -28,6 +29,10 @@ export function newCellPosition(pos: { i: number; j: number }): CellPosition {
   // Object.defineProperty(point, 'cellId', { enumerable: false });
 
   return point;
+}
+
+export function getCarrierPathDistance(carrierPath: CarrierPath): number {
+  return calculateDistance(carrierPath.path.from, carrierPath.path.to);
 }
 
 export function calculateDistance(

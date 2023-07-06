@@ -24,6 +24,8 @@ import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { humanFormat } from '@/utils/format';
 
+const DRAW_RESOURCE_NAMES = false;
+
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx } = visualState;
 
@@ -380,12 +382,17 @@ function drawStorage(
 
     ctx.textBaseline = 'middle';
     const value = quantity.toFixed(1);
-    const resourceName = resourceLocalization[resourceType] ?? 'Unknown';
 
     ctx.fillStyle = 'black';
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 3;
-    const text = `${value} ${resourceName}`;
+
+    let text = value;
+
+    if (DRAW_RESOURCE_NAMES) {
+      const resourceName = resourceLocalization[resourceType] ?? 'Unknown';
+      text += ` ${resourceName}`;
+    }
 
     if (align === 'left') {
       ctx.textAlign = 'left';

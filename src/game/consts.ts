@@ -1,7 +1,7 @@
 export const BASE_PEOPLE_DAY_PER_CELL = 0.02;
 export const BASE_HORSE_DAY_PER_CELL = 0.02;
-export const BASE_WEIGHT_PER_PEOPLE_DAY = 2.5;
-export const BASE_WEIGHT_PER_HORSE_DAY = 3.5;
+export const BASE_WEIGHT_PER_PEOPLE_DAY = 10;
+export const BASE_WEIGHT_PER_HORSE_DAY = 20;
 export const BASE_PEOPLE_WORK_MODIFIER = 1;
 export const BASE_HORSE_WORK_MODIFIER = 0.5;
 export const RESEARCH_POINTS_PER_PERSON = 3;
