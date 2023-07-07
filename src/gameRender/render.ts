@@ -4,7 +4,6 @@ import {
   FacilityType,
   Point,
   StorageItem,
-  citiesInputResourceTypes,
   City,
   Construction,
   Facility,
@@ -27,6 +26,7 @@ import {
 } from '@/game/visualState';
 import { humanFormat } from '@/utils/format';
 import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
+import { cityResourcesInput } from '@/game/boosters';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
@@ -123,7 +123,7 @@ export function isValidCarrierPlanningTarget(
     let output: ResourceType[];
 
     if (isCity(hoverFacility)) {
-      input = citiesInputResourceTypes;
+      input = cityResourcesInput;
       output = [];
     } else {
       ({ input, output } = extactResourceTypesFromStorageInfo(hoverFacility));

@@ -25,14 +25,14 @@ export enum FacilityType {
   ANCIENT_FACTORY = 'ANCIENT_FACTORY',
 }
 
-export const enum ProductVariantId {
-  BASIC,
-  AGRICULTURAL_TOOLS,
-  PAPYRUS,
-  HAY,
-  REED,
-  TEA,
-  TEA_LEAVES,
+export enum ProductVariantId {
+  BASIC = 'BASIC',
+  AGRICULTURAL_TOOLS = 'AGRICULTURAL_TOOLS',
+  PAPYRUS = 'PAPYRUS',
+  HAY = 'HAY',
+  REED = 'REED',
+  TEA = 'TEA',
+  TEA_LEAVES = 'TEA_LEAVES',
 }
 
 export type ExactFacilityType = Exclude<
@@ -110,7 +110,7 @@ export type Construction = StructureBase & {
   assignedWorkersCount: number;
   inProcess: number;
   iterationsComplete: number;
-  productionVariant: number;
+  productionVariantId: ProductVariantId;
   isPaused: boolean;
 };
 
@@ -119,7 +119,7 @@ export type Facility = StructureBase & {
   assignedCityId: CityId;
   assignedWorkersCount: number;
   inProcess: number;
-  productionVariant: number;
+  productionVariantId: ProductVariantId;
   isPaused: boolean;
 };
 
@@ -134,8 +134,6 @@ export type StorageItem = {
   resourceType: ResourceType;
   quantity: number;
 };
-
-export const citiesInputResourceTypes = [ResourceType.FOOD, ResourceType.HORSE];
 
 export enum CarrierPathType {
   CONSTRUCTION,

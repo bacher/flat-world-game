@@ -14,6 +14,7 @@ import {
   CarrierPathType,
   ExactFacilityType,
   CellPosition,
+  ProductVariantId,
 } from '@/game/types';
 import {
   addCity,
@@ -338,7 +339,14 @@ export function Canvas({ gameId }: Props) {
               } else {
                 const facilityInfo = facilitiesIterationInfo[facilityType];
 
-                if (facilityInfo.productionVariants.length > 1) {
+                if (
+                  facilityInfo.productionVariants.length > 1 ||
+                  (facilityInfo.productionVariants[0].id !==
+                    ProductVariantId.BASIC &&
+                    !gameState.unlockedProductionVariants
+                      .get(facilityType)
+                      ?.has(facilityInfo.productionVariants[0].id))
+                ) {
                   modalModeRef.current = {
                     modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
                     facilityType,
@@ -349,7 +357,7 @@ export function Canvas({ gameId }: Props) {
                   addConstructionStructure(gameState, {
                     facilityType,
                     position: cell,
-                    productionVariant: 0,
+                    productionVariantId: facilityInfo.productionVariants[0].id,
                   });
                 }
               }
@@ -566,13 +574,13 @@ export function Canvas({ gameId }: Props) {
                               facilityType={facilityType}
                               onClose={closeModal}
                               onProductionVariantChoose={(
-                                productionVariant,
+                                productionVariantId,
                               ) => {
                                 closeModal();
                                 addConstructionStructure(gameState, {
                                   facilityType,
                                   position,
-                                  productionVariant,
+                                  productionVariantId,
                                 });
                                 visualStateRef.current?.onUpdate();
                               }}

@@ -48,7 +48,7 @@ export const researches: Record<ResearchId, Research> = {
   [ResearchId.TEA]: {
     researchId: ResearchId.TEA,
     points: 500,
-    requires: [],
+    requires: [ResearchId.FACTORY_1],
     unlockFacilities: [],
     unlockProductionVariants: {
       [FacilityType.ANCIENT_FACTORY]: [ProductVariantId.TEA],

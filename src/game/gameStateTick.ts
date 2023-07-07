@@ -1,13 +1,12 @@
+import { addToMapSet } from '@/utils/helpers';
+
 import {
   OUTPUT_BUFFER_DAYS,
   INPUT_BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
-  PEOPLE_FOOD_PER_DAY,
   RESEARCH_POINTS_PER_PERSON,
   BASE_WEIGHT_PER_PEOPLE_DAY,
   CITY_BUFFER_DAYS,
-  HORSES_PER_WORKER,
-  BASE_HORSE_WORK_MODIFIER,
 } from './consts';
 import {
   CarrierPath,
@@ -37,7 +36,6 @@ import {
   // getIterationsUntilOverDone,
   // getMaximumAddingLimit,
   // getMaximumIterationsByResources,
-  // getPathFacilities,
   // getStructureIterationStorageInfo,
   // removeIterationInput,
   getResourceCount,
@@ -55,7 +53,7 @@ import {
   facilitiesIterationInfo,
 } from './facilities';
 import { isSamePath, isExactFacility, getCarrierPathDistance } from './helpers';
-import { addToMapSet } from '@/utils/helpers';
+import { Booster, boosters, cityResourcesInput } from './boosters';
 
 // type TickTemporalStorage = {};
 
@@ -341,18 +339,16 @@ function getCarrierPathBaseWorkDays(
   let needCount = 0;
 
   if (to.type === FacilityType.CITY) {
-    switch (carrierPath.resourceType) {
-      case ResourceType.FOOD: {
-        const cap = to.population * PEOPLE_FOOD_PER_DAY * CITY_BUFFER_DAYS;
+    if (cityResourcesInput.includes(carrierPath.resourceType)) {
+      const booster = Object.values(boosters).find(
+        ({ resourceType }) => resourceType === carrierPath.resourceType,
+      );
+
+      if (booster) {
+        const cap =
+          to.population * boosters.population.perWorker * CITY_BUFFER_DAYS;
         needCount = cap - alreadyCount;
-        break;
       }
-      case ResourceType.HORSE:
-        const cap = to.population * HORSES_PER_WORKER * CITY_BUFFER_DAYS;
-        needCount = cap - alreadyCount;
-        break;
-      default:
-      // Do nothing
     }
   } else {
     const maximumPeopleAtWork = getMaximumPeopleAtWork(to);
@@ -388,7 +384,7 @@ function getCarrierPathBaseWorkDays(
 function growPhase(gameState: GameState): void {
   for (const city of gameState.cities.values()) {
     const roundedPopulation = Math.floor(city.population);
-    const needFood = roundedPopulation * PEOPLE_FOOD_PER_DAY;
+    const needFood = roundedPopulation * boosters.population.perWorker;
 
     const grabbedFood = grabResource(city.input, {
       resourceType: ResourceType.FOOD,
@@ -567,39 +563,57 @@ function applyCityModifiers(
     needCarrierWorkHours,
   }: { needWorkerWorkHours: number; needCarrierWorkHours: number },
 ): { workRatio: number; totalPeopleCount: number } {
-  const haveHorsesCount = getResourceCount(city.input, ResourceType.HORSE);
+  const actualWorkerWorkHours = applyCityModifier(city, {
+    workDays: needWorkerWorkHours,
+    booster: boosters.worker,
+  });
 
-  const needHorsesCount =
-    (needCarrierWorkHours / (1 + BASE_HORSE_WORK_MODIFIER)) * HORSES_PER_WORKER;
+  const actualCarrierWorkHours = applyCityModifier(city, {
+    workDays: needCarrierWorkHours,
+    booster: boosters.carrier,
+  });
 
-  let actualWorkerWorkHours = needWorkerWorkHours;
-  let actualCarrierWorkHours;
-  let usedHorsesCount = 0;
+  const totalActualWorkHours = actualWorkerWorkHours + actualCarrierWorkHours;
 
-  if (haveHorsesCount >= needHorsesCount) {
-    actualCarrierWorkHours =
-      needCarrierWorkHours / (1 + BASE_HORSE_WORK_MODIFIER);
-    usedHorsesCount = needHorsesCount;
+  return {
+    workRatio: Math.min(1, city.population / totalActualWorkHours),
+    totalPeopleCount: totalActualWorkHours,
+  };
+}
+
+function applyCityModifier(
+  city: City,
+  {
+    workDays,
+    booster: { resourceType, perWorker, boost },
+  }: {
+    workDays: number;
+    booster: Booster;
+  },
+): number {
+  const haveResourceCount = getResourceCount(city.input, resourceType);
+  const totalBoost = 1 + boost;
+
+  const needResourceCount = (workDays / totalBoost) * perWorker;
+
+  let actualWorkDays;
+  let usedResourceCount = 0;
+
+  if (haveResourceCount >= needResourceCount) {
+    actualWorkDays = workDays / totalBoost;
+    usedResourceCount = needResourceCount;
   } else {
-    const ratio = haveHorsesCount / needHorsesCount;
-    actualCarrierWorkHours =
-      needCarrierWorkHours * (1 - ratio) +
-      (needCarrierWorkHours * ratio) / (1 + BASE_HORSE_WORK_MODIFIER);
-    usedHorsesCount = haveHorsesCount;
+    const ratio = haveResourceCount / needResourceCount;
+    actualWorkDays = workDays * (1 - ratio) + (workDays * ratio) / totalBoost;
+    usedResourceCount = haveResourceCount;
   }
 
   grabResourceStrict(city.input, {
-    resourceType: ResourceType.HORSE,
-    quantity: usedHorsesCount,
+    resourceType,
+    quantity: usedResourceCount,
   });
 
-  return {
-    workRatio: Math.min(
-      1,
-      city.population / (actualWorkerWorkHours + actualCarrierWorkHours),
-    ),
-    totalPeopleCount: actualWorkerWorkHours + actualCarrierWorkHours,
-  };
+  return actualWorkDays;
 }
 
 function addConstructionInputPaths(

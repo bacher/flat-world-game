@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
-
 import sortBy from 'lodash/sortBy';
 
 import styles from './ProductionVariantModal.module.scss';
 
-import type { ExactFacilityType, GameState, StorageItem } from '@/game/types';
+import type {
+  ExactFacilityType,
+  GameState,
+  ProductVariantId,
+  StorageItem,
+} from '@/game/types';
 import { facilitiesIterationInfo } from '@/game/facilities';
 import { resourceLocalization } from '@/game/resources';
 
@@ -15,7 +19,7 @@ import { ModalCloseButton } from '../ModalCloseButton';
 type Props = {
   gameState: GameState;
   facilityType: ExactFacilityType;
-  onProductionVariantChoose: (productionVariant: number) => void;
+  onProductionVariantChoose: (productionVariantId: ProductVariantId) => void;
   onClose: () => void;
 };
 
@@ -52,7 +56,7 @@ export function ProductionVariantModal({
               className={styles.button}
               disabled={!unlockedVariants?.has(variant.id)}
               onClick={() => {
-                onProductionVariantChoose(index);
+                onProductionVariantChoose(variant.id);
               }}
             >
               <div className={styles.index}>{index + 1}</div>

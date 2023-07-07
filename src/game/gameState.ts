@@ -18,6 +18,7 @@ import {
   Facility,
   FacilityType,
   GameState,
+  ProductVariantId,
   StorageItem,
   Structure,
 } from './types';
@@ -33,7 +34,7 @@ import {
   OUTPUT_BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
 } from './consts';
-import { calculateDistance, isSamePos } from './helpers';
+import { calculateDistance } from './helpers';
 
 export function addCarrierPath(
   gameState: GameState,
@@ -197,7 +198,9 @@ export function getStructureIterationStorageInfo(
 
   const iterationInfo = facilitiesIterationInfo[facility.type];
 
-  return iterationInfo.productionVariants[facility.productionVariant];
+  return iterationInfo.productionVariants.find(
+    (variant) => variant.id === facility.productionVariantId,
+  )!;
 }
 
 export function getMaximumIterationsByResources(
@@ -291,29 +294,6 @@ export function addIterationOutput(
   }
 }
 
-export function getPathFacilities(
-  city: City,
-  facilities: (Facility | Construction)[],
-  path: CellPath,
-): { from: Structure | undefined; to: Structure | undefined } {
-  return {
-    from: getFacilityByPos(city, facilities, path.from),
-    to: getFacilityByPos(city, facilities, path.to),
-  };
-}
-
-function getFacilityByPos(
-  city: City,
-  facilities: (Facility | Construction)[],
-  pos: CellPosition,
-): Structure | undefined {
-  if (isSamePos(city.position, pos)) {
-    return city;
-  }
-
-  return facilities.find((facility) => isSamePos(facility.position, pos));
-}
-
 export function addCity(
   gameState: GameState,
   { position }: { position: CellPosition },
@@ -358,11 +338,11 @@ export function addConstructionStructure(
   {
     facilityType,
     position,
-    productionVariant,
+    productionVariantId,
   }: {
     facilityType: ExactFacilityType;
     position: CellPosition;
-    productionVariant: number;
+    productionVariantId: ProductVariantId;
   },
 ): void {
   const city = getNearestCity(gameState, position);
@@ -378,7 +358,7 @@ export function addConstructionStructure(
     output: [],
     inProcess: 0,
     iterationsComplete: 0,
-    productionVariant,
+    productionVariantId,
     isPaused: false,
   };
 
@@ -396,7 +376,7 @@ export function completeConstruction(
     assignedWorkersCount:
       facilitiesIterationInfo[construction.buildingFacilityType]
         .maximumPeopleAtWork,
-    productionVariant: construction.productionVariant,
+    productionVariantId: construction.productionVariantId,
     input: [],
     output: [],
     inProcess: 0,
