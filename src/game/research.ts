@@ -20,6 +20,7 @@ export const researches: Record<ResearchId, Research> = {
     unlockFacilities: [FacilityType.FIELD],
     unlockProductionVariants: {
       [FacilityType.WORK_SHOP]: [ProductVariantId.AGRICULTURAL_TOOLS],
+      [FacilityType.FIELD]: [ProductVariantId.HAY],
     },
   },
   [ResearchId.HORSES]: {
@@ -38,6 +39,22 @@ export const researches: Record<ResearchId, Research> = {
       [FacilityType.FIELD]: [ProductVariantId.REED],
     },
   },
+  [ResearchId.FACTORY_1]: {
+    researchId: ResearchId.FACTORY_1,
+    points: 400,
+    requires: [],
+    unlockFacilities: [FacilityType.ANCIENT_FACTORY],
+  },
+  [ResearchId.TEA]: {
+    researchId: ResearchId.TEA,
+    points: 500,
+    requires: [],
+    unlockFacilities: [],
+    unlockProductionVariants: {
+      [FacilityType.ANCIENT_FACTORY]: [ProductVariantId.TEA],
+      [FacilityType.FIELD]: [ProductVariantId.TEA_LEAVES],
+    },
+  },
 };
 
 export const researchTranslations: Record<ResearchId, string> = {
@@ -46,4 +63,6 @@ export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.AGRO_1]: 'Agroculture',
   [ResearchId.HORSES]: 'Horses',
   [ResearchId.PAPYRUS]: 'Papyrus',
+  [ResearchId.FACTORY_1]: 'Ancient factory',
+  [ResearchId.TEA]: 'Tea',
 };

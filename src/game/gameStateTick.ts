@@ -20,6 +20,8 @@ import {
   StorageItem,
   CarrierPathReport,
   FacilityWorkReport,
+  ExactFacilityType,
+  ResearchId,
 } from './types';
 import {
   addCarrierPath,
@@ -53,6 +55,7 @@ import {
   facilitiesIterationInfo,
 } from './facilities';
 import { isSamePath, isExactFacility, getCarrierPathDistance } from './helpers';
+import { addToMapSet } from '@/utils/helpers';
 
 // type TickTemporalStorage = {};
 
@@ -437,13 +440,31 @@ function researchPhase(gameState: GameState): void {
     const researchInfo = researches[gameState.currentResearchId];
 
     if (currentPoints.points >= researchInfo.points) {
-      gameState.completedResearches.add(gameState.currentResearchId);
-      gameState.inProgressResearches.delete(gameState.currentResearchId);
+      completeResearch(gameState, researchInfo.researchId);
       gameState.currentResearchId = undefined;
+    }
+  }
+}
 
-      for (const facilityType of researchInfo.unlockFacilities) {
-        gameState.unlockedFacilities.add(facilityType);
-      }
+function completeResearch(gameState: GameState, researchId: ResearchId): void {
+  const researchInfo = researches[researchId];
+
+  gameState.completedResearches.add(researchId);
+  gameState.inProgressResearches.delete(researchId);
+
+  for (const facilityType of researchInfo.unlockFacilities) {
+    gameState.unlockedFacilities.add(facilityType);
+  }
+
+  if (researchInfo.unlockProductionVariants) {
+    for (const [facilityType, productVariants] of Object.entries(
+      researchInfo.unlockProductionVariants,
+    )) {
+      addToMapSet(
+        gameState.unlockedProductionVariants,
+        facilityType as ExactFacilityType,
+        productVariants,
+      );
     }
   }
 }

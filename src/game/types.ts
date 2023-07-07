@@ -22,6 +22,7 @@ export enum FacilityType {
   WORK_SHOP = 'WORK_SHOP',
   FIELD = 'FIELD',
   STABLE = 'STABLE',
+  ANCIENT_FACTORY = 'ANCIENT_FACTORY',
 }
 
 export const enum ProductVariantId {
@@ -30,6 +31,8 @@ export const enum ProductVariantId {
   PAPYRUS,
   HAY,
   REED,
+  TEA,
+  TEA_LEAVES,
 }
 
 export type ExactFacilityType = Exclude<
@@ -163,6 +166,8 @@ export const enum ResearchId {
   AGRO_1 = 'AGRO_1',
   HORSES = 'HORSES',
   PAPYRUS = 'PAPYRUS',
+  FACTORY_1 = 'FACTORY_1',
+  TEA = 'TEA',
 }
 
 export type Research = {

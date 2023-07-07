@@ -4,7 +4,7 @@ import {
   ProductVariantId,
   StorageItem,
 } from './types';
-import { ResourceType } from './resources';
+import { ResourceType, resourceLocalization } from './resources';
 
 export enum ItrationInfoType {
   FACILITY,
@@ -155,6 +155,22 @@ export const facilitiesIterationInfo: Record<
           },
         ],
       },
+      {
+        id: ProductVariantId.TEA_LEAVES,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.AGRICULTURAL_TOOLS,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.TEA_LEAVES,
+            quantity: 1,
+          },
+        ],
+      },
     ],
   },
   [FacilityType.STABLE]: {
@@ -175,6 +191,28 @@ export const facilitiesIterationInfo: Record<
         },
       ],
     }),
+  },
+  [FacilityType.ANCIENT_FACTORY]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: [
+      {
+        id: ProductVariantId.TEA,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.TEA_LEAVES,
+            quantity: 4,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.TEA,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
   },
 };
 
@@ -252,6 +290,22 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.ANCIENT_FACTORY]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 1,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.LOG,
+        quantity: 10,
+      },
+      {
+        resourceType: ResourceType.HAY,
+        quantity: 4,
+      },
+    ],
+  },
 };
 
 export const initiallyUnlockedFacilities: ExactFacilityType[] = [
@@ -267,4 +321,16 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
   [FacilityType.STABLE]: 'Stable',
+  [FacilityType.ANCIENT_FACTORY]: 'Ancient factory',
+};
+
+export const productVariantsTranslations: Record<ProductVariantId, string> = {
+  [ProductVariantId.BASIC]: '',
+  [ProductVariantId.AGRICULTURAL_TOOLS]:
+    resourceLocalization[ResourceType.AGRICULTURAL_TOOLS],
+  [ProductVariantId.HAY]: resourceLocalization[ResourceType.HAY],
+  [ProductVariantId.REED]: resourceLocalization[ResourceType.REED],
+  [ProductVariantId.PAPYRUS]: resourceLocalization[ResourceType.PAPYRUS],
+  [ProductVariantId.TEA]: resourceLocalization[ResourceType.TEA],
+  [ProductVariantId.TEA_LEAVES]: resourceLocalization[ResourceType.TEA_LEAVES],
 };

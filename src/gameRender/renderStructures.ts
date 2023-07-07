@@ -1,15 +1,18 @@
-import { Structure, FacilityType } from '@/game/types';
+import { Structure, FacilityType, ExactFacilityType } from '@/game/types';
 import { VisualState } from '@/game/visualState';
+import { neverCall } from '@/utils/typeUtils';
 
 export function drawStructureObject(
   visualState: VisualState,
   structure: Structure,
 ): void {
   const { ctx, cellSize } = visualState;
-  let drawFacilityType = structure.type;
+  let drawFacilityType: ExactFacilityType | FacilityType.CITY;
 
   if (structure.type === FacilityType.CONSTRUCTION) {
     drawFacilityType = structure.buildingFacilityType;
+  } else {
+    drawFacilityType = structure.type;
   }
 
   switch (drawFacilityType) {
@@ -86,6 +89,23 @@ export function drawStructureObject(
       ctx.fillStyle = 'brown';
       ctx.fill();
       break;
+    case FacilityType.ANCIENT_FACTORY:
+      ctx.beginPath();
+      ctx.moveTo(-10, 10);
+      ctx.lineTo(-10, -5);
+      ctx.lineTo(-5, -10);
+      ctx.lineTo(-5, -5);
+      ctx.lineTo(0, -10);
+      ctx.lineTo(0, -5);
+      ctx.lineTo(5, -10);
+      ctx.lineTo(5, -5);
+      ctx.lineTo(10, -10);
+      ctx.lineTo(10, -5);
+      ctx.lineTo(10, 10);
+      ctx.closePath();
+      ctx.fillStyle = '#8e4ee8';
+      ctx.fill();
+      break;
     default:
       ctx.beginPath();
       ctx.moveTo(-10, -10);
@@ -97,6 +117,7 @@ export function drawStructureObject(
       ctx.stroke();
       ctx.lineWidth = 1;
       console.warn(`No render function for facility ${drawFacilityType}`);
+      neverCall(drawFacilityType, true);
   }
 
   if (structure.type === FacilityType.CONSTRUCTION) {

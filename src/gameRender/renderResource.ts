@@ -91,6 +91,22 @@ export function drawResourceIcon(
       ctx.strokeStyle = 'black';
       ctx.stroke();
       break;
+    case ResourceType.TEA_LEAVES:
+      ctx.beginPath();
+      ctx.ellipse(-1, 0, 3, 5, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.fillStyle = 'green';
+      ctx.fill();
+      break;
+    case ResourceType.TEA:
+      ctx.beginPath();
+      ctx.moveTo(-5, -5);
+      ctx.lineTo(-2, 5);
+      ctx.lineTo(2, 5);
+      ctx.lineTo(5, -5);
+      ctx.closePath();
+      ctx.fillStyle = 'orange';
+      ctx.fill();
+      break;
     default:
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);

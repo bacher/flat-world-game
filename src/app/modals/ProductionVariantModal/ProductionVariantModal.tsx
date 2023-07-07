@@ -34,11 +34,10 @@ export function ProductionVariantModal({
 
   const items = useMemo(() => {
     if (!unlockedVariants) {
-      return [];
+      return iterationInfo.productionVariants;
     }
-
     return sortBy(iterationInfo.productionVariants, (item) =>
-      unlockedVariants.has(item.id),
+      unlockedVariants.has(item.id) ? 0 : 1,
     );
   }, [gameState.tickNumber]);
 
@@ -51,7 +50,7 @@ export function ProductionVariantModal({
             <button
               type="button"
               className={styles.button}
-              disabled={unlockedVariants?.has(variant.id)}
+              disabled={!unlockedVariants?.has(variant.id)}
               onClick={() => {
                 onProductionVariantChoose(index);
               }}

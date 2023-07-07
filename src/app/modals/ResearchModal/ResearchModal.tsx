@@ -3,13 +3,16 @@ import cn from 'classnames';
 
 import styles from './ResearchModal.module.scss';
 
-import type { GameState, Research } from '@/game/types';
+import { type GameState, type Research, ExactFacilityType } from '@/game/types';
 import { researchTranslations, researches } from '@/game/research';
-import { facilitiesDescription } from '@/game/facilities';
+import {
+  facilitiesDescription,
+  productVariantsTranslations,
+} from '@/game/facilities';
 
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 
-import { ModalRef } from '../types';
+import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
 
 // Enum should stay numerical because of sorting
@@ -121,17 +124,42 @@ export function ResearchModal({
                 </span>
               </div>
               <div className={styles.block}>
-                <h4>Unlocks:</h4>
-                {research.unlockFacilities.length ? (
-                  <ul>
-                    {research.unlockFacilities.map((facilityType) => (
-                      <li key={facilityType}>
-                        {facilitiesDescription[facilityType]}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span>Nothing</span>
+                {research.unlockFacilities.length > 0 && (
+                  <div>
+                    <h4>Unlocks:</h4>
+                    <ul>
+                      {research.unlockFacilities.map((facilityType) => (
+                        <li key={facilityType}>
+                          {facilitiesDescription[facilityType]}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {research.unlockProductionVariants && (
+                  <div>
+                    <h4>Unlock recipes:</h4>
+                    <ul>
+                      {Object.entries(research.unlockProductionVariants).map(
+                        ([facilityType, variants]) => (
+                          <li key={facilityType}>
+                            {
+                              facilitiesDescription[
+                                facilityType as ExactFacilityType
+                              ]
+                            }
+                            {': '}
+                            {variants
+                              .map(
+                                (variantId) =>
+                                  productVariantsTranslations[variantId],
+                              )
+                              .join(', ')}
+                          </li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
                 )}
               </div>
               {status !== ResearchStatus.COMPLETED &&

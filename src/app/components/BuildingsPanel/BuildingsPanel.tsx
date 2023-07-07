@@ -34,7 +34,7 @@ export function BuildingsPanel({ gameState, onBuildingClick }: Props) {
 
   return (
     <div>
-      <h2>Build new building:</h2>
+      <h2>Build new facility:</h2>
       {availableFacilities.map((facilityType) => (
         <div key={facilityType}>
           <button
