@@ -69,7 +69,9 @@ type CarrierWork = {
 export function tick(gameState: GameState): void {
   // const temp: TickTemporalStorage = {};
 
-  console.log('===');
+  gameState.tickNumber += 1;
+
+  console.groupCollapsed(`Tick ${gameState.tickNumber}`);
 
   for (const city of gameState.cities.values()) {
     city.lastTickReport = createEmptyCityReport();
@@ -141,6 +143,8 @@ export function tick(gameState: GameState): void {
   researchPhase(gameState);
 
   growPhase(gameState);
+
+  console.groupEnd();
 }
 
 function fillInCityWorkReport(

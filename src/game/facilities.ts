@@ -1,4 +1,9 @@
-import { ExactFacilityType, FacilityType, StorageItem } from './types';
+import {
+  ExactFacilityType,
+  FacilityType,
+  ProductVariantId,
+  StorageItem,
+} from './types';
 import { ResourceType } from './resources';
 
 export enum ItrationInfoType {
@@ -6,15 +11,24 @@ export enum ItrationInfoType {
   CONSTRUCTION,
 }
 
+export type ProductionVariantInfo = {
+  id: ProductVariantId;
+  iterationPeopleDays: number;
+  input: StorageItem[];
+  output: StorageItem[];
+};
+
 export type FacilityIterationInfo = {
   iterationInfoType: ItrationInfoType.FACILITY;
   maximumPeopleAtWork: number;
-  productionVariants: {
-    iterationPeopleDays: number;
-    input: StorageItem[];
-    output: StorageItem[];
-  }[];
+  productionVariants: ProductionVariantInfo[];
 };
+
+function singleProductionVariant(
+  info: Omit<ProductionVariantInfo, 'id'>,
+): ProductionVariantInfo[] {
+  return [{ id: ProductVariantId.BASIC, ...info }];
+}
 
 export const facilitiesIterationInfo: Record<
   ExactFacilityType,
@@ -23,61 +37,56 @@ export const facilitiesIterationInfo: Record<
   [FacilityType.GATHERING]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
-    productionVariants: [
-      {
-        iterationPeopleDays: 1,
-        input: [],
-        output: [
-          {
-            resourceType: ResourceType.FOOD,
-            quantity: 1,
-          },
-        ],
-      },
-    ],
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [],
+      output: [
+        {
+          resourceType: ResourceType.FOOD,
+          quantity: 1,
+        },
+      ],
+    }),
   },
   [FacilityType.LUMBERT]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
-    productionVariants: [
-      {
-        iterationPeopleDays: 1,
-        input: [],
-        output: [
-          {
-            resourceType: ResourceType.LOG,
-            quantity: 1,
-          },
-        ],
-      },
-    ],
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [],
+      output: [
+        {
+          resourceType: ResourceType.LOG,
+          quantity: 1,
+        },
+      ],
+    }),
   },
   [FacilityType.CHOP_WOOD]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
-    productionVariants: [
-      {
-        iterationPeopleDays: 1,
-        input: [
-          {
-            resourceType: ResourceType.LOG,
-            quantity: 1,
-          },
-        ],
-        output: [
-          {
-            resourceType: ResourceType.ROUTH_LUMBER,
-            quantity: 2,
-          },
-        ],
-      },
-    ],
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.LOG,
+          quantity: 1,
+        },
+      ],
+      output: [
+        {
+          resourceType: ResourceType.ROUTH_LUMBER,
+          quantity: 2,
+        },
+      ],
+    }),
   },
   [FacilityType.WORK_SHOP]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: [
       {
+        id: ProductVariantId.AGRICULTURAL_TOOLS,
         iterationPeopleDays: 1,
         input: [
           {
@@ -93,6 +102,7 @@ export const facilitiesIterationInfo: Record<
         ],
       },
       {
+        id: ProductVariantId.PAPYRUS,
         iterationPeopleDays: 1,
         input: [
           {
@@ -114,6 +124,7 @@ export const facilitiesIterationInfo: Record<
     maximumPeopleAtWork: 4,
     productionVariants: [
       {
+        id: ProductVariantId.HAY,
         iterationPeopleDays: 1,
         input: [
           {
@@ -129,6 +140,7 @@ export const facilitiesIterationInfo: Record<
         ],
       },
       {
+        id: ProductVariantId.REED,
         iterationPeopleDays: 1,
         input: [
           {
@@ -148,23 +160,21 @@ export const facilitiesIterationInfo: Record<
   [FacilityType.STABLE]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
-    productionVariants: [
-      {
-        iterationPeopleDays: 1,
-        input: [
-          {
-            resourceType: ResourceType.HAY,
-            quantity: 20,
-          },
-        ],
-        output: [
-          {
-            resourceType: ResourceType.HORSE,
-            quantity: 1,
-          },
-        ],
-      },
-    ],
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.HAY,
+          quantity: 20,
+        },
+      ],
+      output: [
+        {
+          resourceType: ResourceType.HORSE,
+          quantity: 1,
+        },
+      ],
+    }),
   },
 };
 

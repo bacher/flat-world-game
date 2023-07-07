@@ -1,3 +1,5 @@
+import { addToMapSet } from '@/utils/helpers';
+
 import {
   CellId,
   City,
@@ -8,6 +10,7 @@ import {
   ExactFacilityType,
   ResearchId,
   GameStateSnapshot,
+  ProductVariantId,
 } from './types';
 import { addCity, addPathTo } from './gameState';
 import { gameStateStorage, gamesListStorage } from './persist';
@@ -16,6 +19,7 @@ import { newCellPosition } from './helpers';
 
 function getNewGame({ gameId }: { gameId: string }) {
   const gameState: GameState = {
+    tickNumber: 0,
     gameId,
     cities: new Map(),
     facilitiesByCityId: new Map(),
@@ -27,6 +31,7 @@ function getNewGame({ gameId }: { gameId: string }) {
     inProgressResearches: new Map(),
     currentResearchId: undefined,
     unlockedFacilities: new Set(),
+    unlockedProductionVariants: new Map(),
   };
 
   addCity(gameState, {
@@ -47,6 +52,7 @@ export function getNewGameSnapshot({
 export function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
   const {
     gameId,
+    tickNumber,
     cities,
     facilitiesByCityId,
     completedResearches,
@@ -56,6 +62,7 @@ export function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
 
   return {
     gameId,
+    tickNumber,
     cities: [...cities.values()],
     facilities: [...facilitiesByCityId.values()].flat(),
     completedResearches: [...completedResearches.values()],
@@ -69,6 +76,7 @@ export function getGameStateBySnapshot(
 ): GameState {
   const {
     gameId,
+    tickNumber,
     cities,
     completedResearches,
     currentResearchId,
@@ -103,6 +111,7 @@ export function getGameStateBySnapshot(
 
   return {
     gameId,
+    tickNumber,
     cities: new Map(cities.map((city) => [city.cityId, city])),
     completedResearches: new Set(completedResearches),
     currentResearchId,
@@ -112,7 +121,7 @@ export function getGameStateBySnapshot(
     carrierPathsToCellId,
     facilitiesByCityId,
     structuresByCellId,
-    unlockedFacilities: collectUnlockedFacilities(completedResearches),
+    ...collectUnlockedFacilities(completedResearches),
   };
 }
 
@@ -136,20 +145,36 @@ function extractCarrierPaths(cities: City[]): {
   };
 }
 
-function collectUnlockedFacilities(
-  completedResearches: ResearchId[],
-): Set<ExactFacilityType> {
-  const facilities = new Set<ExactFacilityType>();
+function collectUnlockedFacilities(completedResearches: ResearchId[]): {
+  unlockedFacilities: Set<ExactFacilityType>;
+  unlockedProductionVariants: Map<ExactFacilityType, Set<ProductVariantId>>;
+} {
+  const unlockedFacilities = new Set<ExactFacilityType>();
+  const unlockedProductionVariants = new Map<
+    ExactFacilityType,
+    Set<ProductVariantId>
+  >();
 
   for (const researchId of completedResearches) {
     const researchInfo = researches[researchId];
 
     for (const facilityType of researchInfo.unlockFacilities) {
-      facilities.add(facilityType);
+      unlockedFacilities.add(facilityType);
+    }
+
+    if (researchInfo.unlockProductionVariants) {
+      for (const [facilityType, productVariants] of Object.entries(
+        researchInfo.unlockProductionVariants,
+      )) {
+        addToMapSet(unlockedProductionVariants, facilityType, productVariants);
+      }
     }
   }
 
-  return facilities;
+  return {
+    unlockedFacilities,
+    unlockedProductionVariants,
+  };
 }
 
 function getFullSnapshotName(gameId: string, saveName: string | undefined) {

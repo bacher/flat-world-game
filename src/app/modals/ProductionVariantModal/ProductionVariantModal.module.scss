@@ -11,6 +11,10 @@
   border: 1px solid #777;
 }
 
+.title {
+  margin: 0 0 10px;
+}
+
 .item {
   margin: 0 0 6px;
 }
@@ -24,6 +28,15 @@
   border-radius: 3px;
   border: 1px solid #999;
   background: #f3f3f3;
+
+  &:not(:disabled):hover {
+    background: #e5e5e5;
+    cursor: pointer;
+  }
+
+  &:disabled {
+    background: #bbb;
+  }
 }
 
 .index {

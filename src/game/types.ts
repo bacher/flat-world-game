@@ -24,6 +24,14 @@ export enum FacilityType {
   STABLE = 'STABLE',
 }
 
+export const enum ProductVariantId {
+  BASIC,
+  AGRICULTURAL_TOOLS,
+  PAPYRUS,
+  HAY,
+  REED,
+}
+
 export type ExactFacilityType = Exclude<
   FacilityType,
   FacilityType.CITY | FacilityType.CONSTRUCTION
@@ -40,6 +48,7 @@ export type StructuresByCellId = Map<CellId, Structure>;
 export type CarrierPathsCellIdMap = Map<CellId, CarrierPath[]>;
 
 export type GameState = {
+  tickNumber: number;
   gameId: string;
   cities: Map<CityId, City>;
   facilitiesByCityId: FacilitiesByCityId;
@@ -51,10 +60,12 @@ export type GameState = {
   inProgressResearches: Map<ResearchId, { points: number }>;
   currentResearchId: ResearchId | undefined;
   unlockedFacilities: Set<ExactFacilityType>;
+  unlockedProductionVariants: Map<ExactFacilityType, Set<ProductVariantId>>;
 };
 
 export type GameStateSnapshot = {
   gameId: string;
+  tickNumber: number;
   cities: City[];
   facilities: (Facility | Construction)[];
   completedResearches: ResearchId[];
@@ -151,6 +162,7 @@ export const enum ResearchId {
   WORK_SHOP = 'WORK_SHOP',
   AGRO_1 = 'AGRO_1',
   HORSES = 'HORSES',
+  PAPYRUS = 'PAPYRUS',
 }
 
 export type Research = {
@@ -158,4 +170,7 @@ export type Research = {
   points: number;
   requires: ResearchId[];
   unlockFacilities: ExactFacilityType[];
+  unlockProductionVariants?: Partial<
+    Record<ExactFacilityType, ProductVariantId[]>
+  >;
 };

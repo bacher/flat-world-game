@@ -562,6 +562,7 @@ export function Canvas({ gameId }: Props) {
 
                           return (
                             <ProductionVariantModal
+                              gameState={gameState}
                               facilityType={facilityType}
                               onClose={closeModal}
                               onProductionVariantChoose={(
@@ -588,6 +589,7 @@ export function Canvas({ gameId }: Props) {
             </>
           )}
         </div>
+
         <div className={styles.sidePanel}>
           <button type="button" onClick={openGameMenu}>
             Menu

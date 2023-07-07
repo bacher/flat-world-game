@@ -1,4 +1,4 @@
-import { FacilityType, Research, ResearchId } from './types';
+import { FacilityType, ProductVariantId, Research, ResearchId } from './types';
 
 export const researches: Record<ResearchId, Research> = {
   [ResearchId.WOOD_WORK]: {
@@ -18,12 +18,25 @@ export const researches: Record<ResearchId, Research> = {
     points: 150,
     requires: [ResearchId.WORK_SHOP],
     unlockFacilities: [FacilityType.FIELD],
+    unlockProductionVariants: {
+      [FacilityType.WORK_SHOP]: [ProductVariantId.AGRICULTURAL_TOOLS],
+    },
   },
   [ResearchId.HORSES]: {
     researchId: ResearchId.HORSES,
     points: 200,
     requires: [ResearchId.AGRO_1],
     unlockFacilities: [FacilityType.STABLE],
+  },
+  [ResearchId.PAPYRUS]: {
+    researchId: ResearchId.PAPYRUS,
+    points: 400,
+    requires: [ResearchId.AGRO_1],
+    unlockFacilities: [],
+    unlockProductionVariants: {
+      [FacilityType.WORK_SHOP]: [ProductVariantId.PAPYRUS],
+      [FacilityType.FIELD]: [ProductVariantId.REED],
+    },
   },
 };
 
@@ -32,4 +45,5 @@ export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.WORK_SHOP]: 'Workshops',
   [ResearchId.AGRO_1]: 'Agroculture',
   [ResearchId.HORSES]: 'Horses',
+  [ResearchId.PAPYRUS]: 'Papyrus',
 };
