@@ -98,9 +98,9 @@ export type City = StructureBase & {
 };
 
 export type CityReportInfo = {
+  needPopulation: number;
   carrierPathReports: CarrierPathReport[];
   facilityWorkerReports: FacilityWorkReport[];
-  needPopulation: number;
 };
 
 export type Construction = StructureBase & {

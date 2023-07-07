@@ -4,9 +4,9 @@ import {
   OUTPUT_BUFFER_DAYS,
   INPUT_BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
-  RESEARCH_POINTS_PER_PERSON,
   BASE_WEIGHT_PER_PEOPLE_DAY,
   CITY_BUFFER_DAYS,
+  RESEARCH_WORK_PERSON_MODIFICATOR,
 } from './consts';
 import {
   CarrierPath,
@@ -410,13 +410,35 @@ function growPhase(gameState: GameState): void {
 }
 
 function researchPhase(gameState: GameState): void {
+  if (!gameState.currentResearchId) {
+    return;
+  }
+
   let researchPoints = 0;
 
   for (const city of gameState.cities.values()) {
-    researchPoints += city.population * RESEARCH_POINTS_PER_PERSON;
+    const freePeople = Math.max(
+      0,
+      city.population - city.lastTickReport.needPopulation,
+    );
+
+    const researchWorkDays =
+      freePeople +
+      (city.population - freePeople) * RESEARCH_WORK_PERSON_MODIFICATOR;
+
+    const needBoosters = researchWorkDays * boosters.research.perWorker;
+
+    const { quantity: grabbedBoosters } = grabResource(city.input, {
+      resourceType: boosters.research.resourceType,
+      quantity: needBoosters,
+    });
+
+    researchPoints +=
+      researchWorkDays *
+      (1 + boosters.research.boost * (grabbedBoosters / needBoosters));
   }
 
-  if (gameState.currentResearchId && researchPoints > 0) {
+  if (researchPoints > 0) {
     let currentPoints = gameState.inProgressResearches.get(
       gameState.currentResearchId,
     );
@@ -563,21 +585,21 @@ function applyCityModifiers(
     needCarrierWorkHours,
   }: { needWorkerWorkHours: number; needCarrierWorkHours: number },
 ): { workRatio: number; totalPeopleCount: number } {
-  const actualWorkerWorkHours = applyCityModifier(city, {
+  const workerWorkHours = applyCityModifier(city, {
     workDays: needWorkerWorkHours,
     booster: boosters.worker,
   });
 
-  const actualCarrierWorkHours = applyCityModifier(city, {
+  const carrierWorkHours = applyCityModifier(city, {
     workDays: needCarrierWorkHours,
     booster: boosters.carrier,
   });
 
-  const totalActualWorkHours = actualWorkerWorkHours + actualCarrierWorkHours;
+  const totalWorkHours = workerWorkHours + carrierWorkHours;
 
   return {
-    workRatio: Math.min(1, city.population / totalActualWorkHours),
-    totalPeopleCount: totalActualWorkHours,
+    workRatio: Math.min(1, city.population / totalWorkHours),
+    totalPeopleCount: totalWorkHours,
   };
 }
 
