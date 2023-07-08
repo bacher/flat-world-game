@@ -332,7 +332,7 @@ function getCarrierPathPoints(
 ): [PointTuple, PointTuple] {
   const fromCenter = getCellCenter(visualState, path.from);
   const toCenter = getCellCenter(visualState, path.to);
-  return addGap(fromCenter, toCenter, 20);
+  return addGap(fromCenter, toCenter, 30);
 }
 
 function drawCarrierPath(
@@ -506,7 +506,7 @@ function drawStorage(
     drawText(
       ctx,
       text,
-      { x: align === 'left' ? 10 : -10, y: 0 },
+      { x: align === 'left' ? 7 : -7, y: 0 },
       {
         align,
         baseline: 'middle',

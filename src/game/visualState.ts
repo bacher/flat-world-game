@@ -77,14 +77,12 @@ export function createVisualState(
   const halfWidth = Math.floor(canvasWidth / 2);
   const halfHeight = Math.floor(canvasHeight / 2);
 
-  const cellSize: Size = { width: 50, height: 50 };
-
   const visualState: VisualState = {
     gameState,
     ctx,
     canvasSize: { width: canvasWidth, height: canvasHeight },
     canvasHalfSize: { width: halfWidth, height: halfHeight },
-    cellSize,
+    cellSize: { width: 90, height: 90 },
     offset: { x: 0, y: 0 },
     viewportBounds: {
       start: { i: 0, j: 0 },
