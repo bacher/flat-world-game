@@ -123,10 +123,10 @@ export function drawStructureObject(
   if (structure.type === FacilityType.CONSTRUCTION) {
     ctx.beginPath();
     ctx.rect(
-      -cellSize[0] / 2 + 1,
-      -cellSize[1] / 2 + 1,
-      cellSize[0] - 2,
-      cellSize[1] - 2,
+      -cellSize.width / 2 + 1,
+      -cellSize.height / 2 + 1,
+      cellSize.width - 2,
+      cellSize.height - 2,
     );
     ctx.fillStyle = 'rgba(0,0,0,0.25)';
     ctx.fill();

@@ -3,10 +3,12 @@ import {
   CellRect,
   ExactFacilityType,
   FacilityType,
-  Point,
+  PointTuple,
   City,
   GameState,
   Structure,
+  Size,
+  Point,
 } from './types';
 import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
@@ -24,9 +26,9 @@ import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
 export type VisualState = {
   gameState: GameState;
   ctx: CanvasRenderingContext2D;
-  canvasSize: Point;
-  canvasHalfSize: Point;
-  cellSize: Point;
+  canvasSize: Size;
+  canvasHalfSize: Size;
+  cellSize: Size;
   offset: Point;
   viewportBounds: CellRect;
   hoverCell: CellPosition | undefined;
@@ -75,15 +77,15 @@ export function createVisualState(
   const halfWidth = Math.floor(canvasWidth / 2);
   const halfHeight = Math.floor(canvasHeight / 2);
 
-  const cellSize: Point = [50, 50];
+  const cellSize: Size = { width: 50, height: 50 };
 
   const visualState: VisualState = {
     gameState,
     ctx,
-    canvasSize: [canvasWidth, canvasHeight],
-    canvasHalfSize: [halfWidth, halfHeight],
+    canvasSize: { width: canvasWidth, height: canvasHeight },
+    canvasHalfSize: { width: halfWidth, height: halfHeight },
     cellSize,
-    offset: [0, 0],
+    offset: { x: 0, y: 0 },
     viewportBounds: {
       start: { i: 0, j: 0 },
       end: { i: 0, j: 0 },
@@ -99,56 +101,49 @@ export function createVisualState(
 }
 
 function actualizeViewportBounds(visualState: VisualState): void {
-  const [canvasWidth, canvasHeight] = visualState.canvasSize;
-  const [halfWidth, halfHeight] = visualState.canvasHalfSize;
-  const [cellWidth, cellHeight] = visualState.cellSize;
-  const [baseOffsetX, baseOffsetY] = visualState.offset;
+  const { cellSize, canvasSize, canvasHalfSize, offset } = visualState;
 
-  const offsetX = baseOffsetX + halfWidth - cellWidth / 2;
-  const offsetY = baseOffsetY + halfHeight - cellHeight / 2;
+  const offsetX = offset.x + canvasHalfSize.width - cellSize.width / 2;
+  const offsetY = offset.y + canvasHalfSize.height - cellSize.height / 2;
 
   visualState.viewportBounds = {
     start: {
-      i: Math.floor(-offsetX / cellWidth),
-      j: Math.floor(-offsetY / cellHeight),
+      i: Math.floor(-offsetX / cellSize.width),
+      j: Math.floor(-offsetY / cellSize.height),
     },
     end: {
-      i: Math.ceil((canvasWidth - offsetX) / cellWidth),
-      j: Math.ceil((canvasHeight - offsetY) / cellHeight),
+      i: Math.ceil((canvasSize.width - offsetX) / cellSize.width),
+      j: Math.ceil((canvasSize.height - offsetY) / cellSize.height),
     },
   };
 }
 
 export function lookupGridByPoint(
   visualState: VisualState,
-  point: Point,
+  point: PointTuple,
 ): CellPosition | undefined {
-  const [canvasWidth, canvasHeight] = visualState.canvasSize;
-  const [offsetX, offsetY] = visualState.offset;
+  const { canvasSize, canvasHalfSize, offset } = visualState;
 
   const [x, y] = point;
 
-  if (x < 0 || x >= canvasWidth || y < 0 || y >= canvasHeight) {
+  if (x < 0 || x >= canvasSize.width || y < 0 || y >= canvasSize.height) {
     return undefined;
   }
 
-  const halfWidth = Math.floor(canvasWidth / 2);
-  const halfHeight = Math.floor(canvasHeight / 2);
+  const { cellSize } = visualState;
 
-  const [cellWidth, cellHeight] = visualState.cellSize;
-
-  const canvasX = x - offsetX - halfWidth + cellWidth / 2;
-  const canvasY = y - offsetY - halfHeight + cellHeight / 2;
+  const canvasX = x - offset.x - canvasHalfSize.width + cellSize.width / 2;
+  const canvasY = y - offset.y - canvasHalfSize.height + cellSize.height / 2;
 
   return newCellPosition({
-    i: Math.floor(canvasX / cellWidth),
-    j: Math.floor(canvasY / cellHeight),
+    i: Math.floor(canvasX / cellSize.width),
+    j: Math.floor(canvasY / cellSize.height),
   });
 }
 
 export function lookupFacilityByPoint(
   visualState: VisualState,
-  point: Point,
+  point: PointTuple,
 ): Structure | undefined {
   const cell = lookupGridByPoint(visualState, point);
 
@@ -161,7 +156,7 @@ export function lookupFacilityByPoint(
 
 export function visualStateOnMouseMove(
   visualState: VisualState,
-  point: Point | undefined,
+  point: PointTuple | undefined,
 ): void {
   if (!point) {
     visualState.hoverCell = undefined;
@@ -177,10 +172,13 @@ export function visualStateOnMouseMove(
   }
 }
 
-export function visualStateMove(visualState: VisualState, point: Point): void {
+export function visualStateMove(
+  visualState: VisualState,
+  point: PointTuple,
+): void {
   updateVisualStateOffset(visualState, [
-    visualState.offset[0] + point[0],
-    visualState.offset[1] + point[1],
+    visualState.offset.x + point[0],
+    visualState.offset.y + point[1],
   ]);
 }
 
@@ -188,25 +186,28 @@ export function visualStateMoveToCell(
   visualState: VisualState,
   cell: CellPosition,
 ): void {
-  const [cellWidth, cellHeight] = visualState.cellSize;
+  const { cellSize } = visualState;
 
   updateVisualStateOffset(visualState, [
-    -cell.i * cellWidth,
-    -cell.j * cellHeight,
+    -cell.i * cellSize.width,
+    -cell.j * cellSize.height,
   ]);
 }
 
-function updateVisualStateOffset(visualState: VisualState, point: Point): void {
-  visualState.offset[0] = point[0];
-  visualState.offset[1] = point[1];
+function updateVisualStateOffset(
+  visualState: VisualState,
+  point: PointTuple,
+): void {
+  visualState.offset.x = point[0];
+  visualState.offset.y = point[1];
 
   actualizeViewportBounds(visualState);
   visualState.onUpdate();
 }
 
 export function isSamePoints(
-  p1: Point | undefined,
-  p2: Point | undefined,
+  p1: PointTuple | undefined,
+  p2: PointTuple | undefined,
 ): boolean {
   if (!p1 && !p2) {
     return true;

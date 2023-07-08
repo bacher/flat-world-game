@@ -6,7 +6,10 @@ export type CellCoordinates = { i: number; j: number };
 export type CellPosition = CellCoordinates & { cellId: CellId };
 export type CellId = Branded<number, 'cellId'>;
 
-export type Point = [number, number];
+export type PointTuple = [number, number];
+
+export type Point = { x: number; y: number };
+export type Size = { width: number; height: number };
 
 export type CellRect = {
   start: CellCoordinates;

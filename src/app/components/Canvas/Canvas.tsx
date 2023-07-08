@@ -10,7 +10,7 @@ import {
   GameState,
   Structure,
   FacilityType,
-  Point,
+  PointTuple,
   CarrierPathType,
   ExactFacilityType,
   CellPosition,
@@ -117,7 +117,7 @@ export function Canvas({ gameId }: Props) {
   const mouseState = useMemo<{
     isMouseDown: boolean;
     isDrag: boolean;
-    mouseDownPosition: Point | undefined;
+    mouseDownPosition: PointTuple | undefined;
   }>(
     () => ({
       isMouseDown: false,
@@ -126,7 +126,7 @@ export function Canvas({ gameId }: Props) {
     }),
     [],
   );
-  const mousePos = useMemo<Point>(() => [0, 0], []);
+  const mousePos = useMemo<PointTuple>(() => [0, 0], []);
 
   const visualStateRef = useRef<VisualState | undefined>();
 

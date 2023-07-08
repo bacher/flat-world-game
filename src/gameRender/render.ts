@@ -2,7 +2,7 @@ import {
   CellPosition,
   CellRect,
   FacilityType,
-  Point,
+  PointTuple,
   StorageItem,
   City,
   Construction,
@@ -35,20 +35,19 @@ import { drawText } from './canvasUtils';
 const DRAW_RESOURCE_NAMES = false;
 
 export function renderGameToCanvas(visualState: VisualState): void {
-  const { ctx } = visualState;
-
-  const [canvasWidth, canvasHeight] = visualState.canvasSize;
-  const [halfWidth, halfHeight] = visualState.canvasHalfSize;
-  const [offsetX, offsetY] = visualState.offset;
+  const { ctx, canvasSize, canvasHalfSize, offset } = visualState;
 
   ctx.save();
 
-  ctx.rect(0, 0, canvasWidth, canvasHeight);
+  ctx.rect(0, 0, canvasSize.width, canvasSize.height);
   ctx.fillStyle = 'white';
   ctx.fill();
 
   ctx.save();
-  ctx.translate(offsetX + halfWidth, offsetY + halfHeight);
+  ctx.translate(
+    offset.x + canvasHalfSize.width,
+    offset.y + canvasHalfSize.height,
+  );
 
   drawHighlights(visualState);
   drawInteractiveAction(visualState);
@@ -138,21 +137,19 @@ export function isValidCarrierPlanningTarget(
 }
 
 function drawGrid(visualState: VisualState): void {
-  const { ctx } = visualState;
-
-  const [cellWidth, cellHeight] = visualState.cellSize;
+  const { ctx, cellSize } = visualState;
   const { start, end } = visualState.viewportBounds;
 
   ctx.save();
   ctx.beginPath();
-  ctx.translate(-cellWidth / 2, -cellHeight / 2);
+  ctx.translate(-cellSize.width / 2, -cellSize.height / 2);
   for (let i = start.i; i < end.i; i += 1) {
-    ctx.moveTo(i * cellWidth, start.j * cellHeight);
-    ctx.lineTo(i * cellWidth, end.j * cellWidth);
+    ctx.moveTo(i * cellSize.width, start.j * cellSize.height);
+    ctx.lineTo(i * cellSize.width, end.j * cellSize.width);
   }
   for (let j = start.j; j < end.j; j += 1) {
-    ctx.moveTo(start.i * cellWidth, j * cellHeight);
-    ctx.lineTo(end.i * cellWidth, j * cellWidth);
+    ctx.moveTo(start.i * cellSize.width, j * cellSize.height);
+    ctx.lineTo(end.i * cellSize.width, j * cellSize.width);
   }
   ctx.stroke();
   ctx.restore();
@@ -231,15 +228,20 @@ function highlightCell(
   cellColor: string,
 ): void {
   const { ctx } = visualState;
-  const [cellWidth, cellHeight] = visualState.cellSize;
+  const { cellSize } = visualState;
 
   ctx.save();
   ctx.beginPath();
-  ctx.translate(-cellWidth / 2, -cellHeight / 2);
+  ctx.translate(-cellSize.width / 2, -cellSize.height / 2);
 
   const { i, j } = cellPosition;
 
-  ctx.rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+  ctx.rect(
+    i * cellSize.width,
+    j * cellSize.height,
+    cellSize.width,
+    cellSize.height,
+  );
   ctx.fillStyle = cellColor;
   ctx.fill();
   ctx.restore();
@@ -290,8 +292,11 @@ function drawObject(visualState: VisualState, facility: Structure): void {
   }
 }
 
-function getCellCenter(visualState: VisualState, cell: CellPosition): Point {
-  return [cell.i * visualState.cellSize[0], cell.j * visualState.cellSize[1]];
+function getCellCenter(
+  { cellSize }: VisualState,
+  cell: CellPosition,
+): PointTuple {
+  return [cell.i * cellSize.width, cell.j * cellSize.height];
 }
 
 function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
@@ -303,7 +308,11 @@ function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
   );
 }
 
-function addGap(point1: Point, point2: Point, gap: number): [Point, Point] {
+function addGap(
+  point1: PointTuple,
+  point2: PointTuple,
+  gap: number,
+): [PointTuple, PointTuple] {
   const x = point2[0] - point1[0];
   const y = point2[1] - point1[1];
 
@@ -320,7 +329,7 @@ function addGap(point1: Point, point2: Point, gap: number): [Point, Point] {
 function getCarrierPathPoints(
   visualState: VisualState,
   path: CellPath,
-): [Point, Point] {
+): [PointTuple, PointTuple] {
   const fromCenter = getCellCenter(visualState, path.from);
   const toCenter = getCellCenter(visualState, path.to);
   return addGap(fromCenter, toCenter, 20);
@@ -511,15 +520,14 @@ function drawStorage(
 
 function drawTopOverlay(visualState: VisualState): void {
   if (visualState.hoverCell) {
-    const { ctx } = visualState;
-    const [x, y] = visualState.canvasSize;
+    const { ctx, canvasSize } = visualState;
 
     const text = `(${visualState.hoverCell.i},${visualState.hoverCell.j})`;
 
     drawText(
       ctx,
       text,
-      { x, y },
+      { x: canvasSize.width, y: canvasSize.height },
       {
         align: 'right',
         baseline: 'bottom',
