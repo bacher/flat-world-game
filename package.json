@@ -1,7 +1,7 @@
 {
   "name": "flat-world-game",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "tsc && pnpm run test:circular",
     "test:circular": "madge --extensions ts,tsx --ts-config ./tsconfig.json -c src/",
-    "format": "prettier -w src/**/*.scss src/**/*.module.scss"
+    "format": "prettier -w package.json src/**/*.ts src/**/*.tsx src/**/*.scss src/**/*.module.scss",
+    "gh-pages": "pnpm run build && GH=$(pwd)/../flat-world-game-gh && git -C $GH rm -rq 'assets' && cp -r dist/* $GH"
   },
   "dependencies": {
     "classnames": "^2.3.2",
