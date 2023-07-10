@@ -36,6 +36,7 @@ export function generateNewCityName(
   alreadyCityNames: Set<string>,
   addInAlreadyList?: boolean,
 ): string {
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const cityName = `${sample(first)} ${sample(second)}`;
 

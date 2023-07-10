@@ -1,5 +1,4 @@
-// @ts-expect-error
-export function neverCall(x: never, silence?: boolean) {
+export function neverCall(_: never, silence?: boolean) {
   if (!silence) {
     throw new Error('Invariant');
   }

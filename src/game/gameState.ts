@@ -208,7 +208,7 @@ export function getMaximumIterationsByResources(
 ): number {
   let minIterations = Infinity;
 
-  for (let resource of getStructureIterationStorageInfo(facility).input) {
+  for (const resource of getStructureIterationStorageInfo(facility).input) {
     const iterations = Math.floor(
       getResourceCount(facility.input, resource.resourceType) /
         resource.quantity,
@@ -230,7 +230,7 @@ export function getIterationsUntilOverDone(
 
   const info = getStructureIterationStorageInfo(facility);
 
-  for (let resource of info.output) {
+  for (const resource of info.output) {
     const maxPerDay =
       resource.quantity *
       (facility.assignedWorkersCount /
