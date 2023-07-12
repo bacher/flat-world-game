@@ -1,16 +1,17 @@
 import {
   CellPosition,
   CellRect,
+  City,
   ExactFacilityType,
   FacilityType,
-  PointTuple,
-  City,
   GameState,
-  Structure,
-  Size,
   Point,
+  PointTuple,
+  Size,
+  Structure,
 } from './types';
 import {
+  GATHERING_RADIUS,
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
@@ -236,26 +237,72 @@ export function isAllowToConstructAtPosition(
   visualState: VisualState,
   cell: CellPosition,
 ): boolean {
-  if (visualState.gameState.structuresByCellId.has(cell.cellId)) {
+  const { gameState, interactiveAction } = visualState;
+
+  if (gameState.structuresByCellId.has(cell.cellId)) {
     return false;
   }
 
-  if (
-    visualState.interactiveAction &&
-    visualState.interactiveAction.actionType ===
-      InteractiveActionType.CONSTRUCTION_PLANNING &&
-    visualState.interactiveAction.facilityType === FacilityType.CITY
-  ) {
-    const expeditionStart =
-      visualState.interactiveAction.expeditionFromCity.position;
+  if (interactiveAction) {
+    switch (interactiveAction.actionType) {
+      case InteractiveActionType.CONSTRUCTION_PLANNING: {
+        if (interactiveAction.facilityType === FacilityType.CITY) {
+          const expeditionStart = interactiveAction.expeditionFromCity.position;
 
-    const distance = calculateDistanceSquare(expeditionStart, cell);
+          const distance = calculateDistanceSquare(expeditionStart, cell);
 
-    return (
-      distance >= MIN_EXPEDITION_DISTANCE_SQUARE &&
-      distance <= MAX_EXPEDITION_DISTANCE_SQUARE
-    );
+          return (
+            distance >= MIN_EXPEDITION_DISTANCE_SQUARE &&
+            distance <= MAX_EXPEDITION_DISTANCE_SQUARE
+          );
+        } else {
+          if (interactiveAction.facilityType === FacilityType.GATHERING) {
+            if (
+              findInRadius(cell, GATHERING_RADIUS * 2, (iterCell) => {
+                const structure = gameState.structuresByCellId.get(
+                  iterCell.cellId,
+                );
+
+                if (structure && structure.type === FacilityType.GATHERING) {
+                  return true;
+                }
+                return undefined;
+              })
+            ) {
+              return false;
+            }
+          }
+
+          return true;
+        }
+      }
+    }
   }
 
-  return true;
+  return false;
+}
+
+function findInRadius<T>(
+  originCell: CellPosition,
+  radius: number,
+  callback: (cell: CellPosition) => T | undefined,
+): T | undefined {
+  for (let i = -radius; i <= radius; i += 1) {
+    for (let j = -radius; j <= radius; j += 1) {
+      if (!(i === 0 && j === 0)) {
+        const iterCell = newCellPosition({
+          i: originCell.i + i,
+          j: originCell.j + j,
+        });
+
+        const found = callback(iterCell);
+
+        if (found) {
+          return found;
+        }
+      }
+    }
+  }
+
+  return undefined;
 }

@@ -1,3 +1,5 @@
+import type { Size } from '@/game/types.ts';
+
 export const DEFAULT_FONT = `$10px sans-serif`;
 
 export function drawText(
@@ -41,4 +43,13 @@ export function drawText(
   if (fontSize) {
     ctx.font = DEFAULT_FONT;
   }
+}
+
+export function clearCanvas(
+  ctx: CanvasRenderingContext2D,
+  canvasSize: Size,
+): void {
+  ctx.rect(0, 0, canvasSize.width, canvasSize.height);
+  ctx.fillStyle = 'white';
+  ctx.fill();
 }

@@ -4,6 +4,7 @@ import {
   CellId,
   CellPath,
   CellPosition,
+  CellRect,
   ExactFacilityType,
   FacilityType,
 } from './types';
@@ -81,4 +82,17 @@ export function isSameCellPoints(
 
 export function isExactFacility(type: FacilityType): type is ExactFacilityType {
   return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
+}
+
+export function extendArea(area: CellRect, radius: number): CellRect {
+  return {
+    start: {
+      i: area.start.i - radius,
+      j: area.start.j - radius,
+    },
+    end: {
+      i: area.end.i - radius,
+      j: area.end.j - radius,
+    },
+  };
 }

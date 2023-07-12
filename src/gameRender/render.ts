@@ -1,55 +1,56 @@
 import {
+  CellPath,
   CellPosition,
   CellRect,
-  FacilityType,
-  PointTuple,
-  StorageItem,
   City,
   Construction,
   Facility,
+  FacilityType,
+  GameState,
+  PointTuple,
+  StorageItem,
   Structure,
-  CellPath,
 } from '@/game/types';
-import { getStructureIterationStorageInfo } from '@/game/gameState';
-import { ResourceType, resourceLocalization } from '@/game/resources';
 import {
-  newCellPosition,
-  isSameCellPoints,
+  findSpecificFacilitiesInArea,
+  getStructureIterationStorageInfo,
+} from '@/game/gameState';
+import { resourceLocalization, ResourceType } from '@/game/resources';
+import {
   calculateDistance,
   calculateDistanceSquare,
+  extendArea,
+  isSameCellPoints,
+  newCellPosition,
 } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
   InteractiveActionType,
-  VisualState,
   isAllowToConstructAtPosition,
+  VisualState,
 } from '@/game/visualState';
 import { humanFormat } from '@/utils/format';
-import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
+import { CITY_BORDER_RADIUS_SQUARE, GATHERING_RADIUS } from '@/game/consts';
 import { cityResourcesInput } from '@/game/boosters';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
-import { drawText } from './canvasUtils';
+import { clearCanvas, drawText } from './canvasUtils';
 
 const DRAW_RESOURCE_NAMES = false;
 
 export function renderGameToCanvas(visualState: VisualState): void {
-  const { ctx, canvasSize, canvasHalfSize, offset } = visualState;
+  const { ctx, canvasSize } = visualState;
 
   ctx.save();
 
-  ctx.rect(0, 0, canvasSize.width, canvasSize.height);
-  ctx.fillStyle = 'white';
-  ctx.fill();
+  clearCanvas(ctx, canvasSize);
 
   ctx.save();
-  ctx.translate(
-    offset.x + canvasHalfSize.width,
-    offset.y + canvasHalfSize.height,
-  );
 
-  drawHighlights(visualState);
+  moveViewport(visualState);
+
+  drawViewportHighlights(visualState);
   drawInteractiveAction(visualState);
   drawGrid(visualState);
   drawCarrierPaths(visualState);
@@ -62,6 +63,14 @@ export function renderGameToCanvas(visualState: VisualState): void {
   ctx.restore();
 }
 
+function moveViewport(visualState: VisualState): void {
+  const { ctx, canvasHalfSize, offset } = visualState;
+  ctx.translate(
+    offset.x + canvasHalfSize.width,
+    offset.y + canvasHalfSize.height,
+  );
+}
+
 function drawInteractiveAction(visualState: VisualState): void {
   if (visualState.interactiveAction) {
     switch (visualState.interactiveAction.actionType) {
@@ -71,7 +80,6 @@ function drawInteractiveAction(visualState: VisualState): void {
       }
       case InteractiveActionType.CARRIER_PATH_PLANNING: {
         drawCarrierPlanningMode(visualState, visualState.interactiveAction);
-
         break;
       }
       default:
@@ -151,26 +159,19 @@ function drawGrid(visualState: VisualState): void {
     ctx.moveTo(start.i * cellSize.width, j * cellSize.height);
     ctx.lineTo(end.i * cellSize.width, j * cellSize.width);
   }
+  ctx.strokeStyle = '#000';
   ctx.stroke();
   ctx.restore();
 }
 
-function drawHighlights(visualState: VisualState): void {
-  if (!visualState.interactiveAction) {
-    return;
-  }
+function drawViewportHighlights(visualState: VisualState): void {
+  const { interactiveAction, gameState } = visualState;
 
-  const { gameState } = visualState;
-
-  switch (visualState.interactiveAction.actionType) {
-    case InteractiveActionType.CONSTRUCTION_PLANNING: {
-      if (visualState.interactiveAction.facilityType === FacilityType.CITY) {
-        const { start, end } = visualState.viewportBounds;
-
-        for (let col = start.i; col < end.i; col += 1) {
-          for (let row = start.j; row < end.j; row += 1) {
-            const cell = newCellPosition({ i: col, j: row });
-
+  if (interactiveAction) {
+    switch (interactiveAction.actionType) {
+      case InteractiveActionType.CONSTRUCTION_PLANNING: {
+        if (interactiveAction.facilityType === FacilityType.CITY) {
+          iterateOverViewportCells(visualState, (cell) => {
             let isInsideNewCity = false;
             let isPartOfAnotherCity = false;
 
@@ -201,10 +202,101 @@ function drawHighlights(visualState: VisualState): void {
             if (color) {
               highlightCell(visualState, cell, color);
             }
+          });
+        } else {
+          iterateOverViewportCells(visualState, (cell) => {
+            const isInsideCity = isCellInsideSomeCity(gameState, cell);
+            let color: string | undefined;
+
+            if (!isInsideCity) {
+              color = '#ffbdbd';
+            } else if (!gameState.structuresByCellId.has(cell.cellId)) {
+              color = '#d8ffd8';
+            }
+
+            if (color) {
+              highlightCell(visualState, cell, color);
+            }
+          });
+
+          if (interactiveAction.facilityType === FacilityType.GATHERING) {
+            const gatherings = findSpecificFacilitiesInArea(
+              gameState,
+              FacilityType.GATHERING,
+              extendArea(visualState.viewportBounds, GATHERING_RADIUS),
+            );
+
+            for (const gatheringFacility of gatherings) {
+              drawBoundingRectAround(visualState, {
+                cell: gatheringFacility.position,
+                radius: GATHERING_RADIUS,
+                color: 'gray',
+              });
+            }
           }
         }
+        break;
       }
-      break;
+    }
+  } else {
+    iterateOverViewportCells(visualState, (cell) => {
+      if (isCellInsideSomeCity(gameState, cell)) {
+        highlightCell(visualState, cell, '#fff1d6');
+      }
+    });
+  }
+}
+
+function isCellInsideSomeCity(
+  gameState: GameState,
+  cell: CellPosition,
+): boolean {
+  for (const city of gameState.cities.values()) {
+    if (isCellInsideCityBorder(city.position, cell)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function drawBoundingRectAround(
+  visualState: VisualState,
+  {
+    cell,
+    radius,
+    color = 'black',
+  }: {
+    cell: CellPosition;
+    radius: number;
+    color?: string;
+  },
+): void {
+  const { ctx, cellSize } = visualState;
+
+  ctx.beginPath();
+  ctx.rect(
+    (cell.i - radius - 0.5) * cellSize.width,
+    (cell.j - radius - 0.5) * cellSize.height,
+    cellSize.width * (radius * 2 + 1),
+    cellSize.height * (radius * 2 + 1),
+  );
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.lineWidth = 1;
+}
+
+function iterateOverViewportCells(
+  visualState: VisualState,
+  callback: (cell: CellPosition) => void,
+): void {
+  const { start, end } = visualState.viewportBounds;
+
+  for (let col = start.i; col < end.i; col += 1) {
+    for (let row = start.j; row < end.j; row += 1) {
+      const cell = newCellPosition({ i: col, j: row });
+      callback(cell);
     }
   }
 }
@@ -259,6 +351,18 @@ function drawBuildingMode(visualState: VisualState): void {
     highlightCell(visualState, hoverCell, '#9c9');
   } else {
     highlightCell(visualState, hoverCell, '#e99');
+  }
+
+  if (
+    visualState.interactiveAction &&
+    visualState.interactiveAction.actionType ===
+      InteractiveActionType.CONSTRUCTION_PLANNING &&
+    visualState.interactiveAction.facilityType === FacilityType.GATHERING
+  ) {
+    drawBoundingRectAround(visualState, {
+      cell: hoverCell,
+      radius: GATHERING_RADIUS,
+    });
   }
 }
 

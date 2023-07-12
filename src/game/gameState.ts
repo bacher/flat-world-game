@@ -21,6 +21,7 @@ import {
   ProductVariantId,
   StorageItem,
   Structure,
+  CellRect,
 } from './types';
 import { ResourceType } from './resources';
 import {
@@ -34,7 +35,7 @@ import {
   OUTPUT_BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
 } from './consts';
-import { calculateDistance } from './helpers';
+import { calculateDistance, newCellPosition } from './helpers';
 
 export function addCarrierPath(
   gameState: GameState,
@@ -586,4 +587,23 @@ export function createEmptyCityReport(): CityReportInfo {
     facilityWorkerReports: [],
     needPopulation: 0,
   };
+}
+
+export function findSpecificFacilitiesInArea(
+  gameState: GameState,
+  facilityType: ExactFacilityType,
+  area: CellRect,
+): Facility[] {
+  const facilities: Facility[] = [];
+  for (let i = area.start.i; i <= area.end.i; i += 1) {
+    for (let j = area.start.j; j <= area.end.j; j += 1) {
+      const cell = newCellPosition({ i, j });
+      const structure = gameState.structuresByCellId.get(cell.cellId);
+      if (structure && structure.type === facilityType) {
+        facilities.push(structure);
+      }
+    }
+  }
+
+  return facilities;
 }
