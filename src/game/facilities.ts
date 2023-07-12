@@ -222,6 +222,7 @@ export type FacilityConstructionInfo = {
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
   input: StorageItem[];
+  workRadius?: number;
 };
 
 export const facilitiesConstructionInfo: Record<
@@ -234,6 +235,7 @@ export const facilitiesConstructionInfo: Record<
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [],
+    workRadius: 2,
   },
   [FacilityType.GATHERING]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
@@ -241,6 +243,7 @@ export const facilitiesConstructionInfo: Record<
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [],
+    workRadius: 2,
   },
   [FacilityType.CHOP_WOOD]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,

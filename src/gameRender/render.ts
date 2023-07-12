@@ -30,12 +30,13 @@ import {
   VisualState,
 } from '@/game/visualState';
 import { humanFormat } from '@/utils/format';
-import { CITY_BORDER_RADIUS_SQUARE, GATHERING_RADIUS } from '@/game/consts';
+import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
 import { cityResourcesInput } from '@/game/boosters';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
+import { facilitiesConstructionInfo } from '@/game/facilities.ts';
 
 const DRAW_RESOURCE_NAMES = false;
 
@@ -219,17 +220,23 @@ function drawViewportHighlights(visualState: VisualState): void {
             }
           });
 
-          if (interactiveAction.facilityType === FacilityType.GATHERING) {
-            const gatherings = findSpecificFacilitiesInArea(
+          const constructionInfo =
+            facilitiesConstructionInfo[interactiveAction.facilityType];
+
+          if (constructionInfo.workRadius) {
+            const facilities = findSpecificFacilitiesInArea(
               gameState,
-              FacilityType.GATHERING,
-              extendArea(visualState.viewportBounds, GATHERING_RADIUS),
+              interactiveAction.facilityType,
+              extendArea(
+                visualState.viewportBounds,
+                constructionInfo.workRadius,
+              ),
             );
 
-            for (const gatheringFacility of gatherings) {
+            for (const facility of facilities) {
               drawBoundingRectAround(visualState, {
-                cell: gatheringFacility.position,
-                radius: GATHERING_RADIUS,
+                cell: facility.position,
+                radius: constructionInfo.workRadius,
                 color: 'gray',
               });
             }
@@ -340,7 +347,7 @@ function highlightCell(
 }
 
 function drawBuildingMode(visualState: VisualState): void {
-  const { hoverCell } = visualState;
+  const { hoverCell, interactiveAction } = visualState;
   if (!hoverCell) {
     return;
   }
@@ -354,15 +361,20 @@ function drawBuildingMode(visualState: VisualState): void {
   }
 
   if (
-    visualState.interactiveAction &&
-    visualState.interactiveAction.actionType ===
+    interactiveAction &&
+    interactiveAction.actionType ===
       InteractiveActionType.CONSTRUCTION_PLANNING &&
-    visualState.interactiveAction.facilityType === FacilityType.GATHERING
+    interactiveAction.facilityType !== FacilityType.CITY
   ) {
-    drawBoundingRectAround(visualState, {
-      cell: hoverCell,
-      radius: GATHERING_RADIUS,
-    });
+    const constructionInfo =
+      facilitiesConstructionInfo[interactiveAction.facilityType];
+
+    if (constructionInfo.workRadius) {
+      drawBoundingRectAround(visualState, {
+        cell: hoverCell,
+        radius: constructionInfo.workRadius,
+      });
+    }
   }
 }
 

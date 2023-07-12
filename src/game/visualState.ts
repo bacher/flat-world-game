@@ -11,7 +11,6 @@ import {
   Structure,
 } from './types';
 import {
-  GATHERING_RADIUS,
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
@@ -23,6 +22,7 @@ import {
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
 import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
+import { facilitiesConstructionInfo } from '@/game/facilities.ts';
 
 export type VisualState = {
   gameState: GameState;
@@ -256,19 +256,29 @@ export function isAllowToConstructAtPosition(
             distance <= MAX_EXPEDITION_DISTANCE_SQUARE
           );
         } else {
-          if (interactiveAction.facilityType === FacilityType.GATHERING) {
-            if (
-              findInRadius(cell, GATHERING_RADIUS * 2, (iterCell) => {
+          const constructionInfo =
+            facilitiesConstructionInfo[interactiveAction.facilityType];
+
+          if (constructionInfo.workRadius) {
+            const found = findAroundInRadius(
+              cell,
+              constructionInfo.workRadius * 2,
+              (iterCell) => {
                 const structure = gameState.structuresByCellId.get(
                   iterCell.cellId,
                 );
 
-                if (structure && structure.type === FacilityType.GATHERING) {
+                if (
+                  structure &&
+                  structure.type === interactiveAction.facilityType
+                ) {
                   return true;
                 }
                 return undefined;
-              })
-            ) {
+              },
+            );
+
+            if (found) {
               return false;
             }
           }
@@ -282,7 +292,7 @@ export function isAllowToConstructAtPosition(
   return false;
 }
 
-function findInRadius<T>(
+function findAroundInRadius<T>(
   originCell: CellPosition,
   radius: number,
   callback: (cell: CellPosition) => T | undefined,
