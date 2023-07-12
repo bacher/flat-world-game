@@ -27,11 +27,14 @@
   padding: 10px 14px;
   border-radius: 3px;
   border: 1px solid #999;
-  background: #f3f3f3;
+  background: #e8eeff;
 
-  &:not(:disabled):hover {
-    background: #e5e5e5;
+  &:not(:disabled) {
     cursor: pointer;
+
+    &:hover {
+      background: #cedaff;
+    }
   }
 
   &:disabled {

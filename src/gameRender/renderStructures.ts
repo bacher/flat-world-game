@@ -61,8 +61,8 @@ export function drawStructureObject(
       ctx.fill();
 
       if (drawFacilityType === FacilityType.GATHERING_2) {
-        ctx.fillStyle = '#000';
-        ctx.fillText('II', 0, 0);
+        ctx.fillStyle = '#fff';
+        ctx.fillText('II', 0, 2);
       }
       break;
     case FacilityType.KITCHEN:
