@@ -49,16 +49,45 @@ export function drawStructureObject(
       ctx.fill();
       break;
     case FacilityType.GATHERING:
+    case FacilityType.GATHERING_2:
       ctx.beginPath();
       ctx.moveTo(-12, -4);
       ctx.lineTo(-9, 8);
       ctx.lineTo(9, 8);
       ctx.lineTo(12, -4);
       ctx.closePath();
+      ctx.rect(-2, -12, 4, 8);
       ctx.fillStyle = 'brown';
       ctx.fill();
+
+      if (drawFacilityType === FacilityType.GATHERING_2) {
+        ctx.fillStyle = '#000';
+        ctx.fillText('II', 0, 0);
+      }
+      break;
+    case FacilityType.KITCHEN:
+      ctx.beginPath();
+      ctx.moveTo(-12, -8);
+      ctx.lineTo(-9, 8);
+      ctx.lineTo(9, 8);
+      ctx.lineTo(12, -8);
+      ctx.closePath();
       ctx.rect(-2, -12, 4, 8);
+      ctx.fillStyle = 'gray';
       ctx.fill();
+      break;
+    case FacilityType.HUNTERS_BOOTH:
+      ctx.beginPath();
+      ctx.arcTo(-2, -10, -2, 10, 5);
+      ctx.strokeStyle = 'brown';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-2, -10);
+      ctx.lineTo(-2, 10);
+      ctx.strokeStyle = 'gray';
+      ctx.stroke();
       break;
     case FacilityType.WORK_SHOP:
       ctx.beginPath();

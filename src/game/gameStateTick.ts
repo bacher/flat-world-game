@@ -1,26 +1,26 @@
 import { addToMapSet } from '@/utils/helpers';
 
 import {
-  OUTPUT_BUFFER_DAYS,
-  INPUT_BUFFER_DAYS,
-  MINIMAL_CITY_PEOPLE,
   BASE_WEIGHT_PER_PEOPLE_DAY,
   CITY_BUFFER_DAYS,
+  INPUT_BUFFER_DAYS,
+  MINIMAL_CITY_PEOPLE,
+  OUTPUT_BUFFER_DAYS,
   RESEARCH_WORK_PERSON_MODIFICATOR,
 } from './consts';
 import {
   CarrierPath,
+  CarrierPathReport,
   CarrierPathType,
   City,
   Construction,
+  ExactFacilityType,
   Facility,
   FacilityType,
-  GameState,
-  StorageItem,
-  CarrierPathReport,
   FacilityWorkReport,
-  ExactFacilityType,
+  GameState,
   ResearchId,
+  StorageItem,
 } from './types';
 import {
   addCarrierPath,
@@ -29,31 +29,28 @@ import {
   completeConstruction,
   createEmptyCityReport,
   getCarrierPathStructures,
-  // actualizeCityTotalAssignedWorkersCount,
-  // addIterationOutput,
   getIterationsUntilConstructionComplete,
   getMaximumAddingLimit,
-  // getIterationsUntilOverDone,
-  // getMaximumAddingLimit,
-  // getMaximumIterationsByResources,
-  // getStructureIterationStorageInfo,
-  // removeIterationInput,
   getResourceCount,
   getStructureIterationStorageInfo,
   grabResource,
-  grabResourceStrict,
   grabResourcesStrict,
+  grabResourceStrict,
   multiplyResourceStorage,
   removeAllCarrierPathsTo,
 } from './gameState';
 import { researches } from './research';
-import { ResourceType } from './resources';
+import {
+  foodNutritionlValue,
+  isFoodResourceType,
+  ResourceType,
+} from './resources';
 import {
   facilitiesConstructionInfo,
   facilitiesIterationInfo,
 } from './facilities';
-import { isSamePath, isExactFacility, getCarrierPathDistance } from './helpers';
-import { Booster, boosters, cityResourcesInput } from './boosters';
+import { getCarrierPathDistance, isExactFacility, isSamePath } from './helpers';
+import { Booster, boosterByResourceType, boosters } from './boosters';
 
 // type TickTemporalStorage = {};
 
@@ -90,7 +87,6 @@ export function tick(gameState: GameState): void {
     let totalCarriersWorkDays = 0;
 
     const facilitiesWork: FacilityWork[] = [];
-
     const currentCarrierPaths: CarrierWork[] = [];
 
     for (const facility of facilities) {
@@ -334,21 +330,29 @@ function getCarrierPathBaseWorkDays(
   // TODO: Precalculate
   const distance = getCarrierPathDistance(carrierPath);
 
-  const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
+  let alreadyCount: number;
+
+  if (isFoodResourceType(carrierPath.resourceType)) {
+    alreadyCount = getResourceCount(to.input, ResourceType.FOOD);
+  } else {
+    alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
+  }
 
   let needCount = 0;
 
   if (to.type === FacilityType.CITY) {
-    if (cityResourcesInput.includes(carrierPath.resourceType)) {
-      const booster = Object.values(boosters).find(
-        ({ resourceType }) => resourceType === carrierPath.resourceType,
-      );
+    const booster = boosterByResourceType[carrierPath.resourceType];
 
-      if (booster) {
-        const cap =
-          to.population * boosters.population.perWorker * CITY_BUFFER_DAYS;
-        needCount = cap - alreadyCount;
+    if (booster) {
+      const cap = to.population * booster.perWorker * CITY_BUFFER_DAYS;
+
+      needCount = cap - alreadyCount;
+
+      if (isFoodResourceType(carrierPath.resourceType)) {
+        needCount /= foodNutritionlValue[carrierPath.resourceType];
       }
+
+      console.log('a', carrierPath.resourceType, needCount);
     }
   } else {
     const maximumPeopleAtWork = getMaximumPeopleAtWork(to);
@@ -429,7 +433,8 @@ function researchPhase(gameState: GameState): void {
     const needBoosters = researchWorkDays * boosters.research.perWorker;
 
     const { quantity: grabbedBoosters } = grabResource(city.input, {
-      resourceType: boosters.research.resourceType,
+      // TODO: Try to use all resource types
+      resourceType: boosters.research.resourceTypes[0],
       quantity: needBoosters,
     });
 
@@ -547,7 +552,18 @@ function doCarryWork(
     console.warn('Carring quantity reduction');
   }
 
-  addResource(to.input, grabbedItem);
+  if (
+    to.type === FacilityType.CITY &&
+    isFoodResourceType(grabbedItem.resourceType)
+  ) {
+    const nutritionValue = foodNutritionlValue[grabbedItem.resourceType];
+    addResource(to.input, {
+      resourceType: ResourceType.FOOD,
+      quantity: grabbedItem.quantity * nutritionValue,
+    });
+  } else {
+    addResource(to.input, grabbedItem);
+  }
 }
 
 function grabIterationsResources(
@@ -607,12 +623,15 @@ function applyCityModifier(
   city: City,
   {
     workDays,
-    booster: { resourceType, perWorker, boost },
+    booster: { resourceTypes, perWorker, boost },
   }: {
     workDays: number;
     booster: Booster;
   },
 ): number {
+  // TODO: Try to use all resource types
+  const resourceType = resourceTypes[0];
+
   const haveResourceCount = getResourceCount(city.input, resourceType);
   const totalBoost = 1 + boost;
 

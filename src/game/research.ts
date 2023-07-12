@@ -1,20 +1,32 @@
+import mapValues from 'lodash/mapValues';
+
 import { FacilityType, ProductVariantId, Research, ResearchId } from './types';
 
-export const researches: Record<ResearchId, Research> = {
+const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
   [ResearchId.WOOD_WORK]: {
-    researchId: ResearchId.WOOD_WORK,
     points: 100,
     requires: [],
     unlockFacilities: [FacilityType.CHOP_WOOD, FacilityType.LUMBERT],
   },
   [ResearchId.WORK_SHOP]: {
-    researchId: ResearchId.WORK_SHOP,
     points: 150,
     requires: [ResearchId.WOOD_WORK],
     unlockFacilities: [FacilityType.WORK_SHOP],
   },
+  [ResearchId.GATHERING_2]: {
+    points: 100,
+    requires: [],
+    unlockFacilities: [FacilityType.GATHERING_2],
+    unlockProductionVariants: {
+      [FacilityType.GATHERING_2]: [
+        ProductVariantId.FRUIT,
+        ProductVariantId.VEGETABLE,
+        ProductVariantId.NUT,
+      ],
+      [FacilityType.WORK_SHOP]: [ProductVariantId.BASKET],
+    },
+  },
   [ResearchId.AGRO_1]: {
-    researchId: ResearchId.AGRO_1,
     points: 150,
     requires: [ResearchId.WORK_SHOP],
     unlockFacilities: [FacilityType.FIELD],
@@ -24,13 +36,11 @@ export const researches: Record<ResearchId, Research> = {
     },
   },
   [ResearchId.HORSES]: {
-    researchId: ResearchId.HORSES,
     points: 200,
     requires: [ResearchId.AGRO_1],
     unlockFacilities: [FacilityType.STABLE],
   },
   [ResearchId.PAPYRUS]: {
-    researchId: ResearchId.PAPYRUS,
     points: 400,
     requires: [ResearchId.AGRO_1],
     unlockFacilities: [],
@@ -40,13 +50,11 @@ export const researches: Record<ResearchId, Research> = {
     },
   },
   [ResearchId.FACTORY_1]: {
-    researchId: ResearchId.FACTORY_1,
     points: 400,
     requires: [],
     unlockFacilities: [FacilityType.ANCIENT_FACTORY],
   },
   [ResearchId.TEA]: {
-    researchId: ResearchId.TEA,
     points: 500,
     requires: [ResearchId.FACTORY_1],
     unlockFacilities: [],
@@ -57,6 +65,14 @@ export const researches: Record<ResearchId, Research> = {
   },
 };
 
+export const researches: Record<ResearchId, Research> = mapValues(
+  researchesInit,
+  (research, researchId) => {
+    (research as any).researchId = researchId;
+    return research as Research;
+  },
+);
+
 export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.WOOD_WORK]: 'Wood work',
   [ResearchId.WORK_SHOP]: 'Workshops',
@@ -65,4 +81,5 @@ export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.PAPYRUS]: 'Papyrus',
   [ResearchId.FACTORY_1]: 'Ancient factory',
   [ResearchId.TEA]: 'Tea',
+  [ResearchId.GATHERING_2]: 'Advanced gathering',
 };

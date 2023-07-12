@@ -78,6 +78,10 @@ export function ProductionVariantModal({
 }
 
 function StorageList({ storage }: { storage: StorageItem[] }) {
+  if (storage.length === 0) {
+    return <div>None</div>;
+  }
+
   return (
     <ul>
       {storage.map((item) => (

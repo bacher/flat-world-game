@@ -35,11 +35,77 @@ export function drawResourceIcon(
     case ResourceType.FOOD:
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+      ctx.fillStyle = 'orange';
+      ctx.fill();
+      break;
+    case ResourceType.FRUIT:
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = 'red';
       ctx.fill();
       ctx.beginPath();
       ctx.rect(2, -6, 2, 4);
       ctx.fillStyle = 'green';
+      ctx.fill();
+      break;
+    case ResourceType.VEGETABLE:
+      ctx.beginPath();
+      ctx.ellipse(0, 4, 10, 4, 0, 0, Math.PI);
+      ctx.ellipse(0, 0, 10, 4, Math.PI / 4, 0, Math.PI);
+      ctx.fillStyle = 'green';
+      ctx.fill();
+      break;
+    case ResourceType.NUT:
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2, true);
+      ctx.fillStyle = 'brown';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 10, 4, Math.PI / 4, 0, Math.PI);
+      ctx.fillStyle = 'darkbrown';
+      ctx.fill();
+      break;
+    case ResourceType.MEAT:
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+      ctx.rect(0, -3, 2, 7);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      break;
+    case ResourceType.FRIED_MEAT:
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+      ctx.fillStyle = 'brown';
+      ctx.fill();
+      ctx.rect(0, -3, 2, 7);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      break;
+    case ResourceType.COMPLEX_MEAL:
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI, true);
+      ctx.fillStyle = 'brown';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, Math.PI, 1.5 * Math.PI, true);
+      ctx.fillStyle = 'red';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 1.5 * Math.PI, 2 * Math.PI, true);
+      ctx.fillStyle = 'green';
+      ctx.fill();
+      break;
+    case ResourceType.BASKET:
+      ctx.beginPath();
+      ctx.moveTo(-5, -2);
+      ctx.lineTo(-4, 4);
+      ctx.lineTo(4, 4);
+      ctx.lineTo(5, -2);
+      ctx.closePath();
+      ctx.rect(-1, -6, 2, 4);
+      ctx.fillStyle = 'brown';
       ctx.fill();
       break;
     case ResourceType.AGRICULTURAL_TOOLS:
@@ -75,7 +141,6 @@ export function drawResourceIcon(
       ctx.closePath();
       ctx.fillStyle = 'black';
       ctx.fill();
-
       ctx.beginPath();
       ctx.ellipse(0, -4, 3, 4, 0, 0, Math.PI * 2);
       ctx.closePath();

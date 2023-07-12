@@ -22,10 +22,13 @@ export enum FacilityType {
   CONSTRUCTION = 'CONSTRUCTION',
   CHOP_WOOD = 'CHOP_WOOD',
   GATHERING = 'GATHERING',
+  GATHERING_2 = 'GATHERING_2',
+  KITCHEN = 'KITCHEN',
   WORK_SHOP = 'WORK_SHOP',
   FIELD = 'FIELD',
   STABLE = 'STABLE',
   ANCIENT_FACTORY = 'ANCIENT_FACTORY',
+  HUNTERS_BOOTH = 'HUNTERS_BOOTH',
 }
 
 export enum ProductVariantId {
@@ -36,6 +39,10 @@ export enum ProductVariantId {
   REED = 'REED',
   TEA = 'TEA',
   TEA_LEAVES = 'TEA_LEAVES',
+  FRUIT = 'FRUIT',
+  VEGETABLE = 'VEGETABLE',
+  NUT = 'NUT',
+  BASKET = 'BASKET',
 }
 
 export type ExactFacilityType = Exclude<
@@ -169,6 +176,7 @@ export const enum ResearchId {
   PAPYRUS = 'PAPYRUS',
   FACTORY_1 = 'FACTORY_1',
   TEA = 'TEA',
+  GATHERING_2 = 'GATHERING_2',
 }
 
 export type Research = {

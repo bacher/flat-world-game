@@ -4,7 +4,7 @@ import {
   ProductVariantId,
   StorageItem,
 } from './types';
-import { ResourceType, resourceLocalization } from './resources';
+import { resourceLocalization, ResourceType } from './resources';
 
 export enum ItrationInfoType {
   FACILITY,
@@ -42,7 +42,91 @@ export const facilitiesIterationInfo: Record<
       input: [],
       output: [
         {
-          resourceType: ResourceType.FOOD,
+          resourceType: ResourceType.FRUIT,
+          quantity: 1,
+        },
+      ],
+    }),
+  },
+  [FacilityType.GATHERING_2]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 3,
+    productionVariants: [
+      {
+        id: ProductVariantId.FRUIT,
+        iterationPeopleDays: 1,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.FRUIT,
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.VEGETABLE,
+        iterationPeopleDays: 1,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.VEGETABLE,
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.NUT,
+        iterationPeopleDays: 1,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.NUT,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
+  [FacilityType.HUNTERS_BOOTH]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 3,
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [],
+      output: [
+        {
+          resourceType: ResourceType.MEAT,
+          quantity: 1,
+        },
+      ],
+    }),
+  },
+  [FacilityType.KITCHEN]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 2,
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.FRUIT,
+          quantity: 1,
+        },
+        {
+          resourceType: ResourceType.VEGETABLE,
+          quantity: 1,
+        },
+        {
+          resourceType: ResourceType.NUT,
+          quantity: 1,
+        },
+        {
+          resourceType: ResourceType.MEAT,
+          quantity: 1,
+        },
+      ],
+      output: [
+        {
+          resourceType: ResourceType.COMPLEX_MEAL,
           quantity: 1,
         },
       ],
@@ -102,17 +186,17 @@ export const facilitiesIterationInfo: Record<
         ],
       },
       {
-        id: ProductVariantId.PAPYRUS,
+        id: ProductVariantId.BASKET,
         iterationPeopleDays: 1,
         input: [
           {
             resourceType: ResourceType.REED,
-            quantity: 1,
+            quantity: 5,
           },
         ],
         output: [
           {
-            resourceType: ResourceType.PAPYRUS,
+            resourceType: ResourceType.BASKET,
             quantity: 1,
           },
         ],
@@ -221,8 +305,8 @@ export type FacilityConstructionInfo = {
   iterations: number;
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
-  input: StorageItem[];
   workRadius?: number;
+  input: StorageItem[];
 };
 
 export const facilitiesConstructionInfo: Record<
@@ -234,16 +318,55 @@ export const facilitiesConstructionInfo: Record<
     iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    input: [],
     workRadius: 2,
+    input: [],
   },
   [FacilityType.GATHERING]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    input: [],
     workRadius: 2,
+    input: [],
+  },
+  [FacilityType.GATHERING_2]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 1,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    workRadius: 2,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 10,
+      },
+    ],
+  },
+  [FacilityType.HUNTERS_BOOTH]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 1,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    workRadius: 2,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 10,
+      },
+    ],
+  },
+  [FacilityType.KITCHEN]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterations: 1,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    workRadius: 2,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 10,
+      },
+    ],
   },
   [FacilityType.CHOP_WOOD]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
@@ -320,6 +443,9 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CONSTRUCTION]: 'Building',
   [FacilityType.LUMBERT]: 'Lumbert',
   [FacilityType.GATHERING]: 'Gathering',
+  [FacilityType.GATHERING_2]: 'Gathering II',
+  [FacilityType.KITCHEN]: 'Kitchen',
+  [FacilityType.HUNTERS_BOOTH]: "Hunter's booth",
   [FacilityType.CHOP_WOOD]: 'Chop wood',
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
@@ -336,4 +462,8 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.PAPYRUS]: resourceLocalization[ResourceType.PAPYRUS],
   [ProductVariantId.TEA]: resourceLocalization[ResourceType.TEA],
   [ProductVariantId.TEA_LEAVES]: resourceLocalization[ResourceType.TEA_LEAVES],
+  [ProductVariantId.FRUIT]: resourceLocalization[ResourceType.FRUIT],
+  [ProductVariantId.VEGETABLE]: resourceLocalization[ResourceType.VEGETABLE],
+  [ProductVariantId.NUT]: resourceLocalization[ResourceType.NUT],
+  [ProductVariantId.BASKET]: resourceLocalization[ResourceType.BASKET],
 };

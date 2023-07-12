@@ -1,7 +1,7 @@
-import { ResourceType } from './resources';
+import { foodResourceTypes, ResourceType } from './resources';
 
 export type Booster = {
-  resourceType: ResourceType;
+  resourceTypes: ResourceType[];
   perWorker: number;
   boost: number;
 };
@@ -11,27 +11,39 @@ export const boosters: Record<
   Booster
 > = {
   population: {
-    resourceType: ResourceType.FOOD,
+    resourceTypes: [...foodResourceTypes.values()],
     perWorker: 0.2,
     boost: 1,
   },
   carrier: {
-    resourceType: ResourceType.HORSE,
+    resourceTypes: [ResourceType.HORSE],
     perWorker: 0.01,
     boost: 1,
   },
   worker: {
-    resourceType: ResourceType.TEA,
+    resourceTypes: [ResourceType.TEA],
     perWorker: 0.3,
     boost: 0.2,
   },
   research: {
-    resourceType: ResourceType.PAPYRUS,
+    resourceTypes: [ResourceType.PAPYRUS],
     perWorker: 0.1,
     boost: 0.2,
   },
 };
 
-export const cityResourcesInput: ResourceType[] = Object.values(boosters).map(
-  (booster) => booster.resourceType,
-);
+export const boosterByResourceType: Record<ResourceType, Booster | undefined> =
+  (Object.keys(boosters) as (keyof typeof boosters)[]).reduce(
+    (acc, boosterCategoryName) => {
+      const booster = boosters[boosterCategoryName];
+      for (const resourceType of booster.resourceTypes) {
+        acc[resourceType] = booster;
+      }
+      return acc;
+    },
+    {} as Record<ResourceType, Booster | undefined>,
+  );
+
+export const cityResourcesInput: ResourceType[] = Object.keys(
+  boosterByResourceType,
+) as ResourceType[];
