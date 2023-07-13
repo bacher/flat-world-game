@@ -665,9 +665,8 @@ function doCarryWork(
 
   // TODO: Check correctness
   if (grabbedItem.quantity !== movingResource.quantity) {
-    console.warn('Carring quantity reduction');
     // Could be when we have 2 or more paths from one facility
-    debugger;
+    console.warn('Carring quantity reduction');
   }
 
   if (

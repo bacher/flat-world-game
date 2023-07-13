@@ -49,20 +49,25 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.VEGETABLE:
-      ctx.beginPath();
-      ctx.ellipse(0, 4, 10, 4, 0, 0, Math.PI);
-      ctx.ellipse(0, 0, 10, 4, Math.PI / 4, 0, Math.PI);
+      ctx.strokeStyle = '#fff';
       ctx.fillStyle = 'green';
+      ctx.beginPath();
+      ctx.ellipse(0, 2, 6, 2, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 6, 2, Math.PI / 4, 0, 2 * Math.PI);
+      ctx.stroke();
       ctx.fill();
       break;
     case ResourceType.NUT:
       ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI * 2, true);
-      ctx.fillStyle = 'brown';
+      ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+      ctx.fillStyle = '#be633b';
       ctx.fill();
       ctx.beginPath();
-      ctx.ellipse(0, 0, 10, 4, Math.PI / 4, 0, Math.PI);
-      ctx.fillStyle = 'darkbrown';
+      ctx.ellipse(0, -2, 6, 4, 0, Math.PI, 2 * Math.PI);
+      ctx.fillStyle = 'brown';
       ctx.fill();
       break;
     case ResourceType.MEAT:
