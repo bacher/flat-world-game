@@ -83,6 +83,17 @@ export function drawResourceIcon(
       ctx.fillStyle = '#fff';
       ctx.fill();
       break;
+    case ResourceType.VEGAN_MEAL:
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, 0, Math.PI, true);
+      ctx.fillStyle = 'brown';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.beginPath();
+      ctx.arc(0, 0, 5, Math.PI, 2 * Math.PI, true);
+      ctx.fillStyle = 'green';
+      ctx.fill();
+      break;
     case ResourceType.COMPLEX_MEAL:
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI, true);

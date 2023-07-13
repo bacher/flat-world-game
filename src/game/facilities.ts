@@ -43,7 +43,7 @@ export const facilitiesIterationInfo: Record<
       output: [
         {
           resourceType: ResourceType.FRUIT,
-          quantity: 1,
+          quantity: 0.6,
         },
       ],
     }),
@@ -55,7 +55,12 @@ export const facilitiesIterationInfo: Record<
       {
         id: ProductVariantId.FRUIT,
         iterationPeopleDays: 1,
-        input: [],
+        input: [
+          {
+            resourceType: ResourceType.BASKET,
+            quantity: 0.1,
+          },
+        ],
         output: [
           {
             resourceType: ResourceType.FRUIT,
@@ -66,7 +71,12 @@ export const facilitiesIterationInfo: Record<
       {
         id: ProductVariantId.VEGETABLE,
         iterationPeopleDays: 1,
-        input: [],
+        input: [
+          {
+            resourceType: ResourceType.BASKET,
+            quantity: 0.1,
+          },
+        ],
         output: [
           {
             resourceType: ResourceType.VEGETABLE,
@@ -77,7 +87,12 @@ export const facilitiesIterationInfo: Record<
       {
         id: ProductVariantId.NUT,
         iterationPeopleDays: 1,
-        input: [],
+        input: [
+          {
+            resourceType: ResourceType.BASKET,
+            quantity: 0.1,
+          },
+        ],
         output: [
           {
             resourceType: ResourceType.NUT,
@@ -104,33 +119,60 @@ export const facilitiesIterationInfo: Record<
   [FacilityType.KITCHEN]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 2,
-    productionVariants: singleProductionVariant({
-      iterationPeopleDays: 1,
-      input: [
-        {
-          resourceType: ResourceType.FRUIT,
-          quantity: 1,
-        },
-        {
-          resourceType: ResourceType.VEGETABLE,
-          quantity: 1,
-        },
-        {
-          resourceType: ResourceType.NUT,
-          quantity: 1,
-        },
-        {
-          resourceType: ResourceType.MEAT,
-          quantity: 1,
-        },
-      ],
-      output: [
-        {
-          resourceType: ResourceType.COMPLEX_MEAL,
-          quantity: 1,
-        },
-      ],
-    }),
+    productionVariants: [
+      {
+        id: ProductVariantId.VEGAN_MEAL,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.FRUIT,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.VEGETABLE,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.NUT,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.VEGAN_MEAL,
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.COMPLEX_MEAL,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.FRUIT,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.VEGETABLE,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.NUT,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.MEAT,
+            quantity: 1,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.COMPLEX_MEAL,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
   },
   [FacilityType.LUMBERT]: {
     iterationInfoType: ItrationInfoType.FACILITY,
@@ -332,4 +374,7 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.VEGETABLE]: resourceLocalization[ResourceType.VEGETABLE],
   [ProductVariantId.NUT]: resourceLocalization[ResourceType.NUT],
   [ProductVariantId.BASKET]: resourceLocalization[ResourceType.BASKET],
+  [ProductVariantId.VEGAN_MEAL]: resourceLocalization[ResourceType.VEGAN_MEAL],
+  [ProductVariantId.COMPLEX_MEAL]:
+    resourceLocalization[ResourceType.COMPLEX_MEAL],
 };

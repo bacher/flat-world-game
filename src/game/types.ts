@@ -43,6 +43,8 @@ export enum ProductVariantId {
   VEGETABLE = 'VEGETABLE',
   NUT = 'NUT',
   BASKET = 'BASKET',
+  COMPLEX_MEAL = 'COMPLEX_MEAL',
+  VEGAN_MEAL = 'VEGAN_MEAL',
 }
 
 export type ExactFacilityType = Exclude<
@@ -176,6 +178,7 @@ export const enum ResearchId {
   FACTORY_1 = 'FACTORY_1',
   TEA = 'TEA',
   GATHERING_2 = 'GATHERING_2',
+  COOKING = 'COOKING',
 }
 
 export type Research = {

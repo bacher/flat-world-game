@@ -24,6 +24,18 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
         ProductVariantId.NUT,
       ],
       [FacilityType.WORK_SHOP]: [ProductVariantId.BASKET],
+      [FacilityType.FIELD]: [ProductVariantId.REED],
+    },
+  },
+  [ResearchId.COOKING]: {
+    points: 200,
+    requires: [ResearchId.GATHERING_2],
+    unlockFacilities: [FacilityType.KITCHEN],
+    unlockProductionVariants: {
+      [FacilityType.KITCHEN]: [
+        ProductVariantId.VEGAN_MEAL,
+        ProductVariantId.COMPLEX_MEAL,
+      ],
     },
   },
   [ResearchId.AGRO_1]: {
@@ -82,4 +94,5 @@ export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.FACTORY_1]: 'Ancient factory',
   [ResearchId.TEA]: 'Tea',
   [ResearchId.GATHERING_2]: 'Advanced gathering',
+  [ResearchId.COOKING]: 'Cooking',
 };

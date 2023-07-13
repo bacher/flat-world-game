@@ -56,7 +56,6 @@ export const facilitiesConstructionInfo: Record<
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    workRadius: 2,
     input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,

@@ -8,6 +8,7 @@ export enum ResourceType {
   MEAT = 'MEAT',
   NUT = 'NUT',
   FRIED_MEAT = 'FRIED_MEAT',
+  VEGAN_MEAL = 'VEGAN_MEAL',
   COMPLEX_MEAL = 'COMPLEX_MEAL',
   AGRICULTURAL_TOOLS = 'AGRICULTURAL_TOOLS',
   HAY = 'HAY',
@@ -26,6 +27,7 @@ export type FoodResourceTypes =
   | ResourceType.NUT
   | ResourceType.MEAT
   | ResourceType.FRIED_MEAT
+  | ResourceType.VEGAN_MEAL
   | ResourceType.COMPLEX_MEAL;
 
 export const foodNutritionlValue: Record<FoodResourceTypes, number> = {
@@ -35,6 +37,7 @@ export const foodNutritionlValue: Record<FoodResourceTypes, number> = {
   [ResourceType.NUT]: 0.1,
   [ResourceType.MEAT]: 0.3,
   [ResourceType.FRIED_MEAT]: 0.9,
+  [ResourceType.VEGAN_MEAL]: 1.6,
   [ResourceType.COMPLEX_MEAL]: 2.3,
 };
 
@@ -65,5 +68,6 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.TEA_LEAVES]: 'Tea leaves',
   [ResourceType.TEA]: 'Tea',
   [ResourceType.COMPLEX_MEAL]: 'Complex meal',
+  [ResourceType.VEGAN_MEAL]: 'Vegan meal',
   [ResourceType.BASKET]: 'Basket',
 };
