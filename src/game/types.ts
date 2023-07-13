@@ -29,6 +29,7 @@ export enum FacilityType {
   STABLE = 'STABLE',
   ANCIENT_FACTORY = 'ANCIENT_FACTORY',
   HUNTERS_BOOTH = 'HUNTERS_BOOTH',
+  HUNTERS_BOOTH_2 = 'HUNTERS_BOOTH_2',
 }
 
 export enum ProductVariantId {
@@ -45,6 +46,7 @@ export enum ProductVariantId {
   BASKET = 'BASKET',
   COMPLEX_MEAL = 'COMPLEX_MEAL',
   VEGAN_MEAL = 'VEGAN_MEAL',
+  WOODEN_BOW = 'WOODEN_BOW',
 }
 
 export type ExactFacilityType = Exclude<
@@ -179,6 +181,8 @@ export const enum ResearchId {
   TEA = 'TEA',
   GATHERING_2 = 'GATHERING_2',
   COOKING = 'COOKING',
+  HUNTING = 'HUNTING',
+  HUNTING_2 = 'HUNTING_2',
 }
 
 export type Research = {

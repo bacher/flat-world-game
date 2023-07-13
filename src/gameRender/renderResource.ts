@@ -72,11 +72,12 @@ export function drawResourceIcon(
       break;
     case ResourceType.MEAT:
       ctx.beginPath();
-      ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
+      ctx.arc(0, -2, 4, 0, 2 * Math.PI, true);
       ctx.fillStyle = 'red';
       ctx.fill();
-      ctx.rect(0, -3, 2, 7);
-      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.rect(-1, -3, 2, 7);
+      ctx.fillStyle = 'lightgray';
       ctx.fill();
       break;
     case ResourceType.FRIED_MEAT:
@@ -187,6 +188,19 @@ export function drawResourceIcon(
       ctx.closePath();
       ctx.fillStyle = 'orange';
       ctx.fill();
+      break;
+    case ResourceType.WOODEN_BOW:
+      ctx.beginPath();
+      ctx.arc(-3, 0, 5, -0.4 * Math.PI, 0.4 * Math.PI);
+      ctx.strokeStyle = 'brown';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-2, -5);
+      ctx.lineTo(-2, 5);
+      ctx.strokeStyle = 'gray';
+      ctx.stroke();
       break;
     default:
       ctx.beginPath();

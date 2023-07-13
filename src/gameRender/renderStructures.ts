@@ -77,17 +77,25 @@ export function drawStructureObject(
       ctx.fill();
       break;
     case FacilityType.HUNTERS_BOOTH:
+    case FacilityType.HUNTERS_BOOTH_2:
       ctx.beginPath();
-      ctx.arcTo(-2, -10, -2, 10, 5);
+      ctx.arc(-9, 0, 15, -0.4 * Math.PI, 0.4 * Math.PI);
       ctx.strokeStyle = 'brown';
       ctx.lineWidth = 3;
       ctx.stroke();
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(-2, -10);
-      ctx.lineTo(-2, 10);
+      ctx.moveTo(-4, -15);
+      ctx.lineTo(-4, 15);
       ctx.strokeStyle = 'gray';
       ctx.stroke();
+
+      if (drawFacilityType === FacilityType.HUNTERS_BOOTH_2) {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#000';
+        ctx.fillText('II', 0, 1);
+      }
       break;
     case FacilityType.WORK_SHOP:
       ctx.beginPath();

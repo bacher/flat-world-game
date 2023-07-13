@@ -86,7 +86,7 @@ export const facilitiesIterationInfo: Record<
       },
       {
         id: ProductVariantId.NUT,
-        iterationPeopleDays: 1,
+        iterationPeopleDays: 3,
         input: [
           {
             resourceType: ResourceType.BASKET,
@@ -111,7 +111,26 @@ export const facilitiesIterationInfo: Record<
       output: [
         {
           resourceType: ResourceType.MEAT,
-          quantity: 1,
+          quantity: 0.3,
+        },
+      ],
+    }),
+  },
+  [FacilityType.HUNTERS_BOOTH_2]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 3,
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.WOODEN_BOW,
+          quantity: 0.1,
+        },
+      ],
+      output: [
+        {
+          resourceType: ResourceType.MEAT,
+          quantity: 0.6,
         },
       ],
     }),
@@ -134,7 +153,7 @@ export const facilitiesIterationInfo: Record<
           },
           {
             resourceType: ResourceType.NUT,
-            quantity: 1,
+            quantity: 0.3,
           },
         ],
         output: [
@@ -158,7 +177,7 @@ export const facilitiesIterationInfo: Record<
           },
           {
             resourceType: ResourceType.NUT,
-            quantity: 1,
+            quantity: 0.3,
           },
           {
             resourceType: ResourceType.MEAT,
@@ -239,6 +258,22 @@ export const facilitiesIterationInfo: Record<
         output: [
           {
             resourceType: ResourceType.BASKET,
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.WOODEN_BOW,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 2,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.WOODEN_BOW,
             quantity: 1,
           },
         ],
@@ -354,6 +389,7 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.GATHERING_2]: 'Gathering II',
   [FacilityType.KITCHEN]: 'Kitchen',
   [FacilityType.HUNTERS_BOOTH]: "Hunter's booth",
+  [FacilityType.HUNTERS_BOOTH_2]: "Hunter's booth II",
   [FacilityType.CHOP_WOOD]: 'Chop wood',
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
@@ -377,4 +413,5 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.VEGAN_MEAL]: resourceLocalization[ResourceType.VEGAN_MEAL],
   [ProductVariantId.COMPLEX_MEAL]:
     resourceLocalization[ResourceType.COMPLEX_MEAL],
+  [ProductVariantId.WOODEN_BOW]: resourceLocalization[ResourceType.WOODEN_BOW],
 };

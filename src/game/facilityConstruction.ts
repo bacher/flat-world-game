@@ -52,6 +52,18 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.HUNTERS_BOOTH_2]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    workRadius: 2,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 20,
+      },
+    ],
+  },
   [FacilityType.KITCHEN]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,

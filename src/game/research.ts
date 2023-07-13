@@ -75,6 +75,19 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
       [FacilityType.FIELD]: [ProductVariantId.TEA_LEAVES],
     },
   },
+  [ResearchId.HUNTING]: {
+    points: 200,
+    requires: [],
+    unlockFacilities: [FacilityType.HUNTERS_BOOTH],
+  },
+  [ResearchId.HUNTING_2]: {
+    points: 200,
+    requires: [ResearchId.HUNTING],
+    unlockFacilities: [FacilityType.HUNTERS_BOOTH_2],
+    unlockProductionVariants: {
+      [FacilityType.WORK_SHOP]: [ProductVariantId.WOODEN_BOW],
+    },
+  },
 };
 
 export const researches: Record<ResearchId, Research> = mapValues(
@@ -95,4 +108,6 @@ export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.TEA]: 'Tea',
   [ResearchId.GATHERING_2]: 'Advanced gathering',
   [ResearchId.COOKING]: 'Cooking',
+  [ResearchId.HUNTING]: 'Hunting',
+  [ResearchId.HUNTING_2]: 'Hunting II',
 };

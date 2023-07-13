@@ -18,6 +18,7 @@ export enum ResourceType {
   TEA_LEAVES = 'TEA_LEAVES',
   TEA = 'TEA',
   BASKET = 'BASKET',
+  WOODEN_BOW = 'WOODEN_BOW',
 }
 
 export type FoodResourceTypes =
@@ -70,4 +71,5 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.COMPLEX_MEAL]: 'Complex meal',
   [ResourceType.VEGAN_MEAL]: 'Vegan meal',
   [ResourceType.BASKET]: 'Basket',
+  [ResourceType.WOODEN_BOW]: 'Wooden bow',
 };

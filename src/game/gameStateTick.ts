@@ -440,7 +440,10 @@ function getCarrierPathBaseWorkDays(
 
   let alreadyCount: number;
 
-  if (isFoodResourceType(carrierPath.resourceType)) {
+  if (
+    to.type === FacilityType.CITY &&
+    isFoodResourceType(carrierPath.resourceType)
+  ) {
     alreadyCount = getResourceCount(to.input, ResourceType.FOOD);
   } else {
     alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
