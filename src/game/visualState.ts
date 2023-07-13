@@ -1,3 +1,5 @@
+import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
+
 import {
   CellPosition,
   CellRect,
@@ -21,8 +23,7 @@ import {
 } from './helpers';
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
-import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
-import { facilitiesConstructionInfo } from '@/game/facilities.ts';
+import { facilitiesConstructionInfo } from './facilityConstruction';
 
 export type VisualState = {
   gameState: GameState;

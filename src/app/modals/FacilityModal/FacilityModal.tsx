@@ -20,10 +20,8 @@ import {
   StorageItem,
   CellPosition,
 } from '@/game/types';
-import {
-  facilitiesConstructionInfo,
-  facilitiesDescription,
-} from '@/game/facilities';
+import { facilitiesDescription } from '@/game/facilities';
+import { facilitiesConstructionInfo } from '@/game/facilityConstruction';
 import {
   getStructureIterationStorageInfo,
   removeFacility,

@@ -45,14 +45,10 @@ import {
   isFoodResourceType,
   ResourceType,
 } from './resources';
-import {
-  facilitiesConstructionInfo,
-  facilitiesIterationInfo,
-} from './facilities';
+import { facilitiesIterationInfo } from './facilities';
+import { facilitiesConstructionInfo } from './facilityConstruction';
 import { getCarrierPathDistance, isExactFacility, isSamePath } from './helpers';
 import { Booster, boosterByResourceType, boosters } from './boosters';
-
-// type TickTemporalStorage = {};
 
 type FacilityWork = {
   facility: Facility | Construction;
@@ -65,8 +61,6 @@ type CarrierWork = {
 };
 
 export function tick(gameState: GameState): void {
-  // const temp: TickTemporalStorage = {};
-
   gameState.tickNumber += 1;
 
   console.groupCollapsed(`Tick ${gameState.tickNumber}`);
@@ -351,8 +345,6 @@ function getCarrierPathBaseWorkDays(
       if (isFoodResourceType(carrierPath.resourceType)) {
         needCount /= foodNutritionlValue[carrierPath.resourceType];
       }
-
-      console.log('a', carrierPath.resourceType, needCount);
     }
   } else {
     const maximumPeopleAtWork = getMaximumPeopleAtWork(to);
@@ -362,6 +354,7 @@ function getCarrierPathBaseWorkDays(
     const iterationWorkDays =
       iterationInfo.iterationPeopleDays / maximumPeopleAtWork;
 
+    // TODO: Check construction!
     const maximumIterations = INPUT_BUFFER_DAYS / iterationWorkDays;
 
     const iterationResourceCount = getResourceCount(
@@ -371,9 +364,7 @@ function getCarrierPathBaseWorkDays(
 
     const capResourceCount = maximumIterations * iterationResourceCount;
 
-    const needResourceCount = capResourceCount - alreadyCount;
-
-    needCount = needResourceCount;
+    needCount = capResourceCount - alreadyCount;
   }
 
   if (needCount <= 0) {

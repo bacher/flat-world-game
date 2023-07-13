@@ -24,10 +24,8 @@ import {
   CellRect,
 } from './types';
 import { ResourceType } from './resources';
-import {
-  facilitiesConstructionInfo,
-  facilitiesIterationInfo,
-} from './facilities';
+import { facilitiesIterationInfo } from './facilities';
+import { facilitiesConstructionInfo } from './facilityConstruction';
 import {
   BASE_PEOPLE_DAY_PER_CELL,
   BASE_PEOPLE_WORK_MODIFIER,

@@ -32,11 +32,11 @@ import {
 import { humanFormat } from '@/utils/format';
 import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
 import { cityResourcesInput } from '@/game/boosters';
+import { facilitiesConstructionInfo } from '@/game/facilityConstruction';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
-import { facilitiesConstructionInfo } from '@/game/facilities.ts';
 
 const DRAW_RESOURCE_NAMES = false;
 
