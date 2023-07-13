@@ -250,15 +250,6 @@ export function getIterationsUntilOverDone(
   return Math.max(0, minIterations);
 }
 
-export function getIterationsUntilConstructionComplete(
-  construction: Construction,
-): number {
-  const iterationInfo =
-    facilitiesConstructionInfo[construction.buildingFacilityType];
-
-  return iterationInfo.iterations - construction.iterationsComplete;
-}
-
 export function removeIterationInput(
   facility: Facility | Construction,
   iterationCount: number,
@@ -356,7 +347,6 @@ export function addConstructionStructure(
     input: [],
     output: [],
     inProcess: 0,
-    iterationsComplete: 0,
     productionVariantId,
     isPaused: false,
   };
@@ -478,34 +468,25 @@ export function removeAllCarrierPathsVia(
   removeAllCarrierPathsFrom(gameState, cellId, carrierPathType);
 }
 
-export function getMaximumAddingLimit(
-  facility: Construction,
+export function getConstructionMaximumAddingLimit(
+  construction: Construction,
   resourceType: ResourceType,
 ): number {
   const constructionInfo =
-    facilitiesConstructionInfo[facility.buildingFacilityType];
+    facilitiesConstructionInfo[construction.buildingFacilityType];
 
-  const iterationInput = constructionInfo.input.find(
-    (resource) => resource.resourceType === resourceType,
+  const iterationInputCount = getResourceCount(
+    constructionInfo.input,
+    resourceType,
   );
 
-  if (!iterationInput) {
+  if (!iterationInputCount) {
     return 0;
   }
 
-  const alreadyQuantity = getResourceCount(facility.input, resourceType);
-  const restIterations =
-    constructionInfo.iterations -
-    (facility.iterationsComplete + (facility.inProcess > 0 ? 1 : 0));
+  const alreadyQuantity = getResourceCount(construction.input, resourceType);
 
-  if (restIterations <= 0) {
-    return 0;
-  }
-
-  return Math.max(
-    0,
-    iterationInput.quantity * restIterations - alreadyQuantity,
-  );
+  return Math.max(0, iterationInputCount - alreadyQuantity);
 }
 
 export function getNearestCity(gameState: GameState, cell: CellPosition): City {

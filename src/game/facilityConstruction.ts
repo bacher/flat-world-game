@@ -4,7 +4,6 @@ import { ResourceType } from '@/game/resources';
 
 export type FacilityConstructionInfo = {
   iterationInfoType: ItrationInfoType.CONSTRUCTION;
-  iterations: number;
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
   workRadius?: number;
@@ -17,7 +16,6 @@ export const facilitiesConstructionInfo: Record<
 > = {
   [FacilityType.LUMBERT]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workRadius: 2,
@@ -25,7 +23,6 @@ export const facilitiesConstructionInfo: Record<
   },
   [FacilityType.GATHERING]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workRadius: 2,
@@ -33,7 +30,6 @@ export const facilitiesConstructionInfo: Record<
   },
   [FacilityType.GATHERING_2]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workRadius: 2,
@@ -46,7 +42,6 @@ export const facilitiesConstructionInfo: Record<
   },
   [FacilityType.HUNTERS_BOOTH]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workRadius: 2,
@@ -59,7 +54,6 @@ export const facilitiesConstructionInfo: Record<
   },
   [FacilityType.KITCHEN]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workRadius: 2,
@@ -72,65 +66,60 @@ export const facilitiesConstructionInfo: Record<
   },
   [FacilityType.CHOP_WOOD]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 2,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
         resourceType: ResourceType.LOG,
-        quantity: 2,
+        quantity: 4,
       },
     ],
   },
   [FacilityType.WORK_SHOP]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 2,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,
-        quantity: 10,
+        quantity: 20,
       },
     ],
   },
   [FacilityType.FIELD]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 2,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
         resourceType: ResourceType.AGRICULTURAL_TOOLS,
-        quantity: 10,
+        quantity: 20,
       },
     ],
   },
   [FacilityType.STABLE]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 2,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
         resourceType: ResourceType.LOG,
-        quantity: 10,
+        quantity: 20,
       },
     ],
   },
   [FacilityType.ANCIENT_FACTORY]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
-    iterations: 1,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
         resourceType: ResourceType.LOG,
-        quantity: 10,
+        quantity: 20,
       },
       {
         resourceType: ResourceType.HAY,
-        quantity: 4,
+        quantity: 8,
       },
     ],
   },

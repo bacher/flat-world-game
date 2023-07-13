@@ -6,7 +6,9 @@ import {
   CellPosition,
   CellRect,
   ExactFacilityType,
+  Facility,
   FacilityType,
+  Structure,
 } from './types';
 
 const ROW_SIZE = 2 ** 26;
@@ -80,7 +82,13 @@ export function isSameCellPoints(
   return p1.cellId === p2.cellId;
 }
 
-export function isExactFacility(type: FacilityType): type is ExactFacilityType {
+export function isExactFacility(structure: Structure): structure is Facility {
+  return isExactFacilityType(structure.type);
+}
+
+export function isExactFacilityType(
+  type: FacilityType,
+): type is ExactFacilityType {
   return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
 }
 

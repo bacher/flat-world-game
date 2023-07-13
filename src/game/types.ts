@@ -119,7 +119,6 @@ export type Construction = StructureBase & {
   buildingFacilityType: ExactFacilityType;
   assignedWorkersCount: number;
   inProcess: number;
-  iterationsComplete: number;
   productionVariantId: ProductVariantId;
   isPaused: boolean;
 };
