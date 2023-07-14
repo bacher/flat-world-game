@@ -130,7 +130,7 @@ export const facilitiesIterationInfo: Record<
       output: [
         {
           resourceType: ResourceType.MEAT,
-          quantity: 0.6,
+          quantity: 0.7,
         },
       ],
     }),
@@ -193,7 +193,7 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
-  [FacilityType.LUMBERT]: {
+  [FacilityType.LUMBER]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
@@ -384,7 +384,7 @@ export const initiallyUnlockedFacilities: ExactFacilityType[] = [
 export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CITY]: 'City',
   [FacilityType.CONSTRUCTION]: 'Building',
-  [FacilityType.LUMBERT]: 'Lumbert',
+  [FacilityType.LUMBER]: 'Lumber',
   [FacilityType.GATHERING]: 'Gathering',
   [FacilityType.GATHERING_2]: 'Gathering II',
   [FacilityType.KITCHEN]: 'Kitchen',

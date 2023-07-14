@@ -6,33 +6,61 @@ export type FacilityConstructionInfo = {
   iterationInfoType: ItrationInfoType.CONSTRUCTION;
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
-  workRadius?: number;
+  workArea?: WorkArea;
   input: StorageItem[];
 };
+
+export enum WorkAreaType {
+  LUMBER = 'LUMBER',
+  GATHERING = 'GATHERING',
+  HUNTING = 'HUNTING',
+}
+
+export type WorkArea = {
+  areaType: WorkAreaType;
+  radius: number;
+};
+
+export type WorkAreaMap = Record<
+  WorkAreaType,
+  {
+    maximumRadius: number;
+    facilities: Set<FacilityType>;
+  }
+>;
 
 export const facilitiesConstructionInfo: Record<
   ExactFacilityType,
   FacilityConstructionInfo
 > = {
-  [FacilityType.LUMBERT]: {
+  [FacilityType.LUMBER]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    workRadius: 2,
+    workArea: {
+      areaType: WorkAreaType.LUMBER,
+      radius: 2,
+    },
     input: [],
   },
   [FacilityType.GATHERING]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    workRadius: 2,
+    workArea: {
+      areaType: WorkAreaType.GATHERING,
+      radius: 2,
+    },
     input: [],
   },
   [FacilityType.GATHERING_2]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    workRadius: 2,
+    workArea: {
+      areaType: WorkAreaType.GATHERING,
+      radius: 2,
+    },
     input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,
@@ -44,7 +72,10 @@ export const facilitiesConstructionInfo: Record<
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    workRadius: 2,
+    workArea: {
+      areaType: WorkAreaType.HUNTING,
+      radius: 2,
+    },
     input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,
@@ -56,7 +87,10 @@ export const facilitiesConstructionInfo: Record<
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
-    workRadius: 2,
+    workArea: {
+      areaType: WorkAreaType.HUNTING,
+      radius: 3,
+    },
     input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,
@@ -135,3 +169,28 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
 };
+
+export const workAreaMap: WorkAreaMap = Object.entries(
+  facilitiesConstructionInfo,
+).reduce((acc, [facilityType, constructionInfo]) => {
+  if (constructionInfo.workArea) {
+    let item = acc[constructionInfo.workArea.areaType];
+    if (!item) {
+      item = {
+        maximumRadius: 0,
+        facilities: new Set(),
+      };
+
+      acc[constructionInfo.workArea.areaType] = item;
+    }
+
+    item.facilities.add(facilityType as ExactFacilityType);
+
+    if (item.maximumRadius < constructionInfo.workArea.radius) {
+      item.maximumRadius = constructionInfo.workArea.radius;
+    }
+  }
+  return acc;
+}, {} as Partial<WorkAreaMap>) as WorkAreaMap;
+
+console.log('a', workAreaMap);

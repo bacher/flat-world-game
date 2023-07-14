@@ -22,7 +22,7 @@ export function drawStructureObject(
       ctx.fillStyle = 'black';
       ctx.fill();
       break;
-    case FacilityType.LUMBERT:
+    case FacilityType.LUMBER:
       ctx.beginPath();
       ctx.moveTo(0, -15);
       ctx.lineTo(-15, 12);

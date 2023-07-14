@@ -99,8 +99,8 @@ export function extendArea(area: CellRect, radius: number): CellRect {
       j: area.start.j - radius,
     },
     end: {
-      i: area.end.i - radius,
-      j: area.end.j - radius,
+      i: area.end.i + radius,
+      j: area.end.j + radius,
     },
   };
 }

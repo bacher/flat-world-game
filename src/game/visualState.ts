@@ -23,7 +23,10 @@ import {
 } from './helpers';
 import { tick } from './gameStateTick';
 import { ResourceType } from './resources';
-import { facilitiesConstructionInfo } from './facilityConstruction';
+import {
+  facilitiesConstructionInfo,
+  workAreaMap,
+} from './facilityConstruction';
 
 export type VisualState = {
   gameState: GameState;
@@ -260,20 +263,44 @@ export function isAllowToConstructAtPosition(
           const constructionInfo =
             facilitiesConstructionInfo[interactiveAction.facilityType];
 
-          if (constructionInfo.workRadius) {
+          if (constructionInfo.workArea) {
+            const workAreaInfo =
+              workAreaMap[constructionInfo.workArea.areaType];
+
             const found = findAroundInRadius(
               cell,
-              constructionInfo.workRadius * 2,
+              workAreaInfo.maximumRadius * 2,
               (iterCell) => {
                 const structure = gameState.structuresByCellId.get(
                   iterCell.cellId,
                 );
 
+                if (!structure || structure.type === FacilityType.CITY) {
+                  return undefined;
+                }
+
+                const effectiveFacilityType =
+                  structure.type === FacilityType.CONSTRUCTION
+                    ? structure.buildingFacilityType
+                    : structure.type;
+
                 if (
                   structure &&
-                  structure.type === interactiveAction.facilityType
+                  workAreaInfo.facilities.has(effectiveFacilityType)
                 ) {
-                  return true;
+                  const currentConstructionInfo =
+                    facilitiesConstructionInfo[effectiveFacilityType];
+
+                  if (
+                    isWorkAreasCollides(
+                      cell,
+                      constructionInfo.workArea!.radius,
+                      structure.position,
+                      currentConstructionInfo.workArea!.radius,
+                    )
+                  ) {
+                    return true;
+                  }
                 }
                 return undefined;
               },
@@ -291,6 +318,20 @@ export function isAllowToConstructAtPosition(
   }
 
   return false;
+}
+
+function isWorkAreasCollides(
+  cell1: CellPosition,
+  radius1: number,
+  cell2: CellPosition,
+  radius2: number,
+): boolean {
+  const di = Math.abs(cell1.i - cell2.i);
+  const dj = Math.abs(cell1.j - cell2.j);
+
+  const r = radius1 + radius2 + 1;
+
+  return di < r && dj < r;
 }
 
 function findAroundInRadius<T>(

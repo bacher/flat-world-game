@@ -6,7 +6,7 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
   [ResearchId.WOOD_WORK]: {
     points: 100,
     requires: [],
-    unlockFacilities: [FacilityType.CHOP_WOOD, FacilityType.LUMBERT],
+    unlockFacilities: [FacilityType.CHOP_WOOD, FacilityType.LUMBER],
   },
   [ResearchId.WORK_SHOP]: {
     points: 150,

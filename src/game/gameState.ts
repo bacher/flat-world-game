@@ -568,21 +568,21 @@ export function createEmptyCityReport(): CityReportInfo {
   };
 }
 
-export function findSpecificFacilitiesInArea(
+export function getAllStructuresInArea(
   gameState: GameState,
-  facilityType: ExactFacilityType,
   area: CellRect,
-): Facility[] {
-  const facilities: Facility[] = [];
+): Structure[] {
+  const structures: Structure[] = [];
   for (let i = area.start.i; i <= area.end.i; i += 1) {
     for (let j = area.start.j; j <= area.end.j; j += 1) {
       const cell = newCellPosition({ i, j });
       const structure = gameState.structuresByCellId.get(cell.cellId);
-      if (structure && structure.type === facilityType) {
-        facilities.push(structure);
+
+      if (structure) {
+        structures.push(structure);
       }
     }
   }
 
-  return facilities;
+  return structures;
 }

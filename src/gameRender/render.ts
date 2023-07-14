@@ -12,7 +12,7 @@ import {
   Structure,
 } from '@/game/types';
 import {
-  findSpecificFacilitiesInArea,
+  getAllStructuresInArea,
   getStructureIterationStorageInfo,
 } from '@/game/gameState';
 import { resourceLocalization, ResourceType } from '@/game/resources';
@@ -32,7 +32,10 @@ import {
 import { humanFormat } from '@/utils/format';
 import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
 import { cityResourcesInput } from '@/game/boosters';
-import { facilitiesConstructionInfo } from '@/game/facilityConstruction';
+import {
+  facilitiesConstructionInfo,
+  workAreaMap,
+} from '@/game/facilityConstruction';
 
 import { drawStructureObject } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
@@ -223,22 +226,36 @@ function drawViewportHighlights(visualState: VisualState): void {
           const constructionInfo =
             facilitiesConstructionInfo[interactiveAction.facilityType];
 
-          if (constructionInfo.workRadius) {
-            const facilities = findSpecificFacilitiesInArea(
+          if (constructionInfo.workArea) {
+            const facilitiesTypes =
+              workAreaMap[constructionInfo.workArea.areaType];
+
+            for (const structure of getAllStructuresInArea(
               gameState,
-              interactiveAction.facilityType,
               extendArea(
                 visualState.viewportBounds,
-                constructionInfo.workRadius,
+                constructionInfo.workArea.radius,
               ),
-            );
+            )) {
+              if (structure.type !== FacilityType.CITY) {
+                const effectiveFacilityType =
+                  structure.type === FacilityType.CONSTRUCTION
+                    ? structure.buildingFacilityType
+                    : structure.type;
 
-            for (const facility of facilities) {
-              drawBoundingRectAround(visualState, {
-                cell: facility.position,
-                radius: constructionInfo.workRadius,
-                color: 'gray',
-              });
+                if (facilitiesTypes.facilities.has(effectiveFacilityType)) {
+                  const structureInfo =
+                    facilitiesConstructionInfo[effectiveFacilityType];
+
+                  if (structureInfo.workArea) {
+                    drawBoundingRectAround(visualState, {
+                      cell: structure.position,
+                      radius: structureInfo.workArea.radius,
+                      color: 'gray',
+                    });
+                  }
+                }
+              }
             }
           }
         }
@@ -369,10 +386,10 @@ function drawBuildingMode(visualState: VisualState): void {
     const constructionInfo =
       facilitiesConstructionInfo[interactiveAction.facilityType];
 
-    if (constructionInfo.workRadius) {
+    if (constructionInfo.workArea) {
       drawBoundingRectAround(visualState, {
         cell: hoverCell,
-        radius: constructionInfo.workRadius,
+        radius: constructionInfo.workArea.radius,
       });
     }
   }
