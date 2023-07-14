@@ -54,7 +54,7 @@ export type ExactFacilityType = Exclude<
   FacilityType.CITY | FacilityType.CONSTRUCTION
 >;
 
-export type FacilityTypeWithoutConstruction = Exclude<
+export type CompleteFacilityType = Exclude<
   FacilityType,
   FacilityType.CONSTRUCTION
 >;

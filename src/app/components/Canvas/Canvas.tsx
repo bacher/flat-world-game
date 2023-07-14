@@ -5,20 +5,20 @@ import cn from 'classnames';
 import styles from './Canvas.module.scss';
 
 import {
-  City,
-  Facility,
-  GameState,
-  Structure,
-  FacilityType,
-  PointTuple,
   CarrierPathType,
-  ExactFacilityType,
   CellPosition,
+  City,
+  ExactFacilityType,
+  Facility,
+  FacilityType,
+  GameState,
+  PointTuple,
   ProductVariantId,
+  Structure,
 } from '@/game/types';
 import {
-  addCity,
   addCarrierPath,
+  addCity,
   addConstructionStructure,
   getFacilityBindedCity,
 } from '@/game/gameState';
@@ -28,23 +28,23 @@ import {
   renderGameToCanvas,
 } from '@/gameRender/render';
 import {
-  InteractiveActionType,
-  VisualState,
   createVisualState,
+  InteractiveActionType,
   isAllowToConstructAtPosition,
   lookupGridByPoint,
   startGameLoop,
+  VisualState,
   visualStateMove,
-  visualStateOnMouseMove,
   visualStateMoveToCell,
+  visualStateOnMouseMove,
 } from '@/game/visualState';
 
 import { useForceUpdate } from '@hooks/forceUpdate';
 import { ModalRef } from '@/app/modals/types';
 import { FacilityModal } from '@/app/modals/FacilityModal';
 import {
-  GameStateWatcherProvider,
   createGameStateWatcher,
+  GameStateWatcherProvider,
 } from '@/app/contexts/GameStateWatcher';
 import { BuildingsPanel } from '@components/BuildingsPanel';
 import { StatusText } from '@components/StatusText';

@@ -100,20 +100,7 @@ function Content({
   closeWithoutApplying: () => void;
 }) {
   if (facility.type === FacilityType.CITY) {
-    return (
-      <CityContent
-        city={facility}
-        onNewCityClick={() => {
-          visualState.interactiveAction = {
-            actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
-            facilityType: FacilityType.CITY,
-            expeditionFromCity: facility,
-          };
-          visualState.onUpdate();
-          onCloseClick();
-        }}
-      />
-    );
+    return <CityContent city={facility} />;
   }
 
   if (facility.type === FacilityType.CONSTRUCTION) {
@@ -140,27 +127,13 @@ function Content({
   );
 }
 
-function CityContent({
-  city,
-  onNewCityClick,
-}: {
-  city: City;
-  onNewCityClick: () => void;
-}) {
+function CityContent({ city }: { city: City }) {
   return (
     <div>
       <h2>City: {city.name}</h2>
       <div>People moving speed: {city.peopleDayPerCell}</div>
       <div>People carrying weight: {city.weightPerPeopleDay}</div>
       <div>People working modificator: {city.peopleWorkModifier}</div>
-      <button
-        type="button"
-        onClick={() => {
-          onNewCityClick();
-        }}
-      >
-        Set up new City
-      </button>
     </div>
   );
 }

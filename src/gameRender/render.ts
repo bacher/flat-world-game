@@ -252,6 +252,7 @@ function drawViewportHighlights(visualState: VisualState): void {
                       cell: structure.position,
                       radius: structureInfo.workArea.radius,
                       color: 'gray',
+                      gapped: true,
                     });
                   }
                 }
@@ -289,26 +290,31 @@ function drawBoundingRectAround(
     cell,
     radius,
     color = 'black',
+    gapped = false,
   }: {
     cell: CellPosition;
     radius: number;
     color?: string;
+    gapped?: boolean;
   },
 ): void {
   const { ctx, cellSize } = visualState;
 
+  const gap = gapped ? 10 : 0;
   ctx.beginPath();
   ctx.rect(
-    (cell.i - radius - 0.5) * cellSize.width,
-    (cell.j - radius - 0.5) * cellSize.height,
-    cellSize.width * (radius * 2 + 1),
-    cellSize.height * (radius * 2 + 1),
+    (cell.i - radius - 0.5) * cellSize.width + gap,
+    (cell.j - radius - 0.5) * cellSize.height + gap,
+    cellSize.width * (radius * 2 + 1) - 2 * gap,
+    cellSize.height * (radius * 2 + 1) - 2 * gap,
   );
 
   ctx.strokeStyle = color;
   ctx.lineWidth = 3;
   ctx.stroke();
   ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(128,128,200,0.2)';
+  ctx.fill();
 }
 
 function iterateOverViewportCells(

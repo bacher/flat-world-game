@@ -377,9 +377,9 @@ export const facilitiesIterationInfo: Record<
   },
 };
 
-export const initiallyUnlockedFacilities: ExactFacilityType[] = [
+export const initiallyUnlockedFacilities: Set<ExactFacilityType> = new Set([
   FacilityType.GATHERING,
-];
+]);
 
 export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CITY]: 'City',

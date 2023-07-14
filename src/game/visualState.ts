@@ -3,8 +3,7 @@ import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
 import {
   CellPosition,
   CellRect,
-  City,
-  ExactFacilityType,
+  CompleteFacilityType,
   FacilityType,
   GameState,
   Point,
@@ -52,15 +51,8 @@ export type InteractiveAction =
 
 export type InteractActionConstructionPlanning = {
   actionType: InteractiveActionType.CONSTRUCTION_PLANNING;
-} & (
-  | {
-      facilityType: ExactFacilityType;
-    }
-  | {
-      facilityType: FacilityType.CITY;
-      expeditionFromCity: City;
-    }
-);
+  facilityType: CompleteFacilityType;
+};
 
 export type InteractActionCarrierPlanning = {
   actionType: InteractiveActionType.CARRIER_PATH_PLANNING;
@@ -251,14 +243,21 @@ export function isAllowToConstructAtPosition(
     switch (interactiveAction.actionType) {
       case InteractiveActionType.CONSTRUCTION_PLANNING: {
         if (interactiveAction.facilityType === FacilityType.CITY) {
-          const expeditionStart = interactiveAction.expeditionFromCity.position;
+          let inExpeditionDistance = false;
 
-          const distance = calculateDistanceSquare(expeditionStart, cell);
+          for (const city of gameState.cities.values()) {
+            const distance = calculateDistanceSquare(city.position, cell);
 
-          return (
-            distance >= MIN_EXPEDITION_DISTANCE_SQUARE &&
-            distance <= MAX_EXPEDITION_DISTANCE_SQUARE
-          );
+            if (distance < MIN_EXPEDITION_DISTANCE_SQUARE) {
+              return false;
+            }
+
+            if (distance <= MAX_EXPEDITION_DISTANCE_SQUARE) {
+              inExpeditionDistance = true;
+            }
+          }
+
+          return inExpeditionDistance;
         } else {
           const constructionInfo =
             facilitiesConstructionInfo[interactiveAction.facilityType];

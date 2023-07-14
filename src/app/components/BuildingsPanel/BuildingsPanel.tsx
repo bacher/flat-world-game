@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { GameState, ExactFacilityType, FacilityType } from '@/game/types';
+import { CompleteFacilityType, FacilityType, GameState } from '@/game/types';
 import {
   facilitiesDescription,
   initiallyUnlockedFacilities,
@@ -9,33 +9,31 @@ import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 
 type Props = {
   gameState: GameState;
-  onBuildingClick: (params: { facilityType: ExactFacilityType }) => void;
+  onBuildingClick: (params: { facilityType: CompleteFacilityType }) => void;
 };
 
 export function BuildingsPanel({ gameState, onBuildingClick }: Props) {
   useRenderOnGameTick();
 
-  const facilityTypes = useMemo<ExactFacilityType[]>(
+  const facilityTypes = useMemo<CompleteFacilityType[]>(
     () =>
-      [...Object.values(FacilityType)].filter(
+      (
+        [...Object.values(FacilityType)].filter(
+          (facilityType) => facilityType !== FacilityType.CONSTRUCTION,
+        ) as CompleteFacilityType[]
+      ).filter(
         (facilityType) =>
-          facilityType !== FacilityType.CONSTRUCTION &&
-          facilityType !== FacilityType.CITY,
-      ) as ExactFacilityType[],
+          facilityType === FacilityType.CITY ||
+          initiallyUnlockedFacilities.has(facilityType) ||
+          gameState.unlockedFacilities.has(facilityType),
+      ),
     [],
   );
-
-  const availableFacilities = [
-    ...initiallyUnlockedFacilities,
-    ...facilityTypes.filter((facilityType) =>
-      gameState.unlockedFacilities.has(facilityType),
-    ),
-  ];
 
   return (
     <div>
       <h2>Build new facility:</h2>
-      {availableFacilities.map((facilityType) => (
+      {facilityTypes.map((facilityType) => (
         <div key={facilityType}>
           <button
             type="button"
