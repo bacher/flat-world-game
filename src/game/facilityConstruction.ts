@@ -192,5 +192,3 @@ export const workAreaMap: WorkAreaMap = Object.entries(
   }
   return acc;
 }, {} as Partial<WorkAreaMap>) as WorkAreaMap;
-
-console.log('a', workAreaMap);

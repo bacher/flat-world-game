@@ -72,11 +72,11 @@ export function drawResourceIcon(
       break;
     case ResourceType.MEAT:
       ctx.beginPath();
-      ctx.arc(0, -2, 4, 0, 2 * Math.PI, true);
+      ctx.arc(0, 0, 4, 0, 2 * Math.PI, true);
       ctx.fillStyle = 'red';
       ctx.fill();
       ctx.beginPath();
-      ctx.rect(-1, -3, 2, 7);
+      ctx.rect(-1, -1, 2, 7);
       ctx.fillStyle = 'lightgray';
       ctx.fill();
       break;

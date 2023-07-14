@@ -1,4 +1,5 @@
 import { addToMapSet } from '@/utils/helpers';
+import { neverCall } from '@/utils/typeUtils';
 
 import {
   BASE_WEIGHT_PER_PEOPLE_DAY,
@@ -54,7 +55,6 @@ import {
   isSamePath,
 } from './helpers';
 import { Booster, boosterByResourceType, boosters } from './boosters';
-import { neverCall } from '@/utils/typeUtils.ts';
 
 const enum JobType {
   WORKER = 'WORKER',

@@ -614,22 +614,24 @@ function drawStorage(
   align: 'left' | 'right',
 ): void {
   const { ctx } = visualState;
+  const center = (storage.length - 1) / 2;
+
   for (let i = 0; i < storage.length; i += 1) {
     ctx.save();
 
+    const offset = (i - center) * 16;
+
     if (align === 'left') {
-      ctx.translate(15, 5 + i * 16);
+      ctx.translate(15, offset);
     } else {
-      ctx.translate(-15, 5 + i * 16);
+      ctx.translate(-15, offset);
     }
 
     const { resourceType, quantity } = storage[i];
 
     drawResourceIcon(ctx, resourceType);
 
-    const value = quantity.toFixed(1);
-
-    let text = value;
+    let text = quantity.toFixed(1);
 
     if (DRAW_RESOURCE_NAMES) {
       const resourceName = resourceLocalization[resourceType] ?? 'Unknown';
@@ -639,7 +641,7 @@ function drawStorage(
     drawText(
       ctx,
       text,
-      { x: align === 'left' ? 7 : -7, y: 0 },
+      { x: align === 'left' ? 7 : -7, y: 1 },
       {
         align,
         baseline: 'middle',

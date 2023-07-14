@@ -1,21 +1,21 @@
 .statusText {
-  grid-area: A;
-  padding: 30px 40px;
-  text-align: center;
-  text-shadow: rgba(255, 255, 255, 1) 0 0 9px;
-  pointer-events: none;
+    grid-area: A;
+    padding: 30px 40px;
+    text-align: center;
+    text-shadow: rgba(255, 255, 255, 1) 0 0 9px;
+    pointer-events: none;
 }
 
 .upperTitle {
-  font-size: 16px;
+    font-size: 16px;
 }
 
 .mainTitle {
-  font-size: 22px;
-  font-weight: 700;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 .lowerTitle {
-  font-size: 16px;
-  color: gray;
+    font-size: 16px;
+    color: gray;
 }
