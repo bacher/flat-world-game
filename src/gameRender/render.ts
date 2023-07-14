@@ -575,26 +575,40 @@ function drawStructureInfo(
   }
 }
 
+const cityDefaultInput: StorageItem[] = [
+  {
+    resourceType: ResourceType.FOOD,
+    quantity: 0,
+  },
+  {
+    resourceType: ResourceType.HOUSING,
+    quantity: 0,
+  },
+];
+
 function drawFacilityStorage(
   visualState: VisualState,
   facility: Structure,
 ): void {
-  const iterationInfo = isCity(facility)
-    ? undefined
-    : getStructureIterationStorageInfo(facility);
+  let planInput: StorageItem[];
+  let planOutput: StorageItem[] | undefined;
 
-  const planInput = iterationInfo?.input;
+  if (isCity(facility)) {
+    planInput = cityDefaultInput;
+  } else {
+    const iterationInfo = getStructureIterationStorageInfo(facility);
+    planInput = iterationInfo.input;
+    planOutput = iterationInfo.output;
+  }
 
-  const input = planInput
-    ? combineStorageWithIteration(planInput, facility.input)
-    : facility.input;
+  const input = combineStorageWithIteration(planInput, facility.input);
 
   if (input.length) {
     drawStorage(visualState, input, 'right');
   }
 
-  const output = iterationInfo
-    ? combineStorageWithIteration(iterationInfo.output, facility.output)
+  const output = planOutput
+    ? combineStorageWithIteration(planOutput, facility.output)
     : facility.output;
 
   if (output.length) {

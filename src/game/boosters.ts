@@ -16,12 +16,12 @@ export const boosters: Record<
 > = {
   population: {
     resourceTypes: [...foodResourceTypes],
-    perWorker: 0.2,
+    perWorker: 0.15,
     boost: 1,
   },
   housing: {
     resourceTypes: [...houseResourceTypes],
-    perWorker: 0.05,
+    perWorker: 0.01,
     boost: 1,
   },
   carrier: {

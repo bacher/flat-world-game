@@ -204,14 +204,14 @@ export function drawResourceIcon(
       break;
     case ResourceType.HOUSING:
       ctx.beginPath();
-      ctx.moveTo(-5, -2);
+      ctx.moveTo(-5, -1);
       ctx.lineTo(0, -4);
-      ctx.lineTo(5, -2);
+      ctx.lineTo(5, -1);
       ctx.closePath();
       ctx.fillStyle = 'brown';
       ctx.fill();
       ctx.beginPath();
-      ctx.rect(-4, -2, 4, 6);
+      ctx.rect(-4, -1, 8, 5);
       ctx.fillStyle = 'gray';
       ctx.fill();
       break;
