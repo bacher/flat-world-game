@@ -202,6 +202,38 @@ export function drawResourceIcon(
       ctx.strokeStyle = 'gray';
       ctx.stroke();
       break;
+    case ResourceType.HOUSING:
+      ctx.beginPath();
+      ctx.moveTo(-5, -2);
+      ctx.lineTo(0, -4);
+      ctx.lineTo(5, -2);
+      ctx.closePath();
+      ctx.fillStyle = 'brown';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect(-4, -2, 4, 6);
+      ctx.fillStyle = 'gray';
+      ctx.fill();
+      break;
+    case ResourceType.WICKIUP:
+      ctx.beginPath();
+      ctx.moveTo(-6, 4);
+      ctx.lineTo(0, -4);
+      ctx.lineTo(6, 4);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'brown';
+      ctx.stroke();
+      ctx.lineWidth = 1;
+      break;
+    case ResourceType.HOVEL:
+      ctx.beginPath();
+      ctx.moveTo(-6, -4);
+      ctx.lineTo(0, 4);
+      ctx.lineTo(6, -4);
+      ctx.closePath();
+      ctx.fillStyle = 'brown';
+      ctx.fill();
+      break;
     default:
       ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);

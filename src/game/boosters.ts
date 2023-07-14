@@ -1,4 +1,8 @@
-import { foodResourceTypes, ResourceType } from './resources';
+import {
+  foodResourceTypes,
+  houseResourceTypes,
+  ResourceType,
+} from './resources';
 
 export type Booster = {
   resourceTypes: ResourceType[];
@@ -7,12 +11,17 @@ export type Booster = {
 };
 
 export const boosters: Record<
-  'population' | 'carrier' | 'worker' | 'research',
+  'population' | 'housing' | 'carrier' | 'worker' | 'research',
   Booster
 > = {
   population: {
-    resourceTypes: [...foodResourceTypes.values()],
+    resourceTypes: [...foodResourceTypes],
     perWorker: 0.2,
+    boost: 1,
+  },
+  housing: {
+    resourceTypes: [...houseResourceTypes],
+    perWorker: 0.05,
     boost: 1,
   },
   carrier: {

@@ -375,6 +375,48 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
+  [FacilityType.HOUSING_FACTORY]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: [
+      {
+        id: ProductVariantId.WICKIUP,
+        iterationPeopleDays: 4,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 10,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.WICKIUP,
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.HOVEL,
+        iterationPeopleDays: 10,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 40,
+          },
+          {
+            resourceType: ResourceType.HAY,
+            quantity: 10,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.HOVEL,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
 };
 
 export const initiallyUnlockedFacilities: Set<ExactFacilityType> = new Set([
@@ -395,6 +437,7 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.WORK_SHOP]: 'Work shop',
   [FacilityType.STABLE]: 'Stable',
   [FacilityType.ANCIENT_FACTORY]: 'Ancient factory',
+  [FacilityType.HOUSING_FACTORY]: 'Housing factory',
 };
 
 export const productVariantsTranslations: Record<ProductVariantId, string> = {
@@ -414,4 +457,6 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.COMPLEX_MEAL]:
     resourceLocalization[ResourceType.COMPLEX_MEAL],
   [ProductVariantId.WOODEN_BOW]: resourceLocalization[ResourceType.WOODEN_BOW],
+  [ProductVariantId.WICKIUP]: resourceLocalization[ResourceType.WICKIUP],
+  [ProductVariantId.HOVEL]: resourceLocalization[ResourceType.HOVEL],
 };

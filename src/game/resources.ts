@@ -19,6 +19,9 @@ export enum ResourceType {
   TEA = 'TEA',
   BASKET = 'BASKET',
   WOODEN_BOW = 'WOODEN_BOW',
+  HOUSING = 'HOUSING',
+  WICKIUP = 'WICKIUP',
+  HOVEL = 'HOVEL',
 }
 
 export type FoodResourceTypes =
@@ -52,6 +55,27 @@ export function isFoodResourceType(
   return foodResourceTypes.has(resourceType);
 }
 
+export type HouseResourceTypes =
+  | ResourceType.HOUSING
+  | ResourceType.WICKIUP
+  | ResourceType.HOVEL;
+
+export const houseCapacities: Record<HouseResourceTypes, number> = {
+  [ResourceType.HOUSING]: 1,
+  [ResourceType.WICKIUP]: 0.1,
+  [ResourceType.HOVEL]: 0.5,
+};
+
+export const houseResourceTypes: Set<ResourceType> = new Set(
+  Object.keys(houseCapacities) as HouseResourceTypes[],
+);
+
+export function isHouseResourceType(
+  resourceType: ResourceType,
+): resourceType is HouseResourceTypes {
+  return houseResourceTypes.has(resourceType);
+}
+
 export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.LOG]: 'Log',
   [ResourceType.ROUTH_LUMBER]: 'Rough Lumber',
@@ -72,4 +96,7 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.VEGAN_MEAL]: 'Vegan meal',
   [ResourceType.BASKET]: 'Basket',
   [ResourceType.WOODEN_BOW]: 'Wooden bow',
+  [ResourceType.HOUSING]: 'Housing',
+  [ResourceType.WICKIUP]: 'Wickiup',
+  [ResourceType.HOVEL]: 'Hovel',
 };

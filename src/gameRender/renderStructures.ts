@@ -127,6 +127,7 @@ export function drawStructureObject(
       ctx.fill();
       break;
     case FacilityType.ANCIENT_FACTORY:
+    case FacilityType.HOUSING_FACTORY:
       ctx.beginPath();
       ctx.moveTo(-10, 10);
       ctx.lineTo(-10, -5);
@@ -140,7 +141,11 @@ export function drawStructureObject(
       ctx.lineTo(10, -5);
       ctx.lineTo(10, 10);
       ctx.closePath();
-      ctx.fillStyle = '#8e4ee8';
+      if (drawFacilityType === FacilityType.ANCIENT_FACTORY) {
+        ctx.fillStyle = '#8e4ee8';
+      } else {
+        ctx.fillStyle = 'brown';
+      }
       ctx.fill();
       break;
     default:

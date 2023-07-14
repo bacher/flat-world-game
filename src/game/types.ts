@@ -30,6 +30,7 @@ export enum FacilityType {
   ANCIENT_FACTORY = 'ANCIENT_FACTORY',
   HUNTERS_BOOTH = 'HUNTERS_BOOTH',
   HUNTERS_BOOTH_2 = 'HUNTERS_BOOTH_2',
+  HOUSING_FACTORY = 'HOUSING_FACTORY',
 }
 
 export enum ProductVariantId {
@@ -47,6 +48,8 @@ export enum ProductVariantId {
   COMPLEX_MEAL = 'COMPLEX_MEAL',
   VEGAN_MEAL = 'VEGAN_MEAL',
   WOODEN_BOW = 'WOODEN_BOW',
+  WICKIUP = 'WICKIUP',
+  HOVEL = 'HOVEL',
 }
 
 export type ExactFacilityType = Exclude<
@@ -183,6 +186,8 @@ export const enum ResearchId {
   COOKING = 'COOKING',
   HUNTING = 'HUNTING',
   HUNTING_2 = 'HUNTING_2',
+  HOUSING = 'HOUSING',
+  HOUSING_2 = 'HOUSING_2',
 }
 
 export type Research = {

@@ -168,6 +168,21 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.HOUSING_FACTORY]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.LOG,
+        quantity: 20,
+      },
+      {
+        resourceType: ResourceType.HAY,
+        quantity: 8,
+      },
+    ],
+  },
 };
 
 export const workAreaMap: WorkAreaMap = Object.entries(
