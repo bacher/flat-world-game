@@ -8,4 +8,5 @@
 6. [ ] Allow to add carrier paths by dragging connection
 7. [ ] Allow change production variant on the fly
 8. [x] Make common work radius between facilities with same meta-type
-9. [ ] Add housing
+9. [x] Add housing
+10. [ ] Add storage facility

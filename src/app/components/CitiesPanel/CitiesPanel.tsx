@@ -15,7 +15,7 @@ export function CitiesPanel({ gameState, onCityClick }: Props) {
 
   return (
     <div>
-      <h2>Cities</h2>
+      <h2>Cities:</h2>
       <ul>
         {citiesList.map((city) => (
           <li key={city.cityId}>

@@ -175,11 +175,11 @@ export const facilitiesConstructionInfo: Record<
     input: [
       {
         resourceType: ResourceType.LOG,
-        quantity: 20,
+        quantity: 10,
       },
       {
-        resourceType: ResourceType.HAY,
-        quantity: 8,
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 20,
       },
     ],
   },

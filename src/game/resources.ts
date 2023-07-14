@@ -63,7 +63,7 @@ export type HouseResourceTypes =
 export const houseCapacities: Record<HouseResourceTypes, number> = {
   [ResourceType.HOUSING]: 1,
   [ResourceType.WICKIUP]: 0.1,
-  [ResourceType.HOVEL]: 0.5,
+  [ResourceType.HOVEL]: 0.7,
 };
 
 export const houseResourceTypes: Set<ResourceType> = new Set(

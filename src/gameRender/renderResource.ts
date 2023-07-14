@@ -227,9 +227,9 @@ export function drawResourceIcon(
       break;
     case ResourceType.HOVEL:
       ctx.beginPath();
-      ctx.moveTo(-6, -4);
-      ctx.lineTo(0, 4);
-      ctx.lineTo(6, -4);
+      ctx.moveTo(-6, 4);
+      ctx.lineTo(0, -4);
+      ctx.lineTo(6, 4);
       ctx.closePath();
       ctx.fillStyle = 'brown';
       ctx.fill();

@@ -188,7 +188,8 @@ export function drawStructureObject(
 
     const populationText = Math.floor(city.population).toString();
     const needPopulationText = city.lastTickReport.needPopulation.toString();
-    const text = `${needPopulationText}/${populationText}`;
+    const rest = `/${populationText}`;
+    const text = `${needPopulationText}${rest}`;
     if (city.population >= city.lastTickReport.needPopulation) {
       ctx.fillStyle = 'green';
     } else {
@@ -197,6 +198,10 @@ export function drawStructureObject(
     ctx.textAlign = 'right';
     ctx.strokeText(text, 18, 14);
     ctx.fillText(text, 18, 14);
+
+    ctx.fillStyle = '#000';
+    ctx.strokeText(rest, 18, 14);
+    ctx.fillText(rest, 18, 14);
 
     ctx.lineWidth = 1;
   }
