@@ -1,4 +1,5 @@
 import {
+  CarrierPath,
   CellPath,
   CellPosition,
   CellRect,
@@ -21,6 +22,7 @@ import {
   calculateDistanceSquare,
   extendArea,
   isSameCellPoints,
+  isSamePath,
   newCellPosition,
 } from '@/game/helpers';
 import {
@@ -57,8 +59,8 @@ export function renderGameToCanvas(visualState: VisualState): void {
   drawViewportHighlights(visualState);
   drawInteractiveAction(visualState);
   drawGrid(visualState);
-  drawCarrierPaths(visualState);
   drawObjects(visualState);
+  drawCarrierPaths(visualState);
 
   ctx.restore();
 
@@ -525,22 +527,69 @@ function drawCarrierPath(
 }
 
 function drawCarrierPaths(visualState: VisualState): void {
-  const { gameState } = visualState;
+  const { gameState, hoverCell } = visualState;
 
-  // TODO: Optimize, draw only paths in viewport
+  if (!hoverCell) {
+    return;
+  }
 
-  for (const city of gameState.cities.values()) {
-    for (const { path } of city.carrierPaths) {
-      drawCarrierPath(visualState, path, { color: '#a0a0a0' });
-    }
+  const structure = gameState.structuresByCellId.get(hoverCell.cellId);
 
-    for (const { path, carriers } of city.lastTickReport.carrierPathReports) {
-      drawCarrierPath(visualState, path, {
-        text: humanFormat(carriers),
-        color: 'black',
+  if (!structure) {
+    return;
+  }
+
+  const inputPaths = gameState.carrierPathsToCellId.get(
+    structure.position.cellId,
+  );
+  const outputPaths = gameState.carrierPathsFromCellId.get(
+    structure.position.cellId,
+  );
+
+  if (inputPaths) {
+    for (const carrierPath of inputPaths) {
+      drawHoverCarrierPath(visualState, carrierPath, {
+        idleColor: 'rgba(255,165,0,0.5)',
+        activeColor: 'rgb(255,165,0)',
       });
     }
   }
+
+  if (outputPaths) {
+    for (const carrierPath of outputPaths) {
+      drawHoverCarrierPath(visualState, carrierPath, {
+        idleColor: 'rgba(94,94,237,0.7)',
+        activeColor: 'rgb(94,94,237)',
+      });
+    }
+  }
+}
+
+function drawHoverCarrierPath(
+  visualState: VisualState,
+  carrierPath: CarrierPath,
+  {
+    idleColor,
+    activeColor,
+  }: {
+    idleColor: string;
+    activeColor: string;
+  },
+): void {
+  const { gameState } = visualState;
+  const city = gameState.cities.get(carrierPath.assignedCityId)!;
+  const pathReport = city.lastTickReport.carrierPathReports.find((pathReport) =>
+    isSamePath(pathReport.path, carrierPath.path),
+  );
+
+  const params = pathReport
+    ? {
+        text: humanFormat(pathReport.carriers),
+        color: activeColor,
+      }
+    : { color: idleColor };
+
+  drawCarrierPath(visualState, carrierPath.path, params);
 }
 
 function isCity(structure: Structure): structure is City {

@@ -586,3 +586,10 @@ export function getAllStructuresInArea(
 
   return structures;
 }
+
+export function getAssignedCityId(structure: Structure): CityId {
+  if (structure.type === FacilityType.CITY) {
+    return structure.cityId;
+  }
+  return structure.assignedCityId;
+}

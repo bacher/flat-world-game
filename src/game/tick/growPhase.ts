@@ -13,6 +13,9 @@ type CityGrowResponse =
       type: 'BELOW_LIMIT';
     }
   | {
+      type: 'AT_LIMIT';
+    }
+  | {
       type: 'MORE';
     };
 
@@ -52,8 +55,8 @@ export function growPhase(gameState: GameState): void {
         city.population = MINIMAL_CITY_PEOPLE;
       }
     } else if (
-      housingModifier.type === 'MORE' &&
-      foodModifier.type === 'MORE'
+      housingModifier.type !== 'AT_LIMIT' &&
+      foodModifier.type !== 'AT_LIMIT'
     ) {
       city.population *= 1.01;
     }
@@ -69,9 +72,10 @@ function processCityResource(
   const roundedPopulation = Math.floor(city.population);
   const extraPeople = roundedPopulation - startFrom;
 
-  if (extraPeople === 0 && getResourceCount(city.input, resourceType) > 0) {
+  if (extraPeople === 0) {
     return {
-      type: 'MORE',
+      type:
+        getResourceCount(city.input, resourceType) > 0 ? 'MORE' : 'AT_LIMIT',
     };
   } else if (extraPeople <= 0) {
     return {
