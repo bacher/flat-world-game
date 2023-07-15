@@ -64,11 +64,11 @@ export function tick(gameState: GameState): void {
     updateCityNeedPopulation(gameState, city, totalNeedPeopleCount);
 
     for (const work of dailyWorks) {
-      const { actualWorkDays } = work;
+      const { actualWorkDays, task } = work;
 
-      switch (work.jobType) {
+      switch (task.jobType) {
         case JobType.WORKER: {
-          const { facility } = work;
+          const { facility } = task;
           if (facility.type === FacilityType.CONSTRUCTION) {
             doConstructionWork(gameState, facility, actualWorkDays);
           } else {
@@ -77,12 +77,12 @@ export function tick(gameState: GameState): void {
           break;
         }
         case JobType.CARRIER: {
-          const { carrierPath } = work;
+          const { carrierPath } = task;
           doCarryWork(gameState, carrierPath, actualWorkDays);
           break;
         }
         default:
-          throw neverCall(work);
+          throw neverCall(task);
       }
     }
 
@@ -112,11 +112,11 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
   const report = createEmptyLastTickCityReport();
 
   for (const work of dailyWorks) {
-    const { actualWorkDays } = work;
+    const { task, actualWorkDays } = work;
 
-    switch (work.jobType) {
+    switch (task.jobType) {
       case JobType.WORKER: {
-        const { facility } = work;
+        const { facility } = task;
         report.facilityWorkerReports.push({
           facility,
           workers: actualWorkDays,
@@ -124,7 +124,7 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
         break;
       }
       case JobType.CARRIER: {
-        const { carrierPath } = work;
+        const { carrierPath } = task;
         const { from, to } = carrierPath.path;
 
         const alreadyPath = report.carrierPathReports.find((path) =>
@@ -142,7 +142,7 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
         break;
       }
       default:
-        throw neverCall(work);
+        throw neverCall(task);
     }
   }
 

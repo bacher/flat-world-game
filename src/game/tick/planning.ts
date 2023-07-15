@@ -34,49 +34,31 @@ export const enum JobType {
   CARRIER = 'CARRIER',
 }
 
-type BaseWork = {
+type FacilityWork = {
+  jobType: JobType.WORKER;
+  facility: Facility | Construction;
+};
+
+type CarrierWork = {
+  jobType: JobType.CARRIER;
+  carrierPath: CarrierPath;
+};
+
+type DailyTask = FacilityWork | CarrierWork;
+
+type DailyWorkBase = {
+  task: DailyTask;
   needWorkDays: number;
+};
+
+type DailyWorkNeed = DailyWorkBase & {
   exclusiveWorkDays: number;
   restWorkDays: number;
+};
+
+export type DailyWork = DailyWorkNeed & {
   actualWorkDays: number;
 };
-
-type FacilityWorkNeed = {
-  jobType: JobType.WORKER;
-  facility: Facility | Construction;
-  needWorkDays: number;
-};
-
-type CarrierWorkNeed = {
-  jobType: JobType.CARRIER;
-  carrierPath: CarrierPath;
-  needWorkDays: number;
-};
-
-type FacilityWorkNeed2 = FacilityWorkNeed & {
-  exclusiveWorkDays: number;
-  restWorkDays: number;
-};
-
-type CarrierWorkNeed2 = CarrierWorkNeed & {
-  exclusiveWorkDays: number;
-  restWorkDays: number;
-};
-
-type FacilityWork = BaseWork & {
-  jobType: JobType.WORKER;
-  facility: Facility | Construction;
-};
-
-type CarrierWork = BaseWork & {
-  jobType: JobType.CARRIER;
-  carrierPath: CarrierPath;
-};
-
-type DailyWorkNeed = FacilityWorkNeed | CarrierWorkNeed;
-type DailyWorkNeed2 = FacilityWorkNeed2 | CarrierWorkNeed2;
-
-export type DailyWork = FacilityWork | CarrierWork;
 
 type CityTickWorkPlan = {
   totalNeedPeopleCount: number;
@@ -88,7 +70,7 @@ export function planCityTickWork(
   city: City,
 ): CityTickWorkPlan {
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
-  const dailyWorksNeed: DailyWorkNeed[] = [];
+  const dailyWorksBase: DailyWorkBase[] = [];
 
   for (const facility of facilities) {
     if (!facility.isPaused) {
@@ -98,9 +80,11 @@ export function planCityTickWork(
           : getFacilityBaseWorkDays(facility);
 
       if (needWorkDays) {
-        dailyWorksNeed.push({
-          jobType: JobType.WORKER,
-          facility,
+        dailyWorksBase.push({
+          task: {
+            jobType: JobType.WORKER,
+            facility,
+          },
           needWorkDays,
         });
       }
@@ -112,23 +96,23 @@ export function planCityTickWork(
       const needWorkDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
 
       if (needWorkDays) {
-        dailyWorksNeed.push({
-          jobType: JobType.CARRIER,
-          carrierPath,
+        dailyWorksBase.push({
+          task: {
+            jobType: JobType.CARRIER,
+            carrierPath,
+          },
           needWorkDays,
         });
       }
     }
   }
 
-  const dailyWorks2: DailyWorkNeed2[] = dailyWorksNeed.map(
-    (work): DailyWorkNeed2 => {
-      return {
-        ...work,
-        exclusiveWorkDays: Math.min(work.needWorkDays, EXCLUSIVE_WORK_DAYS),
-        restWorkDays: Math.max(0, work.needWorkDays - EXCLUSIVE_WORK_DAYS),
-      };
-    },
+  const dailyWorksNeed: DailyWorkNeed[] = dailyWorksBase.map(
+    (work): DailyWorkNeed => ({
+      ...work,
+      exclusiveWorkDays: Math.min(work.needWorkDays, EXCLUSIVE_WORK_DAYS),
+      restWorkDays: Math.max(0, work.needWorkDays - EXCLUSIVE_WORK_DAYS),
+    }),
   );
 
   const workDaySummaries: Record<JobType, WorkDaysSummary> = {
@@ -136,8 +120,8 @@ export function planCityTickWork(
     [JobType.CARRIER]: createEmptyWorkDaysSummary(),
   };
 
-  for (const { jobType, exclusiveWorkDays, restWorkDays } of dailyWorks2) {
-    const summary = workDaySummaries[jobType];
+  for (const { task, exclusiveWorkDays, restWorkDays } of dailyWorksNeed) {
+    const summary = workDaySummaries[task.jobType];
     summary.exclusiveWorkDays += exclusiveWorkDays;
     summary.restWorkDays += restWorkDays;
   }
@@ -147,7 +131,7 @@ export function planCityTickWork(
     needCarriersWorkDays: workDaySummaries[JobType.CARRIER],
   });
 
-  const dailyWorks: DailyWork[] = dailyWorks2.map(
+  const dailyWorks: DailyWork[] = dailyWorksNeed.map(
     (work): DailyWork => ({
       ...work,
       actualWorkDays: work.exclusiveWorkDays + work.restWorkDays * workRatio,
