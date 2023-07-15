@@ -23,11 +23,14 @@ import {
   CityLastTickReportInfo,
   CityReportInfo,
   Construction,
-  ExactFacilityType,
   Facility,
+  FacilityLikeType,
   FacilityType,
   GameState,
+  isStorageFacility,
+  isStorageFacilityType,
   ProductVariantId,
+  StorageFacility,
   StorageItem,
   Structure,
 } from './types';
@@ -43,6 +46,7 @@ import { facilitiesConstructionInfo } from './facilityConstruction';
 import { generateNewCityName } from './cityNameGenerator';
 import { calculateDistance, newCellPosition } from './helpers';
 import { cityResourcesInput } from '@/game/boosters.ts';
+import { neverCall } from '@/utils/typeUtils.ts';
 
 export function addCarrierPath(
   gameState: GameState,
@@ -72,26 +76,6 @@ export function addPathTo(
   }
 
   alreadyPaths.push(carrierPath);
-}
-
-export function actualizeCityTotalAssignedWorkersCount(
-  gameState: GameState,
-  city: City,
-): void {
-  const carriers = city.carrierPaths.reduce(
-    (acc, path) => acc + path.people,
-    0,
-  );
-
-  const workers =
-    gameState.facilitiesByCityId
-      .get(city.cityId)
-      ?.reduce((acc, facility) => acc + facility.assignedWorkersCount, 0) ?? 0;
-
-  city.totalAssignedWorkersCount = Math.min(
-    city.population,
-    carriers + workers,
-  );
 }
 
 export function addResource(
@@ -215,6 +199,35 @@ export function getStructureIterationStorageInfo(structure: Structure): {
     };
   }
 
+  if (isStorageFacility(structure)) {
+    switch (structure.type) {
+      case FacilityType.INTERCITY_SENDER:
+        return {
+          iterationPeopleDays: 0,
+          input: [
+            {
+              resourceType: structure.resourceType,
+              quantity: 0,
+            },
+          ],
+          output: [],
+        };
+      case FacilityType.INTERCITY_RECEIVER:
+        return {
+          iterationPeopleDays: 0,
+          input: [],
+          output: [
+            {
+              resourceType: structure.resourceType,
+              quantity: 0,
+            },
+          ],
+        };
+      default:
+        throw neverCall(structure);
+    }
+  }
+
   const iterationInfo = facilitiesIterationInfo[structure.type];
 
   return iterationInfo.productionVariants.find(
@@ -316,7 +329,6 @@ export function addCity(
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
     isNeedUpdateAutomaticPaths: false,
-    totalAssignedWorkersCount: 0,
     peopleDayPerCell: BASE_PEOPLE_DAY_PER_CELL,
     weightPerPeopleDay: BASE_WEIGHT_PER_PEOPLE_DAY,
     peopleWorkModifier: BASE_PEOPLE_WORK_MODIFIER,
@@ -352,9 +364,9 @@ export function addConstructionStructure(
     position,
     productionVariantId,
   }: {
-    facilityType: ExactFacilityType;
+    facilityType: FacilityLikeType;
     position: CellPosition;
-    productionVariantId: ProductVariantId;
+    productionVariantId: ProductVariantId | ResourceType;
   },
 ): void {
   const city = getNearestCity(gameState, position);
@@ -379,20 +391,35 @@ export function addConstructionStructure(
 export function completeConstruction(
   gameState: GameState,
   construction: Construction,
-): Facility {
-  const facility: Facility = {
-    type: construction.buildingFacilityType,
-    assignedCityId: construction.assignedCityId,
-    position: construction.position,
-    assignedWorkersCount:
-      facilitiesIterationInfo[construction.buildingFacilityType]
-        .maximumPeopleAtWork,
-    productionVariantId: construction.productionVariantId,
-    input: [],
-    output: [],
-    inProcess: 0,
-    isPaused: false,
-  };
+): Facility | StorageFacility {
+  let facility: Facility | StorageFacility;
+
+  if (isStorageFacilityType(construction.buildingFacilityType)) {
+    facility = {
+      type: construction.buildingFacilityType,
+      assignedCityId: construction.assignedCityId,
+      position: construction.position,
+      input: [],
+      output: [],
+      // TODO:
+      resourceType: construction.productionVariantId as ResourceType,
+      isPaused: false,
+    };
+  } else {
+    facility = {
+      type: construction.buildingFacilityType,
+      assignedCityId: construction.assignedCityId,
+      position: construction.position,
+      assignedWorkersCount:
+        facilitiesIterationInfo[construction.buildingFacilityType]
+          .maximumPeopleAtWork,
+      productionVariantId: construction.productionVariantId,
+      input: [],
+      output: [],
+      inProcess: 0,
+      isPaused: false,
+    };
+  }
 
   removeAllCarrierPathsTo(
     gameState,
@@ -407,7 +434,7 @@ export function completeConstruction(
 function replaceCunstructionByFacility(
   gameState: GameState,
   construction: Construction,
-  facility: Facility,
+  facility: Facility | StorageFacility,
 ): void {
   const city = gameState.cities.get(facility.assignedCityId)!;
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;

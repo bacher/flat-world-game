@@ -5,8 +5,8 @@ import {
   CarrierPathType,
   CellId,
   City,
-  ExactFacilityType,
   FacilitiesByCityId,
+  FacilityLikeType,
   GameState,
   GameStateSnapshot,
   ProductVariantId,
@@ -151,12 +151,12 @@ function extractCarrierPaths(cities: City[]): {
 }
 
 function collectUnlockedFacilities(completedResearches: ResearchId[]): {
-  unlockedFacilities: Set<ExactFacilityType>;
-  unlockedProductionVariants: Map<ExactFacilityType, Set<ProductVariantId>>;
+  unlockedFacilities: Set<FacilityLikeType>;
+  unlockedProductionVariants: Map<FacilityLikeType, Set<ProductVariantId>>;
 } {
-  const unlockedFacilities = new Set<ExactFacilityType>();
+  const unlockedFacilities = new Set<FacilityLikeType>();
   const unlockedProductionVariants = new Map<
-    ExactFacilityType,
+    FacilityLikeType,
     Set<ProductVariantId>
   >();
 

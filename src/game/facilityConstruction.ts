@@ -1,5 +1,5 @@
-import { ItrationInfoType } from '@/game/facilities';
 import { ExactFacilityType, FacilityType, StorageItem } from '@/game/types';
+import { ItrationInfoType } from '@/game/facilities';
 import { ResourceType } from '@/game/resources';
 
 export type FacilityConstructionInfo = {
@@ -30,7 +30,9 @@ export type WorkAreaMap = Record<
 >;
 
 export const facilitiesConstructionInfo: Record<
-  ExactFacilityType,
+  | ExactFacilityType
+  | FacilityType.INTERCITY_SENDER
+  | FacilityType.INTERCITY_RECEIVER,
   FacilityConstructionInfo
 > = {
   [FacilityType.LUMBER]: {
@@ -177,6 +179,28 @@ export const facilitiesConstructionInfo: Record<
         resourceType: ResourceType.LOG,
         quantity: 10,
       },
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 20,
+      },
+    ],
+  },
+  [FacilityType.INTERCITY_SENDER]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 2,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 20,
+      },
+    ],
+  },
+  [FacilityType.INTERCITY_RECEIVER]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 2,
+    maximumPeopleAtWork: 3,
+    input: [
       {
         resourceType: ResourceType.ROUTH_LUMBER,
         quantity: 20,

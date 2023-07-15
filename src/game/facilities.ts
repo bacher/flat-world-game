@@ -1,5 +1,6 @@
 import {
   ExactFacilityType,
+  FacilityLikeType,
   FacilityType,
   ProductVariantId,
   StorageItem,
@@ -419,7 +420,7 @@ export const facilitiesIterationInfo: Record<
   },
 };
 
-export const initiallyUnlockedFacilities: Set<ExactFacilityType> = new Set([
+export const initiallyUnlockedFacilities: Set<FacilityLikeType> = new Set([
   FacilityType.GATHERING,
 ]);
 
@@ -438,6 +439,8 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.STABLE]: 'Stable',
   [FacilityType.ANCIENT_FACTORY]: 'Ancient factory',
   [FacilityType.HOUSING_FACTORY]: 'Housing factory',
+  [FacilityType.INTERCITY_SENDER]: 'Intercity sender',
+  [FacilityType.INTERCITY_RECEIVER]: 'Intercity receiver',
 };
 
 export const productVariantsTranslations: Record<ProductVariantId, string> = {

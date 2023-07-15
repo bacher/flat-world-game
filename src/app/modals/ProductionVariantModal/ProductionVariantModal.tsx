@@ -11,7 +11,6 @@ import type {
 } from '@/game/types';
 import { facilitiesIterationInfo } from '@/game/facilities';
 import { resourceLocalization } from '@/game/resources';
-
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 
 import { ModalCloseButton } from '../ModalCloseButton';

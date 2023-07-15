@@ -4,6 +4,7 @@ import {
   EXCLUSIVE_WORK_DAYS,
   INPUT_BUFFER_DAYS,
   OUTPUT_BUFFER_DAYS,
+  STORAGE_MAX_CAPACITY,
 } from '@/game/consts';
 import {
   CarrierPath,
@@ -12,6 +13,7 @@ import {
   Facility,
   FacilityType,
   GameState,
+  isStorageFacility,
   StorageItem,
   WorkDaysSummary,
 } from '@/game/types';
@@ -72,7 +74,11 @@ export function planCityTickWork(
   const dailyWorksBase: DailyWorkBase[] = [];
 
   for (const facility of facilities) {
-    if (!facility.isPaused) {
+    if (
+      (isExactFacility(facility) ||
+        facility.type === FacilityType.CONSTRUCTION) &&
+      !facility.isPaused
+    ) {
       const needWorkDays =
         facility.type === FacilityType.CONSTRUCTION
           ? getConstructionBaseWorkDays(facility)
@@ -267,9 +273,7 @@ function getCarrierPathBaseWorkDays(
   gameState: GameState,
   carrierPath: CarrierPath,
 ): number {
-  // TODO:
-  //   paths doesn't know about others
-  //   could be over move or over grab
+  // TODO: Paths doesn't know about others, could be over move or over grab
 
   const { to, from } = getCarrierPathStructures(gameState, carrierPath);
 
@@ -300,6 +304,9 @@ function getCarrierPathBaseWorkDays(
 
       needCount = (cap - alreadyCount) / modifier;
     }
+  } else if (isStorageFacility(to)) {
+    const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
+    needCount = STORAGE_MAX_CAPACITY - alreadyCount;
   } else {
     const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
     const maximumPeopleAtWork = getMaximumPeopleAtWork(to);

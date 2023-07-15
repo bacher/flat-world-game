@@ -10,25 +10,27 @@ import clamp from 'lodash/clamp';
 import styles from './FacilityModal.module.scss';
 
 import {
+  CarrierPath,
+  CellPosition,
   City,
   Construction,
   Facility,
-  GameState,
-  Structure,
-  CarrierPath,
   FacilityType,
+  GameState,
+  isStorageFacility,
   StorageItem,
-  CellPosition,
+  Structure,
 } from '@/game/types';
-import { facilitiesDescription } from '@/game/facilities';
+import {
+  facilitiesDescription,
+  facilitiesIterationInfo,
+} from '@/game/facilities';
 import { facilitiesConstructionInfo } from '@/game/facilityConstruction';
 import {
   getStructureIterationStorageInfo,
   removeFacility,
 } from '@/game/gameState';
-import { ResourceType } from '@/game/resources';
-import { facilitiesIterationInfo } from '@/game/facilities';
-import { resourceLocalization } from '@/game/resources';
+import { resourceLocalization, ResourceType } from '@/game/resources';
 import { useForceUpdate } from '@hooks/forceUpdate';
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 import { InteractiveActionType, VisualState } from '@/game/visualState';
@@ -113,6 +115,11 @@ function Content({
         closeWithoutApplying={closeWithoutApplying}
       />
     );
+  }
+
+  if (isStorageFacility(facility)) {
+    // TODO:
+    return <div>HUB</div>;
   }
 
   return (

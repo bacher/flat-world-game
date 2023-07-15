@@ -4,8 +4,6 @@ import {
   CellPosition,
   CellRect,
   City,
-  Construction,
-  Facility,
   FacilityType,
   GameState,
   PointTuple,
@@ -33,7 +31,6 @@ import {
 } from '@/game/visualState';
 import { humanFormat } from '@/utils/format';
 import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
-import { cityResourcesInput } from '@/game/boosters';
 import {
   facilitiesConstructionInfo,
   workAreaMap,
@@ -115,16 +112,17 @@ function drawCarrierPlanningMode(
   highlightCell(visualState, visualState.hoverCell, isValid ? '#aea' : '#e99');
 }
 
-function extactResourceTypesFromStorageInfo(
-  facility: Facility | Construction,
-): { input: ResourceType[]; output: ResourceType[] } {
-  const { input, output } = getStructureIterationStorageInfo(facility);
-
-  return {
-    input: input.map((item) => item.resourceType),
-    output: output.map((item) => item.resourceType),
-  };
-}
+// TODO:
+//function extactResourceTypesFromStorageInfo(
+//  facility: Facility | Construction,
+//): { input: ResourceType[]; output: ResourceType[] } {
+//  const { input, output } = getStructureIterationStorageInfo(facility);
+//
+//  return {
+//    input: input.map((item) => item.resourceType),
+//    output: output.map((item) => item.resourceType),
+//  };
+//}
 
 export function isValidCarrierPlanningTarget(
   visualState: VisualState,
@@ -132,19 +130,24 @@ export function isValidCarrierPlanningTarget(
   action: InteractActionCarrierPlanning,
 ): boolean {
   if (hoverFacility && !isSameCellPoints(visualState.hoverCell, action.cell)) {
-    let input: ResourceType[];
-    let output: ResourceType[];
+    return (
+      hoverFacility.type === FacilityType.INTERCITY_RECEIVER &&
+      hoverFacility.resourceType === action.resourceType
+    );
 
-    if (isCity(hoverFacility)) {
-      input = cityResourcesInput;
-      output = [];
-    } else {
-      ({ input, output } = extactResourceTypesFromStorageInfo(hoverFacility));
-    }
-
-    const storage = action.direction === 'from' ? input : output;
-
-    return storage.includes(action.resourceType);
+    // TODO:
+    //    let input: ResourceType[];
+    //    let output: ResourceType[];
+    //    if (isCity(hoverFacility)) {
+    //      input = cityResourcesInput;
+    //      output = [];
+    //    } else {
+    //      ({ input, output } = extactResourceTypesFromStorageInfo(hoverFacility));
+    //    }
+    //
+    //    const storage = action.direction === 'from' ? input : output;
+    //
+    //    return storage.includes(action.resourceType);
   }
 
   return false;

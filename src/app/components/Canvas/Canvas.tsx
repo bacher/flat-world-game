@@ -57,6 +57,7 @@ import { setHash } from '@/utils/url';
 import { isSameCellPoints } from '@/game/helpers';
 import { facilitiesIterationInfo } from '@/game/facilities';
 import { ProductionVariantModal } from '@/app/modals/ProductionVariantModal';
+import { ResourceChooseModal } from '@/app/modals/ResourceChooseModal';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -66,6 +67,7 @@ const enum ModalModeType {
   FACILITY = 'FACILITY',
   RESEARCH = 'RESEARCH',
   PRODUCTION_VARIANT_CHOOSE = 'PRODUCTION_VARIANT_CHOOSE',
+  RESOURCE_CHOOSE = 'RESOURCE_CHOOSE',
 }
 
 type ModalMode =
@@ -79,6 +81,13 @@ type ModalMode =
   | {
       modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE;
       facilityType: ExactFacilityType;
+      position: CellPosition;
+    }
+  | {
+      modeType: ModalModeType.RESOURCE_CHOOSE;
+      facilityType:
+        | FacilityType.INTERCITY_SENDER
+        | FacilityType.INTERCITY_RECEIVER;
       position: CellPosition;
     };
 
@@ -337,28 +346,41 @@ export function Canvas({ gameId }: Props) {
               if (facilityType === FacilityType.CITY) {
                 addCity(gameState, { position: cell });
               } else {
-                const facilityInfo = facilitiesIterationInfo[facilityType];
-
                 if (
-                  facilityInfo.productionVariants.length > 1 ||
-                  (facilityInfo.productionVariants[0].id !==
-                    ProductVariantId.BASIC &&
-                    !gameState.unlockedProductionVariants
-                      .get(facilityType)
-                      ?.has(facilityInfo.productionVariants[0].id))
+                  facilityType === FacilityType.INTERCITY_SENDER ||
+                  facilityType === FacilityType.INTERCITY_RECEIVER
                 ) {
                   modalModeRef.current = {
-                    modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
+                    modeType: ModalModeType.RESOURCE_CHOOSE,
                     facilityType,
                     position: cell,
                   };
                   forceUpdate();
                 } else {
-                  addConstructionStructure(gameState, {
-                    facilityType,
-                    position: cell,
-                    productionVariantId: facilityInfo.productionVariants[0].id,
-                  });
+                  const facilityInfo = facilitiesIterationInfo[facilityType];
+
+                  if (
+                    facilityInfo.productionVariants.length > 1 ||
+                    (facilityInfo.productionVariants[0].id !==
+                      ProductVariantId.BASIC &&
+                      !gameState.unlockedProductionVariants
+                        .get(facilityType)
+                        ?.has(facilityInfo.productionVariants[0].id))
+                  ) {
+                    modalModeRef.current = {
+                      modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
+                      facilityType,
+                      position: cell,
+                    };
+                    forceUpdate();
+                  } else {
+                    addConstructionStructure(gameState, {
+                      facilityType,
+                      position: cell,
+                      productionVariantId:
+                        facilityInfo.productionVariants[0].id,
+                    });
+                  }
                 }
               }
 
@@ -581,6 +603,26 @@ export function Canvas({ gameId }: Props) {
                                   facilityType,
                                   position,
                                   productionVariantId,
+                                });
+                                visualStateRef.current?.onUpdate();
+                              }}
+                            />
+                          );
+                        }
+                        case ModalModeType.RESOURCE_CHOOSE: {
+                          const { facilityType, position } =
+                            modalModeRef.current;
+
+                          return (
+                            <ResourceChooseModal
+                              gameState={gameState}
+                              onClose={closeModal}
+                              onResourceTypeChoose={(resourceType) => {
+                                closeModal();
+                                addConstructionStructure(gameState, {
+                                  facilityType,
+                                  position,
+                                  productionVariantId: resourceType,
                                 });
                                 visualStateRef.current?.onUpdate();
                               }}

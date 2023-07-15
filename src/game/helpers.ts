@@ -8,6 +8,7 @@ import {
   ExactFacilityType,
   Facility,
   FacilityType,
+  isStorageFacilityType,
   Structure,
 } from './types';
 
@@ -89,7 +90,11 @@ export function isExactFacility(structure: Structure): structure is Facility {
 export function isExactFacilityType(
   type: FacilityType,
 ): type is ExactFacilityType {
-  return type !== FacilityType.CITY && type !== FacilityType.CONSTRUCTION;
+  return (
+    type !== FacilityType.CITY &&
+    type !== FacilityType.CONSTRUCTION &&
+    !isStorageFacilityType(type)
+  );
 }
 
 export function extendArea(area: CellRect, radius: number): CellRect {

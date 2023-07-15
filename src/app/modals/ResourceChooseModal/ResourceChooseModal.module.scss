@@ -1,0 +1,52 @@
+@import '@/app/mixins';
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  height: 400px;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid #777;
+}
+
+.title {
+  margin: 0 0 10px;
+}
+
+.item {
+  margin: 0 0 6px;
+}
+
+.list {
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
+.button {
+  @include button-reset;
+  display: flex;
+  width: 100%;
+  text-align: initial;
+  padding: 10px 14px;
+  border-radius: 3px;
+  border: 1px solid #999;
+  background: #e8eeff;
+
+  &:not(:disabled) {
+    cursor: pointer;
+
+    &:hover {
+      background: #cedaff;
+    }
+  }
+
+  &:disabled {
+    background: #bbb;
+  }
+}
+
+.index {
+  flex-basis: 50px;
+}

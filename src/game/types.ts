@@ -31,6 +31,8 @@ export enum FacilityType {
   HUNTERS_BOOTH = 'HUNTERS_BOOTH',
   HUNTERS_BOOTH_2 = 'HUNTERS_BOOTH_2',
   HOUSING_FACTORY = 'HOUSING_FACTORY',
+  INTERCITY_SENDER = 'INTERCITY_SENDER',
+  INTERCITY_RECEIVER = 'INTERCITY_RECEIVER',
 }
 
 export enum ProductVariantId {
@@ -54,15 +56,30 @@ export enum ProductVariantId {
 
 export type ExactFacilityType = Exclude<
   FacilityType,
-  FacilityType.CITY | FacilityType.CONSTRUCTION
+  | FacilityType.CITY
+  | FacilityType.CONSTRUCTION
+  | FacilityType.INTERCITY_SENDER
+  | FacilityType.INTERCITY_RECEIVER
 >;
+
+export type FacilityLikeType =
+  | ExactFacilityType
+  | FacilityType.INTERCITY_SENDER
+  | FacilityType.INTERCITY_RECEIVER;
+
+export type StorageFacilityType =
+  | FacilityType.INTERCITY_SENDER
+  | FacilityType.INTERCITY_RECEIVER;
 
 export type CompleteFacilityType = Exclude<
   FacilityType,
   FacilityType.CONSTRUCTION
 >;
 
-export type FacilitiesByCityId = Map<CityId, (Construction | Facility)[]>;
+export type FacilitiesByCityId = Map<
+  CityId,
+  (Construction | Facility | StorageFacility)[]
+>;
 export type StructuresByCellId = Map<CellId, Structure>;
 
 export type CarrierPathsCellIdMap = Map<CellId, CarrierPath[]>;
@@ -79,15 +96,15 @@ export type GameState = {
   completedResearches: Set<ResearchId>;
   inProgressResearches: Map<ResearchId, { points: number }>;
   currentResearchId: ResearchId | undefined;
-  unlockedFacilities: Set<ExactFacilityType>;
-  unlockedProductionVariants: Map<ExactFacilityType, Set<ProductVariantId>>;
+  unlockedFacilities: Set<FacilityLikeType>;
+  unlockedProductionVariants: Map<FacilityLikeType, Set<ProductVariantId>>;
 };
 
 export type GameStateSnapshot = {
   gameId: string;
   tickNumber: number;
   cities: Omit<City, 'isNeedUpdateAutomaticPaths'>[];
-  facilities: (Facility | Construction)[];
+  facilities: (Facility | StorageFacility | Construction)[];
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
   inProgressResearches: [ResearchId, { points: number }][];
@@ -111,7 +128,6 @@ export type City = StructureBase & {
   peopleDayPerCell: number;
   weightPerPeopleDay: number;
   peopleWorkModifier: number;
-  totalAssignedWorkersCount: number;
   cityReport: CityReportInfo;
 };
 
@@ -131,10 +147,10 @@ export type CityReportInfo = {
 export type Construction = StructureBase & {
   type: FacilityType.CONSTRUCTION;
   assignedCityId: CityId;
-  buildingFacilityType: ExactFacilityType;
+  buildingFacilityType: FacilityLikeType;
   assignedWorkersCount: number;
   inProcess: number;
-  productionVariantId: ProductVariantId;
+  productionVariantId: ProductVariantId | ResourceType;
   isPaused: boolean;
 };
 
@@ -143,11 +159,33 @@ export type Facility = StructureBase & {
   assignedCityId: CityId;
   assignedWorkersCount: number;
   inProcess: number;
-  productionVariantId: ProductVariantId;
+  productionVariantId: ProductVariantId | ResourceType;
   isPaused: boolean;
 };
 
-export type Structure = City | Construction | Facility;
+export type StorageFacility = StructureBase & {
+  type: FacilityType.INTERCITY_SENDER | FacilityType.INTERCITY_RECEIVER;
+  assignedCityId: CityId;
+  resourceType: ResourceType;
+  isPaused: boolean;
+};
+
+export function isStorageFacilityType(
+  facilityType: FacilityType,
+): facilityType is StorageFacilityType {
+  return (
+    facilityType === FacilityType.INTERCITY_SENDER ||
+    facilityType === FacilityType.INTERCITY_RECEIVER
+  );
+}
+
+export function isStorageFacility(
+  structure: Structure,
+): structure is StorageFacility {
+  return isStorageFacilityType(structure.type);
+}
+
+export type Structure = City | Construction | Facility | StorageFacility;
 
 export type CellPath = {
   from: CellPosition;
@@ -196,13 +234,14 @@ export const enum ResearchId {
   HUNTING_2 = 'HUNTING_2',
   HOUSING = 'HOUSING',
   HOUSING_2 = 'HOUSING_2',
+  INTERCITY = 'INTERCITY',
 }
 
 export type Research = {
   researchId: ResearchId;
   points: number;
   requires: ResearchId[];
-  unlockFacilities: ExactFacilityType[];
+  unlockFacilities: FacilityLikeType[];
   unlockProductionVariants?: Partial<
     Record<ExactFacilityType, ProductVariantId[]>
   >;
