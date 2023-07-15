@@ -13,4 +13,6 @@
 11. [x] Grow population only if there is lack of work power
 12. [ ] Add schools/universities to make researches
 13. [ ] Update research logic
-14. [ ] Use whole work day estimatation for constructions while work planning (remove diminishing near the completion).
+14. [ ] Use whole work day estimatation for constructions while work planning (remove diminishing near the completion)
+15. [ ] Improve logic when do partial work on facilities/carriers, report actual work days, but start reducing from full
+        work facilities

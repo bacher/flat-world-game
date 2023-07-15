@@ -310,11 +310,11 @@ function getFacilityBaseWorkDays(facility: Facility): number {
     return 0;
   }
 
-  const maxOutpuIterationsRaw = getIterationsCountUntilCap(facility);
+  const maxOutputIterationsRaw = getIterationsCountUntilCap(facility);
 
   const maxOutputIterations = Math.max(
     0,
-    maxOutpuIterationsRaw - facility.inProcess,
+    maxOutputIterationsRaw - facility.inProcess,
   );
 
   if (maxOutputIterations === 0) {
@@ -402,7 +402,7 @@ function getIterationsCountUntilCap(facility: Facility): number {
 
   const peopleDaysUntilCap = OUTPUT_BUFFER_DAYS - days;
 
-  return peopleDaysUntilCap / oneIterationWorkDays;
+  return Math.max(1.5, peopleDaysUntilCap / oneIterationWorkDays);
 }
 
 function getMaxIterationsCountByStorage(
@@ -469,7 +469,10 @@ function getCarrierPathBaseWorkDays(
       iterationInfo.iterationPeopleDays / maximumPeopleAtWork;
 
     // TODO: Check construction!
-    const maximumIterations = INPUT_BUFFER_DAYS / iterationWorkDays;
+    const maximumIterations = Math.max(
+      1.5,
+      INPUT_BUFFER_DAYS / iterationWorkDays,
+    );
 
     const iterationResourceCount = getResourceCount(
       iterationInfo.input,

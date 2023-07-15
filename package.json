@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "tsc && pnpm run test:circular",
     "test:circular": "madge --extensions ts,tsx --ts-config ./tsconfig.json -c src/",
-    "format": "prettier -w package.json src/**/*.ts src/**/*.tsx src/**/*.scss src/**/*.module.scss",
+    "format": "prettier -w package.json *.md src/**/*.ts src/**/*.tsx src/**/*.scss src/**/*.module.scss",
     "gh-pages": "pnpm run build && GH=$(pwd)/../flat-world-game-gh && git -C $GH rm -rqf 'assets' && cp -r dist/* $GH"
   },
   "dependencies": {
