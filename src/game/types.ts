@@ -206,3 +206,8 @@ export type Research = {
     Record<ExactFacilityType, ProductVariantId[]>
   >;
 };
+
+export type WorkDaysSummary = {
+  exclusiveWorkDays: number;
+  restWorkDays: number;
+};

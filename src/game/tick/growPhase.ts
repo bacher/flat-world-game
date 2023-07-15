@@ -1,8 +1,8 @@
-import { City, GameState } from '@/game/types.ts';
-import { Booster, boosters } from '@/game/boosters.ts';
-import { ResourceType } from '@/game/resources.ts';
-import { MINIMAL_CITY_PEOPLE } from '@/game/consts.ts';
-import { getResourceCount, grabResource } from '@/game/gameState.ts';
+import { MINIMAL_CITY_PEOPLE } from '@/game/consts';
+import { City, GameState } from '@/game/types';
+import { getResourceCount, grabResource } from '@/game/gameState';
+import { ResourceType } from '@/game/resources';
+import { Booster, boosters } from '@/game/boosters';
 
 type CityGrowResponse =
   | {

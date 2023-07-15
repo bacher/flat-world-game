@@ -2,7 +2,14 @@ import partition from 'lodash/partition';
 
 import { removeArrayItem } from '@/utils/helpers';
 
-import { generateNewCityName } from './cityNameGenerator';
+import {
+  BASE_PEOPLE_DAY_PER_CELL,
+  BASE_PEOPLE_WORK_MODIFIER,
+  BASE_WEIGHT_PER_PEOPLE_DAY,
+  OUTPUT_BUFFER_DAYS,
+  MINIMAL_CITY_PEOPLE,
+  CITY_POPULATION_STATISTICS_LENGTH,
+} from './consts';
 import {
   CarrierPath,
   CarrierPathType,
@@ -24,17 +31,16 @@ import {
   CellRect,
   CityLastTickReportInfo,
 } from './types';
-import { ResourceType } from './resources';
+import {
+  foodNutritionlValue,
+  houseCapacities,
+  isFoodResourceType,
+  isHouseResourceType,
+  ResourceType,
+} from './resources';
 import { facilitiesIterationInfo } from './facilities';
 import { facilitiesConstructionInfo } from './facilityConstruction';
-import {
-  BASE_PEOPLE_DAY_PER_CELL,
-  BASE_PEOPLE_WORK_MODIFIER,
-  BASE_WEIGHT_PER_PEOPLE_DAY,
-  OUTPUT_BUFFER_DAYS,
-  MINIMAL_CITY_PEOPLE,
-  CITY_POPULATION_STATISTICS_LENGTH,
-} from './consts';
+import { generateNewCityName } from './cityNameGenerator';
 import { calculateDistance, newCellPosition } from './helpers';
 
 export function addCarrierPath(
@@ -603,4 +609,28 @@ export function getAssignedCityId(structure: Structure): CityId {
     return structure.cityId;
   }
   return structure.assignedCityId;
+}
+
+export function getCityResourceSubstitute(resourceType: ResourceType): {
+  resourceType: ResourceType;
+  modifier: number;
+} {
+  if (isFoodResourceType(resourceType)) {
+    return {
+      resourceType: ResourceType.FOOD,
+      modifier: foodNutritionlValue[resourceType],
+    };
+  }
+
+  if (isHouseResourceType(resourceType)) {
+    return {
+      resourceType: ResourceType.HOUSING,
+      modifier: houseCapacities[resourceType],
+    };
+  }
+
+  return {
+    resourceType,
+    modifier: 1,
+  };
 }
