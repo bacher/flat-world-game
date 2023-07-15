@@ -86,7 +86,7 @@ export type GameState = {
 export type GameStateSnapshot = {
   gameId: string;
   tickNumber: number;
-  cities: City[];
+  cities: Omit<City, 'isNeedUpdateAutomaticPaths'>[];
   facilities: (Facility | Construction)[];
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
@@ -107,6 +107,7 @@ export type City = StructureBase & {
   name: string;
   population: number;
   carrierPaths: CarrierPath[];
+  isNeedUpdateAutomaticPaths: boolean;
   peopleDayPerCell: number;
   weightPerPeopleDay: number;
   peopleWorkModifier: number;
@@ -159,8 +160,8 @@ export type StorageItem = {
 };
 
 export enum CarrierPathType {
-  CONSTRUCTION,
-  FACILITY,
+  AUTOMATIC,
+  EXPLICIT,
 }
 
 export type CarrierPath = {

@@ -1,19 +1,20 @@
 import { addToMapSet } from '@/utils/helpers';
 
 import {
+  CarrierPath,
+  CarrierPathType,
   CellId,
   City,
+  ExactFacilityType,
   FacilitiesByCityId,
   GameState,
-  StructuresByCellId,
-  CarrierPath,
-  ExactFacilityType,
-  ResearchId,
   GameStateSnapshot,
   ProductVariantId,
+  ResearchId,
+  StructuresByCellId,
 } from './types';
 import { addCity, addPathTo } from './gameState';
-import { gameStateStorage, gamesListStorage } from './persist';
+import { gamesListStorage, gameStateStorage } from './persist';
 import { researches } from './research';
 import { newCellPosition } from './helpers';
 
@@ -60,10 +61,17 @@ export function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
     inProgressResearches,
   } = gameState;
 
+  const citiesNormalized = [...cities.values()].map((city) => ({
+    ...city,
+    carrierPaths: city.carrierPaths.filter(
+      (carrierPath) => carrierPath.pathType !== CarrierPathType.AUTOMATIC,
+    ),
+  }));
+
   return {
     gameId,
     tickNumber,
-    cities: [...cities.values()],
+    cities: citiesNormalized,
     facilities: [...facilitiesByCityId.values()].flat(),
     completedResearches: [...completedResearches.values()],
     currentResearchId,
@@ -77,12 +85,17 @@ export function getGameStateBySnapshot(
   const {
     gameId,
     tickNumber,
-    cities,
+    cities: dehydratedCities,
     completedResearches,
     currentResearchId,
     inProgressResearches,
     facilities,
   } = gameStateSnapshot;
+
+  const cities: City[] = dehydratedCities.map((city) => ({
+    ...city,
+    isNeedUpdateAutomaticPaths: true,
+  }));
 
   const structuresByCellId: StructuresByCellId = new Map();
   for (const city of cities) {

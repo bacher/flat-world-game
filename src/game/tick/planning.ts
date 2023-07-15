@@ -7,7 +7,6 @@ import {
 } from '@/game/consts';
 import {
   CarrierPath,
-  CarrierPathType,
   City,
   Construction,
   Facility,
@@ -261,12 +260,7 @@ function isCarrierPathAllowed(
     return false;
   }
 
-  const expectedPathType =
-    to.type === FacilityType.CONSTRUCTION
-      ? CarrierPathType.CONSTRUCTION
-      : CarrierPathType.FACILITY;
-
-  return expectedPathType === carrierPath.pathType;
+  return true;
 }
 
 function getCarrierPathBaseWorkDays(

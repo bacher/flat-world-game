@@ -6,19 +6,21 @@ import {
   BASE_PEOPLE_DAY_PER_CELL,
   BASE_PEOPLE_WORK_MODIFIER,
   BASE_WEIGHT_PER_PEOPLE_DAY,
-  OUTPUT_BUFFER_DAYS,
-  MINIMAL_CITY_PEOPLE,
   CITY_POPULATION_STATISTICS_LENGTH,
+  MINIMAL_CITY_PEOPLE,
+  OUTPUT_BUFFER_DAYS,
 } from './consts';
 import {
   CarrierPath,
-  CarrierPathType,
   CarrierPathsCellIdMap,
+  CarrierPathType,
   CellId,
   CellPath,
   CellPosition,
+  CellRect,
   City,
   CityId,
+  CityLastTickReportInfo,
   CityReportInfo,
   Construction,
   ExactFacilityType,
@@ -28,8 +30,6 @@ import {
   ProductVariantId,
   StorageItem,
   Structure,
-  CellRect,
-  CityLastTickReportInfo,
 } from './types';
 import {
   foodNutritionlValue,
@@ -42,6 +42,7 @@ import { facilitiesIterationInfo } from './facilities';
 import { facilitiesConstructionInfo } from './facilityConstruction';
 import { generateNewCityName } from './cityNameGenerator';
 import { calculateDistance, newCellPosition } from './helpers';
+import { cityResourcesInput } from '@/game/boosters.ts';
 
 export function addCarrierPath(
   gameState: GameState,
@@ -187,15 +188,18 @@ export function multiplyResourceStorage(
   }));
 }
 
-export function getStructureIterationStorageInfo(
-  facility: Facility | Construction,
-): {
+const cityInput = cityResourcesInput.map((resourceType) => ({
+  resourceType,
+  quantity: 0,
+}));
+
+export function getStructureIterationStorageInfo(structure: Structure): {
   iterationPeopleDays: number;
   input: StorageItem[];
   output: StorageItem[];
 } {
-  if (facility.type === FacilityType.CONSTRUCTION) {
-    const info = facilitiesConstructionInfo[facility.buildingFacilityType];
+  if (structure.type === FacilityType.CONSTRUCTION) {
+    const info = facilitiesConstructionInfo[structure.buildingFacilityType];
     return {
       iterationPeopleDays: info.iterationPeopleDays,
       input: info.input,
@@ -203,10 +207,18 @@ export function getStructureIterationStorageInfo(
     };
   }
 
-  const iterationInfo = facilitiesIterationInfo[facility.type];
+  if (structure.type === FacilityType.CITY) {
+    return {
+      iterationPeopleDays: 0,
+      input: cityInput,
+      output: [],
+    };
+  }
+
+  const iterationInfo = facilitiesIterationInfo[structure.type];
 
   return iterationInfo.productionVariants.find(
-    (variant) => variant.id === facility.productionVariantId,
+    (variant) => variant.id === structure.productionVariantId,
   )!;
 }
 
@@ -303,6 +315,7 @@ export function addCity(
     position,
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
+    isNeedUpdateAutomaticPaths: false,
     totalAssignedWorkersCount: 0,
     peopleDayPerCell: BASE_PEOPLE_DAY_PER_CELL,
     weightPerPeopleDay: BASE_WEIGHT_PER_PEOPLE_DAY,
@@ -329,6 +342,7 @@ function addCityFacility(
   facilities.push(facility);
 
   gameState.structuresByCellId.set(facility.position.cellId, facility);
+  city.isNeedUpdateAutomaticPaths = true;
 }
 
 export function addConstructionStructure(
@@ -383,7 +397,7 @@ export function completeConstruction(
   removeAllCarrierPathsTo(
     gameState,
     facility.position.cellId,
-    CarrierPathType.CONSTRUCTION,
+    CarrierPathType.AUTOMATIC,
   );
   replaceCunstructionByFacility(gameState, construction, facility);
 
@@ -395,7 +409,9 @@ function replaceCunstructionByFacility(
   construction: Construction,
   facility: Facility,
 ): void {
-  const facilities = gameState.facilitiesByCityId.get(facility.assignedCityId)!;
+  const city = gameState.cities.get(facility.assignedCityId)!;
+  const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
+
   const index = facilities.indexOf(construction);
   if (index === -1) {
     throw new Error('No construction found');
@@ -403,6 +419,8 @@ function replaceCunstructionByFacility(
 
   facilities[index] = facility;
   gameState.structuresByCellId.set(facility.position.cellId, facility);
+
+  city.isNeedUpdateAutomaticPaths = true;
 }
 
 export function removeAllCarrierPathsTo(
@@ -537,22 +555,25 @@ export function removeFacility(
   gameState: GameState,
   facility: Facility | Construction,
 ): void {
-  const facilities = gameState.facilitiesByCityId.get(facility.assignedCityId)!;
+  const city = gameState.cities.get(facility.assignedCityId)!;
+  const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
+
+  removeAllCarrierPathsVia(
+    gameState,
+    facility.position.cellId,
+    CarrierPathType.AUTOMATIC,
+  );
+  removeAllCarrierPathsVia(
+    gameState,
+    facility.position.cellId,
+    CarrierPathType.EXPLICIT,
+  );
 
   removeArrayItem(facilities, facility);
 
   gameState.structuresByCellId.delete(facility.position.cellId);
 
-  removeAllCarrierPathsVia(
-    gameState,
-    facility.position.cellId,
-    CarrierPathType.CONSTRUCTION,
-  );
-  removeAllCarrierPathsVia(
-    gameState,
-    facility.position.cellId,
-    CarrierPathType.FACILITY,
-  );
+  city.isNeedUpdateAutomaticPaths = true;
 }
 
 export function getCarrierPathStructures(

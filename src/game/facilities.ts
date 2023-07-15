@@ -38,12 +38,12 @@ export const facilitiesIterationInfo: Record<
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: singleProductionVariant({
-      iterationPeopleDays: 1,
+      iterationPeopleDays: 2,
       input: [],
       output: [
         {
-          resourceType: ResourceType.FRUIT,
-          quantity: 0.6,
+          resourceType: ResourceType.FOOD,
+          quantity: 0.5,
         },
       ],
     }),

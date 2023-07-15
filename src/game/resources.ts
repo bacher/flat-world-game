@@ -26,21 +26,11 @@ export enum ResourceType {
 
 export type FoodResourceTypes =
   | ResourceType.FOOD
-  | ResourceType.FRUIT
-  | ResourceType.VEGETABLE
-  | ResourceType.NUT
-  | ResourceType.MEAT
-  | ResourceType.FRIED_MEAT
   | ResourceType.VEGAN_MEAL
   | ResourceType.COMPLEX_MEAL;
 
 export const foodNutritionlValue: Record<FoodResourceTypes, number> = {
   [ResourceType.FOOD]: 1,
-  [ResourceType.FRUIT]: 0.5,
-  [ResourceType.VEGETABLE]: 0.3,
-  [ResourceType.NUT]: 0.1,
-  [ResourceType.MEAT]: 0.3,
-  [ResourceType.FRIED_MEAT]: 0.9,
   [ResourceType.VEGAN_MEAL]: 1.6,
   [ResourceType.COMPLEX_MEAL]: 2.3,
 };

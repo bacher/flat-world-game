@@ -411,7 +411,7 @@ export function Canvas({ gameId }: Props) {
                   assignedCityId: bindCity.cityId,
                   people: 1,
                   resourceType: action.resourceType,
-                  pathType: CarrierPathType.FACILITY,
+                  pathType: CarrierPathType.EXPLICIT,
                   path: {
                     from: fromFacility.position,
                     to: toFacility.position,

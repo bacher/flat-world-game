@@ -13,6 +13,7 @@ import {
   FacilityType,
   GameState,
   StorageItem,
+  Structure,
 } from './types';
 import {
   addCarrierPath,
@@ -49,11 +50,13 @@ export function tick(gameState: GameState): void {
 
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
-    // TODO: Actualize only when something changed in city
-    for (const facility of facilities) {
-      if (facility.type === FacilityType.CONSTRUCTION) {
-        addConstructionInputPaths(gameState, city, facility);
+    if (city.isNeedUpdateAutomaticPaths) {
+      addAutomaticInputPaths(gameState, city, city);
+
+      for (const facility of facilities) {
+        addAutomaticInputPaths(gameState, city, facility);
       }
+      city.isNeedUpdateAutomaticPaths = false;
     }
 
     const { totalNeedPeopleCount, dailyWorks } = planCityTickWork(
@@ -275,19 +278,18 @@ function addIterationsResources(
   addResources(facility.output, totalOutputResources);
 }
 
-function addConstructionInputPaths(
+function addAutomaticInputPaths(
   gameState: GameState,
   city: City,
-  construction: Construction,
+  structure: Structure,
 ): void {
   removeAllCarrierPathsTo(
     gameState,
-    construction.position.cellId,
-    CarrierPathType.CONSTRUCTION,
+    structure.position.cellId,
+    CarrierPathType.AUTOMATIC,
   );
 
-  const constructionIterationInfo =
-    getStructureIterationStorageInfo(construction);
+  const constructionIterationInfo = getStructureIterationStorageInfo(structure);
 
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
@@ -304,10 +306,10 @@ function addConstructionInputPaths(
               assignedCityId: city.cityId,
               people: 1,
               resourceType,
-              pathType: CarrierPathType.CONSTRUCTION,
+              pathType: CarrierPathType.AUTOMATIC,
               path: {
                 from: facility.position,
-                to: construction.position,
+                to: structure.position,
               },
             });
           }
