@@ -3,19 +3,18 @@ import { neverCall } from '@/utils/typeUtils';
 import {
   BASE_WEIGHT_PER_PEOPLE_DAY,
   CITY_BUFFER_DAYS,
+  CITY_POPULATION_STATISTICS_LENGTH,
   EXCLUSIVE_WORK_DAYS,
   INPUT_BUFFER_DAYS,
   OUTPUT_BUFFER_DAYS,
 } from './consts';
 import {
   CarrierPath,
-  CarrierPathReport,
   CarrierPathType,
   City,
   Construction,
   Facility,
   FacilityType,
-  FacilityWorkReport,
   GameState,
   StorageItem,
 } from './types';
@@ -24,7 +23,7 @@ import {
   addResource,
   addResources,
   completeConstruction,
-  createEmptyCityReport,
+  createEmptyLastTickCityReport,
   getCarrierPathStructures,
   getConstructionMaximumAddingLimit,
   getResourceCount,
@@ -113,7 +112,7 @@ export function tick(gameState: GameState): void {
   console.group(`Tick ${gameState.tickNumber}`);
 
   for (const city of gameState.cities.values()) {
-    city.lastTickReport = createEmptyCityReport();
+    city.cityReport.lastTick = createEmptyLastTickCityReport();
 
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
@@ -190,7 +189,7 @@ export function tick(gameState: GameState): void {
       }),
     );
 
-    city.lastTickReport.needPopulation = Math.ceil(totalNeedPeopleCount);
+    updateCityNeedPopulation(gameState, city, totalNeedPeopleCount);
 
     for (const work of dailyWorks) {
       const { actualWorkDays } = work;
@@ -225,6 +224,18 @@ export function tick(gameState: GameState): void {
   console.groupEnd();
 }
 
+function updateCityNeedPopulation(
+  gameState: GameState,
+  city: City,
+  totalNeed: number,
+): void {
+  const need = Math.ceil(totalNeed);
+  city.cityReport.population.lastTick = need;
+  city.cityReport.population.needStatistics[
+    gameState.tickNumber % CITY_POPULATION_STATISTICS_LENGTH
+  ] = need;
+}
+
 function createEmptyWorkDaysSummary(): WorkDaysSummary {
   return {
     restWorkDays: 0,
@@ -233,8 +244,7 @@ function createEmptyWorkDaysSummary(): WorkDaysSummary {
 }
 
 function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
-  const carrierPathReports: CarrierPathReport[] = [];
-  const facilityWorkerReports: FacilityWorkReport[] = [];
+  const report = createEmptyLastTickCityReport();
 
   for (const work of dailyWorks) {
     const { actualWorkDays } = work;
@@ -242,7 +252,7 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
     switch (work.jobType) {
       case JobType.WORKER: {
         const { facility } = work;
-        facilityWorkerReports.push({
+        report.facilityWorkerReports.push({
           facility,
           workers: actualWorkDays,
         });
@@ -252,14 +262,14 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
         const { carrierPath } = work;
         const { from, to } = carrierPath.path;
 
-        const alreadyPath = carrierPathReports.find((path) =>
+        const alreadyPath = report.carrierPathReports.find((path) =>
           isSamePath(path.path, carrierPath.path),
         );
 
         if (alreadyPath) {
           alreadyPath.carriers += actualWorkDays;
         } else {
-          carrierPathReports.push({
+          report.carrierPathReports.push({
             path: { from, to },
             carriers: actualWorkDays,
           });
@@ -271,8 +281,7 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
     }
   }
 
-  city.lastTickReport.carrierPathReports = carrierPathReports;
-  city.lastTickReport.facilityWorkerReports = facilityWorkerReports;
+  city.cityReport.lastTick = report;
 }
 
 (window as any).completeAllConstruction = () => {

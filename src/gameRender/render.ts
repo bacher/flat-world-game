@@ -578,8 +578,8 @@ function drawHoverCarrierPath(
 ): void {
   const { gameState } = visualState;
   const city = gameState.cities.get(carrierPath.assignedCityId)!;
-  const pathReport = city.lastTickReport.carrierPathReports.find((pathReport) =>
-    isSamePath(pathReport.path, carrierPath.path),
+  const pathReport = city.cityReport.lastTick.carrierPathReports.find(
+    (pathReport) => isSamePath(pathReport.path, carrierPath.path),
   );
 
   const params = pathReport
@@ -605,7 +605,7 @@ function drawStructureInfo(
   if (facility.type !== FacilityType.CITY) {
     const city = gameState.cities.get(facility.assignedCityId)!;
 
-    const report = city.lastTickReport.facilityWorkerReports.find(
+    const report = city.cityReport.lastTick.facilityWorkerReports.find(
       (info) => info.facility === facility,
     );
 

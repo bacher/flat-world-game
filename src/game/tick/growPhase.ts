@@ -58,9 +58,25 @@ export function growPhase(gameState: GameState): void {
       housingModifier.type !== 'AT_LIMIT' &&
       foodModifier.type !== 'AT_LIMIT'
     ) {
-      city.population *= 1.01;
+      const avgNeed = avg(city.cityReport.population.needStatistics);
+
+      if (city.population < avgNeed * 1.02) {
+        city.population *= 1.01;
+      }
     }
   }
+}
+
+function avg(values: number[]): number {
+  if (values.length === 0) {
+    throw new Error();
+  }
+
+  let sum = 0;
+  for (const value of values) {
+    sum += value;
+  }
+  return sum / values.length;
 }
 
 function processCityResource(

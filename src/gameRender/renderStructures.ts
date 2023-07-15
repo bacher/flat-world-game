@@ -187,10 +187,10 @@ export function drawStructureObject(
     ctx.fillText(city.name, 0, 28);
 
     const populationText = Math.floor(city.population).toString();
-    const needPopulationText = city.lastTickReport.needPopulation.toString();
+    const needPopulationText = city.cityReport.population.lastTick.toString();
     const rest = `/${populationText}`;
     const text = `${needPopulationText}${rest}`;
-    if (city.population >= city.lastTickReport.needPopulation) {
+    if (city.population >= city.cityReport.population.lastTick) {
       ctx.fillStyle = 'green';
     } else {
       ctx.fillStyle = 'red';

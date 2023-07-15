@@ -15,7 +15,7 @@ export function researchPhase(gameState: GameState): void {
   for (const city of gameState.cities.values()) {
     const freePeople = Math.max(
       0,
-      city.population - city.lastTickReport.needPopulation,
+      city.population - city.cityReport.population.lastTick,
     );
 
     const researchWorkDays =

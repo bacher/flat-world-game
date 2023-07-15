@@ -111,13 +111,20 @@ export type City = StructureBase & {
   weightPerPeopleDay: number;
   peopleWorkModifier: number;
   totalAssignedWorkersCount: number;
-  lastTickReport: CityReportInfo;
+  cityReport: CityReportInfo;
+};
+
+export type CityLastTickReportInfo = {
+  carrierPathReports: CarrierPathReport[];
+  facilityWorkerReports: FacilityWorkReport[];
 };
 
 export type CityReportInfo = {
-  needPopulation: number;
-  carrierPathReports: CarrierPathReport[];
-  facilityWorkerReports: FacilityWorkReport[];
+  population: {
+    needStatistics: number[];
+    lastTick: number;
+  };
+  lastTick: CityLastTickReportInfo;
 };
 
 export type Construction = StructureBase & {

@@ -22,6 +22,7 @@ import {
   StorageItem,
   Structure,
   CellRect,
+  CityLastTickReportInfo,
 } from './types';
 import { ResourceType } from './resources';
 import { facilitiesIterationInfo } from './facilities';
@@ -32,6 +33,7 @@ import {
   BASE_WEIGHT_PER_PEOPLE_DAY,
   OUTPUT_BUFFER_DAYS,
   MINIMAL_CITY_PEOPLE,
+  CITY_POPULATION_STATISTICS_LENGTH,
 } from './consts';
 import { calculateDistance, newCellPosition } from './helpers';
 
@@ -299,7 +301,7 @@ export function addCity(
     peopleDayPerCell: BASE_PEOPLE_DAY_PER_CELL,
     weightPerPeopleDay: BASE_WEIGHT_PER_PEOPLE_DAY,
     peopleWorkModifier: BASE_PEOPLE_WORK_MODIFIER,
-    lastTickReport: createEmptyCityReport(),
+    cityReport: createEmptyCityReport(),
     input: [],
     output: [],
   };
@@ -560,11 +562,20 @@ export function getCarrierPathStructures(
   };
 }
 
-export function createEmptyCityReport(): CityReportInfo {
+export function createEmptyLastTickCityReport(): CityLastTickReportInfo {
   return {
     carrierPathReports: [],
     facilityWorkerReports: [],
-    needPopulation: 0,
+  };
+}
+
+export function createEmptyCityReport(): CityReportInfo {
+  return {
+    lastTick: createEmptyLastTickCityReport(),
+    population: {
+      lastTick: 0,
+      needStatistics: Array(CITY_POPULATION_STATISTICS_LENGTH).fill(0),
+    },
   };
 }
 
