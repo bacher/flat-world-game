@@ -9,10 +9,11 @@
 7. [ ] Allow change production variant on the fly
 8. [x] Make common work radius between facilities with same meta-type
 9. [x] Add housing
-10. [ ] Add storage facility
+10. [x] Add storage facility
 11. [x] Grow population only if there is lack of work power
 12. [ ] Add schools/universities to make researches
 13. [ ] Update research logic
 14. [ ] Use whole work day estimatation for constructions while work planning (remove diminishing near the completion)
 15. [ ] Improve logic when do partial work on facilities/carriers, report actual work days, but start reducing from full
         work facilities
+16. [ ] Setup intercity exchange

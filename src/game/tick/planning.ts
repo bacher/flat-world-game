@@ -13,6 +13,7 @@ import {
   Facility,
   FacilityType,
   GameState,
+  isExactFacility,
   isStorageFacility,
   StorageItem,
   WorkDaysSummary,
@@ -25,7 +26,7 @@ import {
   getStructureIterationStorageInfo,
 } from '@/game/gameState';
 import { facilitiesIterationInfo } from '@/game/facilities';
-import { getCarrierPathDistance, isExactFacility } from '@/game/helpers';
+import { getCarrierPathDistance } from '@/game/helpers';
 import { boosterByResourceType } from '@/game/boosters';
 
 import { applyCityModifiers } from './cityBoosters';
@@ -97,18 +98,16 @@ export function planCityTickWork(
   }
 
   for (const carrierPath of city.carrierPaths) {
-    if (isCarrierPathAllowed(gameState, carrierPath)) {
-      const needWorkDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
+    const needWorkDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
 
-      if (needWorkDays) {
-        dailyWorksBase.push({
-          task: {
-            jobType: JobType.CARRIER,
-            carrierPath,
-          },
-          needWorkDays,
-        });
-      }
+    if (needWorkDays) {
+      dailyWorksBase.push({
+        task: {
+          jobType: JobType.CARRIER,
+          carrierPath,
+        },
+        needWorkDays,
+      });
     }
   }
 
@@ -256,19 +255,6 @@ function getIterationsCountUntilCap(facility: Facility): number {
   return Math.max(1.5, peopleDaysUntilCap / oneIterationWorkDays);
 }
 
-function isCarrierPathAllowed(
-  gameState: GameState,
-  carrierPath: CarrierPath,
-): boolean {
-  const to = gameState.structuresByCellId.get(carrierPath.path.to.cellId)!;
-
-  if (isExactFacility(to) && to.isPaused) {
-    return false;
-  }
-
-  return true;
-}
-
 function getCarrierPathBaseWorkDays(
   gameState: GameState,
   carrierPath: CarrierPath,
@@ -281,7 +267,12 @@ function getCarrierPathBaseWorkDays(
     return 0;
   }
 
-  const outputCount = getResourceCount(from.output, carrierPath.resourceType);
+  let outputCount;
+  if (from.type === FacilityType.INTERCITY_SENDER) {
+    outputCount = getResourceCount(from.input, carrierPath.resourceType);
+  } else {
+    outputCount = getResourceCount(from.output, carrierPath.resourceType);
+  }
 
   if (outputCount === 0) {
     return 0;
@@ -305,8 +296,16 @@ function getCarrierPathBaseWorkDays(
       needCount = (cap - alreadyCount) / modifier;
     }
   } else if (isStorageFacility(to)) {
-    const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
-    needCount = STORAGE_MAX_CAPACITY - alreadyCount;
+    if (to.type === FacilityType.INTERCITY_RECEIVER) {
+      const alreadyCount = getResourceCount(
+        to.output,
+        carrierPath.resourceType,
+      );
+      needCount = STORAGE_MAX_CAPACITY - alreadyCount;
+    } else {
+      const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
+      needCount = STORAGE_MAX_CAPACITY - alreadyCount;
+    }
   } else {
     const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
     const maximumPeopleAtWork = getMaximumPeopleAtWork(to);

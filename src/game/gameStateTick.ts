@@ -12,6 +12,7 @@ import {
   Facility,
   FacilityType,
   GameState,
+  isFacilityLike,
   StorageItem,
   Structure,
 } from './types';
@@ -31,11 +32,7 @@ import {
   removeAllCarrierPathsTo,
 } from './gameState';
 import { facilitiesConstructionInfo } from './facilityConstruction';
-import {
-  getCarrierPathDistance,
-  isExactFacilityType,
-  isSamePath,
-} from './helpers';
+import { getCarrierPathDistance, isSamePath } from './helpers';
 import { growPhase } from './tick/growPhase';
 import { researchPhase } from './tick/researchPhase';
 import { DailyWork, JobType, planCityTickWork } from './tick/planning';
@@ -228,7 +225,12 @@ function doCarryWork(
     quantity: moveQuantity,
   };
 
-  const grabbedItem = grabResource(from.output, movingResource);
+  let grabbedItem;
+  if (from.type === FacilityType.INTERCITY_SENDER) {
+    grabbedItem = grabResource(from.input, movingResource);
+  } else {
+    grabbedItem = grabResource(from.output, movingResource);
+  }
 
   // TODO: Check correctness
   if (grabbedItem.quantity !== movingResource.quantity) {
@@ -246,7 +248,11 @@ function doCarryWork(
       quantity: grabbedItem.quantity * modifier,
     });
   } else {
-    addResource(to.input, grabbedItem);
+    if (to.type === FacilityType.INTERCITY_RECEIVER) {
+      addResource(to.output, grabbedItem);
+    } else {
+      addResource(to.input, grabbedItem);
+    }
   }
 }
 
@@ -294,7 +300,7 @@ function addAutomaticInputPaths(
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
   for (const facility of facilities) {
-    if (isExactFacilityType(facility.type)) {
+    if (isFacilityLike(facility)) {
       const iterationInfo = getStructureIterationStorageInfo(facility);
 
       for (const { resourceType } of constructionIterationInfo.input) {

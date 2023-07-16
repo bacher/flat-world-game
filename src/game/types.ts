@@ -62,10 +62,9 @@ export type ExactFacilityType = Exclude<
   | FacilityType.INTERCITY_RECEIVER
 >;
 
-export type FacilityLikeType =
-  | ExactFacilityType
-  | FacilityType.INTERCITY_SENDER
-  | FacilityType.INTERCITY_RECEIVER;
+export type FacilityLikeType = ExactFacilityType | StorageFacilityType;
+
+export type FacilityLike = Facility | StorageFacility;
 
 export type StorageFacilityType =
   | FacilityType.INTERCITY_SENDER
@@ -170,6 +169,20 @@ export type StorageFacility = StructureBase & {
   isPaused: boolean;
 };
 
+export function isExactFacility(structure: Structure): structure is Facility {
+  return isExactFacilityType(structure.type);
+}
+
+export function isExactFacilityType(
+  type: FacilityType,
+): type is ExactFacilityType {
+  return (
+    type !== FacilityType.CITY &&
+    type !== FacilityType.CONSTRUCTION &&
+    !isStorageFacilityType(type)
+  );
+}
+
 export function isStorageFacilityType(
   facilityType: FacilityType,
 ): facilityType is StorageFacilityType {
@@ -183,6 +196,14 @@ export function isStorageFacility(
   structure: Structure,
 ): structure is StorageFacility {
   return isStorageFacilityType(structure.type);
+}
+
+export function isFacilityLike(
+  structure: Structure,
+): structure is FacilityLike {
+  return (
+    isExactFacilityType(structure.type) || isStorageFacilityType(structure.type)
+  );
 }
 
 export type Structure = City | Construction | Facility | StorageFacility;

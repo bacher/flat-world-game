@@ -1,4 +1,4 @@
-import { ExactFacilityType, FacilityType, Structure } from '@/game/types';
+import { FacilityLikeType, FacilityType, Structure } from '@/game/types';
 import { VisualState } from '@/game/visualState';
 import { neverCall } from '@/utils/typeUtils';
 
@@ -7,11 +7,7 @@ export function drawStructureObject(
   structure: Structure,
 ): void {
   const { ctx, cellSize } = visualState;
-  let drawFacilityType:
-    | ExactFacilityType
-    | FacilityType.CITY
-    | FacilityType.INTERCITY_SENDER
-    | FacilityType.INTERCITY_RECEIVER;
+  let drawFacilityType: FacilityLikeType | FacilityType.CITY;
 
   if (structure.type === FacilityType.CONSTRUCTION) {
     drawFacilityType = structure.buildingFacilityType;
@@ -155,7 +151,7 @@ export function drawStructureObject(
     case FacilityType.INTERCITY_SENDER:
     case FacilityType.INTERCITY_RECEIVER:
       ctx.beginPath();
-      ctx.arc(0, 0, 10, 0, Math.PI);
+      ctx.arc(0, -2, 10, 0, Math.PI);
       ctx.lineWidth = 3;
       ctx.strokeStyle = 'blue';
       ctx.stroke();
@@ -163,13 +159,13 @@ export function drawStructureObject(
 
       ctx.beginPath();
       if (drawFacilityType === FacilityType.INTERCITY_SENDER) {
-        ctx.moveTo(-4, -2);
-        ctx.lineTo(0, 4);
-        ctx.lineTo(4, -2);
+        ctx.moveTo(-4, -4);
+        ctx.lineTo(0, 2);
+        ctx.lineTo(4, -4);
       } else {
-        ctx.moveTo(-4, 2);
-        ctx.lineTo(0, -4);
-        ctx.lineTo(4, 2);
+        ctx.moveTo(-4, 0);
+        ctx.lineTo(0, -6);
+        ctx.lineTo(4, 0);
       }
       ctx.closePath();
       ctx.fillStyle = 'orange';

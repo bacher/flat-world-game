@@ -1,6 +1,7 @@
 import partition from 'lodash/partition';
 
 import { removeArrayItem } from '@/utils/helpers';
+import { neverCall } from '@/utils/typeUtils';
 
 import {
   BASE_PEOPLE_DAY_PER_CELL,
@@ -34,6 +35,7 @@ import {
   StorageItem,
   Structure,
 } from './types';
+
 import {
   foodNutritionlValue,
   houseCapacities,
@@ -44,9 +46,8 @@ import {
 import { facilitiesIterationInfo } from './facilities';
 import { facilitiesConstructionInfo } from './facilityConstruction';
 import { generateNewCityName } from './cityNameGenerator';
+import { cityResourcesInput } from './boosters';
 import { calculateDistance, newCellPosition } from './helpers';
-import { cityResourcesInput } from '@/game/boosters.ts';
-import { neverCall } from '@/utils/typeUtils.ts';
 
 export function addCarrierPath(
   gameState: GameState,

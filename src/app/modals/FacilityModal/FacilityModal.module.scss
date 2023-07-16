@@ -8,37 +8,3 @@
   background: white;
   border: 1px solid #777;
 }
-
-.contentBlock {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
-.content {
-  flex-grow: 1;
-}
-
-.footer {
-  padding: 10px 0 0;
-}
-
-.resourceNameLine {
-  display: flex;
-  align-items: center;
-}
-
-.resourceName {
-  flex-grow: 1;
-}
-
-.addCarrierPathButton {
-}
-
-.carrierPaths {
-  display: flex;
-  flex-direction: column;
-}
-
-.carrierPathLine {
-}
