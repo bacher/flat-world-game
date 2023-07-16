@@ -9,14 +9,12 @@ import {
 } from '@/game/facilities';
 import { useForceUpdate } from '@hooks/forceUpdate';
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
-import {
-  getStructureIterationStorageInfo,
-  removeFacility,
-} from '@/game/gameState';
+import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { StorateType, SupplySection } from '@components/SupplySection';
 
 import { ModalControlRef } from '../types';
 import { addPath, useAlreadyPathsState } from '../helpers';
+import { ModalFooter } from '../ModalFooter';
 import styles from './share.module.scss';
 
 export function FacilityContent({
@@ -127,27 +125,11 @@ export function FacilityContent({
           forceUpdate={forceUpdate}
         />
       </div>
-      <div className={styles.footer}>
-        <button
-          type="button"
-          onClick={() => {
-            facility.isPaused = !facility.isPaused;
-            visualState.onUpdate();
-          }}
-        >
-          {facility.isPaused ? 'Resume' : 'Pause'}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            removeFacility(gameState, facility);
-            visualState.onUpdate();
-            closeWithoutApplying();
-          }}
-        >
-          Demolish
-        </button>
-      </div>
+      <ModalFooter
+        visualState={visualState}
+        facility={facility}
+        close={closeWithoutApplying}
+      />
     </div>
   );
 }

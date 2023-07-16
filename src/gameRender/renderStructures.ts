@@ -149,28 +149,40 @@ export function drawStructureObject(
       ctx.fill();
       break;
     case FacilityType.INTERCITY_SENDER:
-    case FacilityType.INTERCITY_RECEIVER:
+    case FacilityType.INTERCITY_RECEIVER: {
+      const colors =
+        drawFacilityType === FacilityType.INTERCITY_SENDER
+          ? {
+              main: 'blue',
+              second: 'orange',
+            }
+          : {
+              main: 'orange',
+              second: 'blue',
+            };
+
       ctx.beginPath();
-      ctx.arc(0, -2, 10, 0, Math.PI);
+      ctx.arc(0, -2, 9, 0, Math.PI);
       ctx.lineWidth = 3;
-      ctx.strokeStyle = 'blue';
+      ctx.strokeStyle = colors.main;
       ctx.stroke();
       ctx.lineWidth = 1;
 
       ctx.beginPath();
       if (drawFacilityType === FacilityType.INTERCITY_SENDER) {
-        ctx.moveTo(-4, -4);
-        ctx.lineTo(0, 2);
-        ctx.lineTo(4, -4);
+        ctx.moveTo(-4, -5);
+        ctx.lineTo(0, 1);
+        ctx.lineTo(4, -5);
       } else {
         ctx.moveTo(-4, 0);
         ctx.lineTo(0, -6);
         ctx.lineTo(4, 0);
       }
       ctx.closePath();
-      ctx.fillStyle = 'orange';
+      ctx.fillStyle = colors.second;
       ctx.fill();
       break;
+    }
     default:
       ctx.beginPath();
       ctx.moveTo(-10, -10);

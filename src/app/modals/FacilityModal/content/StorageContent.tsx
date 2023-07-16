@@ -4,6 +4,7 @@ import { facilitiesDescription } from '@/game/facilities';
 import { StorateType, SupplySection } from '@components/SupplySection';
 import { useForceUpdate } from '@hooks/forceUpdate';
 
+import { ModalFooter } from '../ModalFooter';
 import { addPath, useAlreadyPathsState } from '../helpers';
 import styles from './share.module.scss';
 
@@ -61,6 +62,11 @@ export function StorageContent({
           forceUpdate={forceUpdate}
         />
       </div>
+      <ModalFooter
+        visualState={visualState}
+        facility={storageFacility}
+        close={onCloseClick}
+      />
     </div>
   );
 }

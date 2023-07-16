@@ -581,7 +581,7 @@ export function getFacilityBindedCity(
 
 export function removeFacility(
   gameState: GameState,
-  facility: Facility | Construction,
+  facility: Facility | StorageFacility | Construction,
 ): void {
   const city = gameState.cities.get(facility.assignedCityId)!;
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
