@@ -12,7 +12,7 @@ import {
   Facility,
   FacilityType,
   GameState,
-  PointTuple,
+  Point,
   ProductVariantId,
   Structure,
 } from '@/game/types';
@@ -126,7 +126,7 @@ export function Canvas({ gameId }: Props) {
   const mouseState = useMemo<{
     isMouseDown: boolean;
     isDrag: boolean;
-    mouseDownPosition: PointTuple | undefined;
+    mouseDownPosition: Point | undefined;
   }>(
     () => ({
       isMouseDown: false,
@@ -135,7 +135,7 @@ export function Canvas({ gameId }: Props) {
     }),
     [],
   );
-  const mousePos = useMemo<PointTuple>(() => [0, 0], []);
+  const [mousePos] = useState<Point>(() => ({ x: 0, y: 0 }));
 
   const visualStateRef = useRef<VisualState | undefined>();
 
@@ -217,8 +217,8 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    mousePos[0] = event.clientX;
-    mousePos[1] = event.clientY;
+    mousePos.x = event.pageX;
+    mousePos.y = event.pageY;
 
     if (mouseState.isMouseDown && event.buttons !== 1) {
       mouseState.isMouseDown = false;
@@ -231,8 +231,8 @@ export function Canvas({ gameId }: Props) {
       mouseState.mouseDownPosition &&
       mouseState.isMouseDown
     ) {
-      const dx = mouseState.mouseDownPosition[0] - mousePos[0];
-      const dy = mouseState.mouseDownPosition[1] - mousePos[1];
+      const dx = mouseState.mouseDownPosition.x - mousePos.x;
+      const dy = mouseState.mouseDownPosition.y - mousePos.y;
 
       if (Math.abs(dx) + Math.abs(dy) > 3) {
         mouseState.isDrag = true;
@@ -243,7 +243,10 @@ export function Canvas({ gameId }: Props) {
 
     if (visualState) {
       if (mouseState.isMouseDown) {
-        visualStateMove(visualState, [event.movementX, event.movementY]);
+        visualStateMove(visualState, {
+          x: event.movementX,
+          y: event.movementY,
+        });
       }
 
       visualStateOnMouseMove(visualState, mousePos);
@@ -297,11 +300,11 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    mousePos[0] = event.clientX;
-    mousePos[1] = event.clientY;
+    mousePos.x = event.pageX;
+    mousePos.y = event.pageY;
 
     mouseState.isMouseDown = true;
-    mouseState.mouseDownPosition = [mousePos[0], mousePos[1]];
+    mouseState.mouseDownPosition = { x: mousePos.x, y: mousePos.y };
     forceUpdate();
   }
 
@@ -330,7 +333,10 @@ export function Canvas({ gameId }: Props) {
 
     const visualState = visualStateRef.current!;
 
-    const cell = lookupGridByPoint(visualState, [event.clientX, event.clientY]);
+    const cell = lookupGridByPoint(visualState, {
+      x: event.pageX,
+      y: event.pageY,
+    });
 
     if (cell) {
       const facility = gameState.structuresByCellId.get(cell.cellId);

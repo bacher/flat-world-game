@@ -7,7 +7,6 @@ import {
   FacilityType,
   GameState,
   Point,
-  PointTuple,
   Size,
   Structure,
 } from './types';
@@ -115,11 +114,10 @@ function actualizeViewportBounds(visualState: VisualState): void {
 
 export function lookupGridByPoint(
   visualState: VisualState,
-  point: PointTuple,
+  point: Point,
 ): CellPosition | undefined {
   const { canvasSize, canvasHalfSize, offset } = visualState;
-
-  const [x, y] = point;
+  const { x, y } = point;
 
   if (x < 0 || x >= canvasSize.width || y < 0 || y >= canvasSize.height) {
     return undefined;
@@ -138,7 +136,7 @@ export function lookupGridByPoint(
 
 export function lookupFacilityByPoint(
   visualState: VisualState,
-  point: PointTuple,
+  point: Point,
 ): Structure | undefined {
   const cell = lookupGridByPoint(visualState, point);
 
@@ -151,7 +149,7 @@ export function lookupFacilityByPoint(
 
 export function visualStateOnMouseMove(
   visualState: VisualState,
-  point: PointTuple | undefined,
+  point: Point | undefined,
 ): void {
   if (!point) {
     visualState.hoverCell = undefined;
@@ -167,14 +165,11 @@ export function visualStateOnMouseMove(
   }
 }
 
-export function visualStateMove(
-  visualState: VisualState,
-  point: PointTuple,
-): void {
-  updateVisualStateOffset(visualState, [
-    visualState.offset.x + point[0],
-    visualState.offset.y + point[1],
-  ]);
+export function visualStateMove(visualState: VisualState, point: Point): void {
+  updateVisualStateOffset(visualState, {
+    x: visualState.offset.x + point.x,
+    y: visualState.offset.y + point.y,
+  });
 }
 
 export function visualStateMoveToCell(
@@ -183,36 +178,18 @@ export function visualStateMoveToCell(
 ): void {
   const { cellSize } = visualState;
 
-  updateVisualStateOffset(visualState, [
-    -cell.i * cellSize.width,
-    -cell.j * cellSize.height,
-  ]);
+  updateVisualStateOffset(visualState, {
+    x: -cell.i * cellSize.width,
+    y: -cell.j * cellSize.height,
+  });
 }
 
-function updateVisualStateOffset(
-  visualState: VisualState,
-  point: PointTuple,
-): void {
-  visualState.offset.x = point[0];
-  visualState.offset.y = point[1];
+function updateVisualStateOffset(visualState: VisualState, point: Point): void {
+  visualState.offset.x = point.x;
+  visualState.offset.y = point.y;
 
   actualizeViewportBounds(visualState);
   visualState.onUpdate();
-}
-
-export function isSamePoints(
-  p1: PointTuple | undefined,
-  p2: PointTuple | undefined,
-): boolean {
-  if (!p1 && !p2) {
-    return true;
-  }
-
-  if (!p1 || !p2) {
-    return false;
-  }
-
-  return p1[0] === p2[0] && p1[1] === p2[1];
 }
 
 export function startGameLoop(

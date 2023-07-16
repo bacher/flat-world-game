@@ -6,7 +6,7 @@ import {
   City,
   FacilityType,
   GameState,
-  PointTuple,
+  Point,
   StorageItem,
   Structure,
 } from '@/game/types';
@@ -426,7 +426,7 @@ function drawObject(visualState: VisualState, facility: Structure): void {
 
     ctx.save();
     const cellCenter = getCellCenter(visualState, facility.position);
-    ctx.translate(cellCenter[0], cellCenter[1]);
+    ctx.translate(cellCenter.x, cellCenter.y);
 
     drawStructureObject(visualState, facility);
     drawStructureInfo(visualState, facility);
@@ -436,11 +436,11 @@ function drawObject(visualState: VisualState, facility: Structure): void {
   }
 }
 
-function getCellCenter(
-  { cellSize }: VisualState,
-  cell: CellPosition,
-): PointTuple {
-  return [cell.i * cellSize.width, cell.j * cellSize.height];
+function getCellCenter({ cellSize }: VisualState, cell: CellPosition): Point {
+  return {
+    x: cell.i * cellSize.width,
+    y: cell.j * cellSize.height,
+  };
 }
 
 function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
@@ -452,28 +452,24 @@ function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
   );
 }
 
-function addGap(
-  point1: PointTuple,
-  point2: PointTuple,
-  gap: number,
-): [PointTuple, PointTuple] {
-  const x = point2[0] - point1[0];
-  const y = point2[1] - point1[1];
+function addGap(point1: Point, point2: Point, gap: number): [Point, Point] {
+  const x = point2.x - point1.x;
+  const y = point2.y - point1.y;
 
   const distance = Math.sqrt(x ** 2 + y ** 2);
   const modifier1 = Math.min(0.4, gap / distance);
   const modifier2 = 1 - modifier1;
 
   return [
-    [point1[0] + x * modifier1, point1[1] + y * modifier1],
-    [point1[0] + x * modifier2, point1[1] + y * modifier2],
+    { x: point1.x + x * modifier1, y: point1.y + y * modifier1 },
+    { x: point1.x + x * modifier2, y: point1.y + y * modifier2 },
   ];
 }
 
 function getCarrierPathPoints(
   visualState: VisualState,
   path: CellPath,
-): [PointTuple, PointTuple] {
+): [Point, Point] {
   const fromCenter = getCellCenter(visualState, path.from);
   const toCenter = getCellCenter(visualState, path.to);
   return addGap(fromCenter, toCenter, 30);
@@ -489,12 +485,12 @@ function drawCarrierPath(
   const distance = calculateDistance(path.from, path.to);
 
   const center = {
-    x: (fromGapped[0] + toGapped[0]) / 2,
-    y: (fromGapped[1] + toGapped[1]) / 2,
+    x: (fromGapped.x + toGapped.x) / 2,
+    y: (fromGapped.y + toGapped.y) / 2,
   };
 
-  const dx = fromGapped[0] - toGapped[0];
-  const dy = fromGapped[1] - toGapped[1];
+  const dx = fromGapped.x - toGapped.x;
+  const dy = fromGapped.y - toGapped.y;
 
   const angle = Math.atan2(dy, dx) + Math.PI / 2;
 
@@ -509,9 +505,9 @@ function drawCarrierPath(
   };
 
   ctx.beginPath();
-  ctx.moveTo(fromGapped[0], fromGapped[1]);
-  // ctx.lineTo(toGapped[0], toGapped[1]);
-  ctx.bezierCurveTo(cp.x, cp.y, cp.x, cp.y, toGapped[0], toGapped[1]);
+  ctx.moveTo(fromGapped.x, fromGapped.y);
+  // ctx.lineTo(toGapped.x, toGapped.y);
+  ctx.bezierCurveTo(cp.x, cp.y, cp.x, cp.y, toGapped.x, toGapped.y);
   ctx.strokeStyle = color;
   ctx.stroke();
 
