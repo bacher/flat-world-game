@@ -61,6 +61,8 @@ export function drawStructureObject(
       ctx.fill();
 
       if (drawFacilityType === FacilityType.GATHERING_2) {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = '#fff';
         ctx.fillText('II', 0, 2);
       }
