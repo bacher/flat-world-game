@@ -33,6 +33,7 @@ import {
   isAllowToConstructAtPosition,
   lookupGridByPoint,
   startGameLoop,
+  updateVisualStateOffset,
   VisualState,
   visualStateMove,
   visualStateMoveToCell,
@@ -100,14 +101,19 @@ export function Canvas({ gameId }: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [gameState, setGameState] = useState<GameState>(() =>
-    loadGame(gameId, undefined),
-  );
+  const initialLookAtRef = useRef<Point | undefined>();
+
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const { gameState, lookAt } = loadGame(gameId, undefined);
+    initialLookAtRef.current = lookAt;
+    return gameState;
+  });
 
   useEffect(() => {
     if (gameState.gameId !== gameId) {
-      const newGameState = loadGame(gameId, undefined);
+      const { gameState: newGameState, lookAt } = loadGame(gameId, undefined);
       visualStateRef.current!.gameState = newGameState;
+      updateVisualStateOffset(visualStateRef.current!, lookAt);
       setGameState(newGameState);
       renderGameToCanvas(visualStateRef.current!);
     }
@@ -115,7 +121,7 @@ export function Canvas({ gameId }: Props) {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      saveGame(gameState, undefined);
+      saveGame(gameState, visualStateRef.current!.offset, undefined);
     }, 5000);
 
     return () => {
@@ -164,6 +170,10 @@ export function Canvas({ gameId }: Props) {
       renderGameToCanvas(visualState);
       gameStateWatcher.emitVisualStateChange();
     });
+
+    if (initialLookAtRef.current) {
+      updateVisualStateOffset(visualState, initialLookAtRef.current);
+    }
 
     visualStateRef.current = visualState;
 
@@ -568,12 +578,14 @@ export function Canvas({ gameId }: Props) {
                                 if (gameState.gameId !== gameId) {
                                   setHash(`/g/${gameId}`, { replace: true });
                                 } else {
-                                  const newGameState = loadGame(
-                                    gameId,
-                                    saveName,
-                                  );
+                                  const { gameState: newGameState, lookAt } =
+                                    loadGame(gameId, saveName);
                                   visualStateRef.current!.gameState =
                                     newGameState;
+                                  updateVisualStateOffset(
+                                    visualStateRef.current!,
+                                    lookAt,
+                                  );
                                   setGameState(newGameState);
                                   renderGameToCanvas(visualStateRef.current!);
                                 }
@@ -582,12 +594,20 @@ export function Canvas({ gameId }: Props) {
                                 closeModal();
                               }}
                               onSaveGame={({ saveName }) => {
-                                saveGame(gameState, saveName);
+                                saveGame(
+                                  gameState,
+                                  visualStateRef.current!.offset,
+                                  saveName,
+                                );
                                 startGameLoopLogic();
                                 closeModal();
                               }}
                               onExit={() => {
-                                saveGame(gameState, undefined);
+                                saveGame(
+                                  gameState,
+                                  visualStateRef.current!.offset,
+                                  undefined,
+                                );
                                 location.hash = '';
                               }}
                             />

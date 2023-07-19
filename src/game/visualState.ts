@@ -184,7 +184,10 @@ export function visualStateMoveToCell(
   });
 }
 
-function updateVisualStateOffset(visualState: VisualState, point: Point): void {
+export function updateVisualStateOffset(
+  visualState: VisualState,
+  point: Point,
+): void {
   visualState.offset.x = point.x;
   visualState.offset.y = point.y;
 

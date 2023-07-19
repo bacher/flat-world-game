@@ -105,6 +105,7 @@ export type GameStateSnapshot = {
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
   inProgressResearches: [ResearchId, { points: number }][];
+  lookAt: Point;
 };
 
 export type CityId = Branded<number, 'cityId'>;
