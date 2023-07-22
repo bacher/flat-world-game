@@ -31,7 +31,7 @@ export function growPhase(gameState: GameState): void {
       city,
       boosters.population,
       ResourceType.FOOD,
-      3,
+      0,
     );
 
     let shortage = 0;
@@ -49,19 +49,26 @@ export function growPhase(gameState: GameState): void {
 
     if (shortage > 0) {
       const poorPeople = shortage * city.population;
-      city.population -= poorPeople / 10;
-
-      if (city.population < MINIMAL_CITY_PEOPLE) {
-        city.population = MINIMAL_CITY_PEOPLE;
-      }
-    } else if (
-      housingModifier.type !== 'AT_LIMIT' &&
-      foodModifier.type !== 'AT_LIMIT'
-    ) {
+      city.population = Math.max(
+        MINIMAL_CITY_PEOPLE,
+        city.population - Math.max(0.1, poorPeople * 0.1),
+      );
+    } else {
       const avgNeed = avg(city.cityReport.population.needStatistics);
 
-      if (city.population < avgNeed * 1.02) {
-        city.population *= 1.01;
+      const boostedAvg = Math.max(avgNeed + 1, avgNeed * 1.02);
+      const extraPeople = city.population - boostedAvg;
+
+      if (extraPeople > 0) {
+        city.population = Math.max(
+          MINIMAL_CITY_PEOPLE,
+          city.population - Math.max(0.1, extraPeople * 0.1),
+        );
+      } else if (
+        housingModifier.type !== 'AT_LIMIT' &&
+        foodModifier.type !== 'AT_LIMIT'
+      ) {
+        city.population = Math.min(city.population * 1.01, boostedAvg);
       }
     }
   }
