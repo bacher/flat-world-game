@@ -28,7 +28,6 @@ import {
   newCellPosition,
 } from '@/game/helpers';
 import {
-  DEFAULT_CELL_SIZE,
   InteractActionCarrierPlanning,
   InteractiveActionType,
   isAllowToConstructAtPosition,
