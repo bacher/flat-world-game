@@ -64,7 +64,7 @@ export type InteractActionCarrierPlanning = {
   resourceType: ResourceType;
 };
 
-const DEFAULT_CELL_SIZE = 90;
+export const DEFAULT_CELL_SIZE = 90;
 
 export function createVisualState(
   gameState: GameState,

@@ -66,6 +66,7 @@ import { ResourceChooseModal } from '@/app/modals/ResourceChooseModal';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
+const MAXIMUM_ZOOM = 1.5;
 
 const enum ModalModeType {
   GAME_MENU = 'GAME_MENU',
@@ -514,8 +515,15 @@ export function Canvas({ gameId }: Props) {
     event.preventDefault();
     const visualState = visualStateRef.current!;
 
+    actualizeMouseState(event);
+    visualStateOnMouseMove(visualState, mousePos);
+
     if (event.ctrlKey) {
-      const zoom = clamp(visualState.zoom * (1 - event.deltaY / 100), 0.1, 2);
+      const zoom = clamp(
+        visualState.zoom * (1 - event.deltaY / 100),
+        0.1,
+        MAXIMUM_ZOOM,
+      );
       visualStateUpdateZoom(visualState, zoom);
     }
   }

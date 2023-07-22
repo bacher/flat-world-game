@@ -1,5 +1,8 @@
+import clamp from 'lodash/clamp';
+
 import {
   CarrierPath,
+  CellCoordinates,
   CellPath,
   CellPosition,
   CellRect,
@@ -7,6 +10,7 @@ import {
   FacilityType,
   GameState,
   Point,
+  Size,
   StorageItem,
   Structure,
 } from '@/game/types';
@@ -24,6 +28,7 @@ import {
   newCellPosition,
 } from '@/game/helpers';
 import {
+  DEFAULT_CELL_SIZE,
   InteractActionCarrierPlanning,
   InteractiveActionType,
   isAllowToConstructAtPosition,
@@ -163,30 +168,56 @@ function drawGrid(visualState: VisualState): void {
   const { ctx, cellSize, zoom } = visualState;
   const { start, end } = visualState.viewportBounds;
 
-  let startI = start.i;
-  let startJ = start.j;
-  let increment = 1;
-
-  if (zoom < 0.3) {
-    startI = Math.ceil(startI / 10) * 10;
-    startJ = Math.ceil(startJ / 10) * 10;
-    increment = 10;
-  }
-
   ctx.save();
-  ctx.beginPath();
+
   ctx.translate(-cellSize.width / 2, -cellSize.height / 2);
-  for (let i = startI; i <= end.i + 1; i += increment) {
-    ctx.moveTo(i * cellSize.width, start.j * cellSize.height);
-    ctx.lineTo(i * cellSize.width, (end.j + 1) * cellSize.width);
+
+  if (zoom >= 0.3) {
+    ctx.beginPath();
+    schemeGrid(ctx, cellSize, start, start, end, 1);
+    ctx.strokeStyle = makeAlphaBlackColor((zoom - 0.3) * 3);
+    ctx.stroke();
   }
-  for (let j = startJ; j <= end.j + 1; j += increment) {
-    ctx.moveTo(start.i * cellSize.width, j * cellSize.height);
-    ctx.lineTo((end.i + 1) * cellSize.width, j * cellSize.width);
+
+  if (zoom < 1.3) {
+    const globalStart = {
+      i: Math.ceil(start.i * 0.1) * 10,
+      j: Math.ceil(start.j * 0.1) * 10,
+    };
+    ctx.beginPath();
+    schemeGrid(ctx, cellSize, globalStart, start, end, 10);
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
   }
-  ctx.strokeStyle = '#000';
-  ctx.stroke();
+
   ctx.restore();
+}
+
+function makeAlphaBlackColor(intense: number): string {
+  const alpha = clamp(intense, 0, 1);
+  return `rgba(0,0,0,${alpha})`;
+}
+
+function schemeGrid(
+  ctx: CanvasRenderingContext2D,
+  cellSize: Size,
+  globalStart: CellCoordinates,
+  start: CellCoordinates,
+  end: CellCoordinates,
+  increment: number,
+) {
+  const y1 = start.j * cellSize.height;
+  const y2 = (end.j + 1) * cellSize.width;
+  for (let i = globalStart.i; i <= end.i + 1; i += increment) {
+    ctx.moveTo(i * cellSize.width, y1);
+    ctx.lineTo(i * cellSize.width, y2);
+  }
+  const x1 = start.i * cellSize.width;
+  const x2 = (end.i + 1) * cellSize.width;
+  for (let j = globalStart.j; j <= end.j + 1; j += increment) {
+    ctx.moveTo(x1, j * cellSize.height);
+    ctx.lineTo(x2, j * cellSize.width);
+  }
 }
 
 function drawViewportHighlights(visualState: VisualState): void {
@@ -495,9 +526,9 @@ function drawCarrierPath(
   path: CellPath,
   { color, text }: { color: string; text?: string },
 ): void {
-  const { ctx } = visualState;
+  const { ctx, zoom } = visualState;
   const [fromGapped, toGapped] = getCarrierPathPoints(visualState, path);
-  const distance = calculateDistance(path.from, path.to);
+  const distance = calculateDistance(path.from, path.to) * zoom;
 
   const center = {
     x: (fromGapped.x + toGapped.x) / 2,
@@ -710,9 +741,9 @@ function drawStorage(
     const offset = (i - center) * resourceLineHeight;
 
     if (align === 'left') {
-      ctx.translate(15, offset);
+      ctx.translate(18, offset);
     } else {
-      ctx.translate(-15, offset);
+      ctx.translate(-18, offset);
     }
 
     const { resourceType, quantity } = storage[i];
