@@ -41,6 +41,8 @@ import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
 
 const DRAW_RESOURCE_NAMES = false;
+const RESOURCE_LINE_HEIGHT = 16;
+const RESOURCE_COMPACT_LINE_HEIGHT = 12;
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx, canvasSize } = visualState;
@@ -681,13 +683,18 @@ function drawStorage(
   storage: StorageItem[],
   align: 'left' | 'right',
 ): void {
-  const { ctx } = visualState;
+  const { ctx, zoom } = visualState;
   const center = (storage.length - 1) / 2;
+  const isCompactMode = zoom < 1;
+
+  const resourceLineHeight = isCompactMode
+    ? RESOURCE_LINE_HEIGHT
+    : RESOURCE_COMPACT_LINE_HEIGHT;
 
   for (let i = 0; i < storage.length; i += 1) {
     ctx.save();
 
-    const offset = (i - center) * 16;
+    const offset = (i - center) * resourceLineHeight;
 
     if (align === 'left') {
       ctx.translate(15, offset);
@@ -699,23 +706,25 @@ function drawStorage(
 
     drawResourceIcon(ctx, resourceType);
 
-    let text = quantity.toFixed(1);
+    if (!isCompactMode) {
+      let text = quantity.toFixed(1);
 
-    if (DRAW_RESOURCE_NAMES) {
-      const resourceName = resourceLocalization[resourceType] ?? 'Unknown';
-      text += ` ${resourceName}`;
+      if (DRAW_RESOURCE_NAMES) {
+        const resourceName = resourceLocalization[resourceType] ?? 'Unknown';
+        text += ` ${resourceName}`;
+      }
+
+      drawText(
+        ctx,
+        text,
+        { x: align === 'left' ? 7 : -7, y: 1 },
+        {
+          align,
+          baseline: 'middle',
+          lineWidth: 3,
+        },
+      );
     }
-
-    drawText(
-      ctx,
-      text,
-      { x: align === 'left' ? 7 : -7, y: 1 },
-      {
-        align,
-        baseline: 'middle',
-        lineWidth: 3,
-      },
-    );
 
     ctx.restore();
   }

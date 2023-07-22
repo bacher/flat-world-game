@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { generateNewRandomId } from '@/utils/id';
-import { getNewGameSnapshot } from '@/game/gameStatePersist';
+import { getNewGameSave } from '@/game/gameStatePersist';
 import { gameStateStorage, gamesListStorage } from '@/game/persist';
 import { setHash } from '@/utils/url';
 import { useWindowEvent } from '@hooks/useWindowEvent';
@@ -69,7 +69,7 @@ export function GameRoot() {
   function onNewGame({ gameName }: { gameName: string }) {
     const gameId = generateNewRandomId();
 
-    const newGame = getNewGameSnapshot({ gameId });
+    const newGame = getNewGameSave({ gameId });
 
     gameStateStorage.set(gameId, newGame);
     const gamesListInfo = gamesListStorage.get() ?? { games: [] };

@@ -97,6 +97,11 @@ export type GameState = {
   unlockedProductionVariants: Map<FacilityLikeType, Set<ProductVariantId>>;
 };
 
+export type GameSave = {
+  gameState: GameStateSnapshot;
+  uiState: UiState;
+};
+
 export type GameStateSnapshot = {
   gameId: string;
   tickNumber: number;
@@ -105,7 +110,11 @@ export type GameStateSnapshot = {
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
   inProgressResearches: [ResearchId, { points: number }][];
+};
+
+export type UiState = {
   lookAt: Point;
+  zoom: number;
 };
 
 export type CityId = Branded<number, 'cityId'>;

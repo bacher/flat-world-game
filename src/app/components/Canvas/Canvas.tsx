@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import cn from 'classnames';
+import clamp from 'lodash/clamp';
 
 import styles from './Canvas.module.scss';
 
@@ -15,6 +16,7 @@ import {
   Point,
   ProductVariantId,
   Structure,
+  UiState,
 } from '@/game/types';
 import {
   addCarrierPath,
@@ -33,11 +35,13 @@ import {
   isAllowToConstructAtPosition,
   lookupGridByPoint,
   startGameLoop,
-  updateVisualStateOffset,
   VisualState,
   visualStateMove,
   visualStateMoveToCell,
   visualStateOnMouseMove,
+  visualStateUpdateZoom,
+  visualStateApplyUiState,
+  visualStateGetUiState,
 } from '@/game/visualState';
 
 import { useForceUpdate } from '@hooks/forceUpdate';
@@ -101,27 +105,33 @@ export function Canvas({ gameId }: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const initialLookAtRef = useRef<Point | undefined>();
+  const initialUiStateRef = useRef<UiState | undefined>();
 
   const [gameState, setGameState] = useState<GameState>(() => {
-    const { gameState, lookAt } = loadGame(gameId, undefined);
-    initialLookAtRef.current = lookAt;
+    const { gameState, uiState } = loadGame(gameId, undefined);
+    initialUiStateRef.current = uiState;
     return gameState;
   });
 
   useEffect(() => {
     if (gameState.gameId !== gameId) {
-      const { gameState: newGameState, lookAt } = loadGame(gameId, undefined);
-      visualStateRef.current!.gameState = newGameState;
-      updateVisualStateOffset(visualStateRef.current!, lookAt);
+      const { gameState: newGameState, uiState } = loadGame(gameId, undefined);
+      const visualState = visualStateRef.current!;
+
+      visualState.gameState = newGameState;
+      visualStateApplyUiState(visualState, uiState);
       setGameState(newGameState);
-      renderGameToCanvas(visualStateRef.current!);
+      renderGameToCanvas(visualState);
     }
   }, [gameId]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      saveGame(gameState, visualStateRef.current!.offset, undefined);
+      saveGame(
+        gameState,
+        visualStateGetUiState(visualStateRef.current!),
+        undefined,
+      );
     }, 5000);
 
     return () => {
@@ -156,6 +166,8 @@ export function Canvas({ gameId }: Props) {
 
   const stopGameLoopRef = useRef<() => void>();
 
+  const zoomRef = useRef(1);
+
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
       alpha: false,
@@ -166,13 +178,15 @@ export function Canvas({ gameId }: Props) {
       throw new Error('No 2d context');
     }
 
+    canvasRef.current!.addEventListener('wheel', onCanvasWheel);
+
     const visualState = createVisualState(gameState, ctx, () => {
       renderGameToCanvas(visualState);
       gameStateWatcher.emitVisualStateChange();
     });
 
-    if (initialLookAtRef.current) {
-      updateVisualStateOffset(visualState, initialLookAtRef.current);
+    if (initialUiStateRef.current) {
+      visualStateApplyUiState(visualState, initialUiStateRef.current);
     }
 
     visualStateRef.current = visualState;
@@ -189,6 +203,7 @@ export function Canvas({ gameId }: Props) {
     startGameLoopLogic();
 
     return () => {
+      canvasRef.current!.removeEventListener('wheel', onCanvasWheel);
       stopGameLoopLogic();
     };
   }, []);
@@ -494,8 +509,20 @@ export function Canvas({ gameId }: Props) {
     };
 
     stopGameLoopLogic();
-
     forceUpdate();
+  }
+
+  function onCanvasWheel(event: WheelEvent): void {
+    event.preventDefault();
+
+    if (event.ctrlKey) {
+      zoomRef.current = clamp(
+        zoomRef.current * (1 - event.deltaY / 100),
+        0.1,
+        2,
+      );
+      visualStateUpdateZoom(visualStateRef.current!, zoomRef.current);
+    }
   }
 
   return (
@@ -578,16 +605,14 @@ export function Canvas({ gameId }: Props) {
                                 if (gameState.gameId !== gameId) {
                                   setHash(`/g/${gameId}`, { replace: true });
                                 } else {
-                                  const { gameState: newGameState, lookAt } =
+                                  const visualState = visualStateRef.current!;
+                                  const { gameState: newGameState, uiState } =
                                     loadGame(gameId, saveName);
-                                  visualStateRef.current!.gameState =
-                                    newGameState;
-                                  updateVisualStateOffset(
-                                    visualStateRef.current!,
-                                    lookAt,
-                                  );
+
+                                  visualState.gameState = newGameState;
+                                  visualStateApplyUiState(visualState, uiState);
                                   setGameState(newGameState);
-                                  renderGameToCanvas(visualStateRef.current!);
+                                  renderGameToCanvas(visualState);
                                 }
 
                                 startGameLoopLogic();
@@ -596,7 +621,9 @@ export function Canvas({ gameId }: Props) {
                               onSaveGame={({ saveName }) => {
                                 saveGame(
                                   gameState,
-                                  visualStateRef.current!.offset,
+                                  visualStateGetUiState(
+                                    visualStateRef.current!,
+                                  ),
                                   saveName,
                                 );
                                 startGameLoopLogic();
@@ -605,7 +632,9 @@ export function Canvas({ gameId }: Props) {
                               onExit={() => {
                                 saveGame(
                                   gameState,
-                                  visualStateRef.current!.offset,
+                                  visualStateGetUiState(
+                                    visualStateRef.current!,
+                                  ),
                                   undefined,
                                 );
                                 location.hash = '';

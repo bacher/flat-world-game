@@ -3,10 +3,10 @@ import {
   makePersistanceParameterizedStorageItem,
 } from '@/utils/persistentStorage';
 
-import type { GameStateSnapshot } from './types';
+import type { GameSave } from './types';
 
 export const gameStateStorage =
-  makePersistanceParameterizedStorageItem<GameStateSnapshot>('game');
+  makePersistanceParameterizedStorageItem<GameSave>('game');
 
 type GameMeta = {
   gameId: string;

@@ -9,6 +9,7 @@ import {
   Point,
   Size,
   Structure,
+  UiState,
 } from './types';
 import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
@@ -33,7 +34,9 @@ export type VisualState = {
   canvasHalfSize: Size;
   cellSize: Size;
   offset: Point;
+  zoom: number;
   viewportBounds: CellRect;
+  pointerPosition: Point | undefined;
   hoverCell: CellPosition | undefined;
   interactiveAction: InteractiveAction | undefined;
   onUpdate: () => void;
@@ -60,6 +63,8 @@ export type InteractActionCarrierPlanning = {
   resourceType: ResourceType;
 };
 
+const DEFAULT_CELL_SIZE = 90;
+
 export function createVisualState(
   gameState: GameState,
   ctx: CanvasRenderingContext2D,
@@ -78,12 +83,14 @@ export function createVisualState(
     ctx,
     canvasSize: { width: canvasWidth, height: canvasHeight },
     canvasHalfSize: { width: halfWidth, height: halfHeight },
-    cellSize: { width: 90, height: 90 },
+    cellSize: { width: DEFAULT_CELL_SIZE, height: DEFAULT_CELL_SIZE },
     offset: { x: 0, y: 0 },
+    zoom: 1,
     viewportBounds: {
       start: { i: 0, j: 0 },
       end: { i: 0, j: 0 },
     },
+    pointerPosition: undefined,
     hoverCell: undefined,
     interactiveAction: undefined,
     onUpdate,
@@ -151,13 +158,22 @@ export function visualStateOnMouseMove(
   visualState: VisualState,
   point: Point | undefined,
 ): void {
-  if (!point) {
-    visualState.hoverCell = undefined;
-    visualState.onUpdate();
+  visualState.pointerPosition = point;
+  actualizeHoverCell(visualState);
+}
+
+function actualizeHoverCell(visualState: VisualState): void {
+  const { pointerPosition } = visualState;
+
+  if (!pointerPosition) {
+    if (visualState.hoverCell) {
+      visualState.hoverCell = undefined;
+      visualState.onUpdate();
+    }
     return;
   }
 
-  const cell = lookupGridByPoint(visualState, point);
+  const cell = lookupGridByPoint(visualState, pointerPosition);
 
   if (!isSameCellPoints(visualState.hoverCell, cell)) {
     visualState.hoverCell = cell;
@@ -166,7 +182,7 @@ export function visualStateOnMouseMove(
 }
 
 export function visualStateMove(visualState: VisualState, point: Point): void {
-  updateVisualStateOffset(visualState, {
+  visualStateUpdateOffset(visualState, {
     x: visualState.offset.x + point.x,
     y: visualState.offset.y + point.y,
   });
@@ -178,20 +194,73 @@ export function visualStateMoveToCell(
 ): void {
   const { cellSize } = visualState;
 
-  updateVisualStateOffset(visualState, {
+  visualStateUpdateOffset(visualState, {
     x: -cell.i * cellSize.width,
     y: -cell.j * cellSize.height,
   });
 }
 
-export function updateVisualStateOffset(
-  visualState: VisualState,
-  point: Point,
-): void {
+function updateOffset(visualState: VisualState, point: Point): void {
   visualState.offset.x = point.x;
   visualState.offset.y = point.y;
+}
+
+function visualStateUpdateOffset(visualState: VisualState, point: Point): void {
+  updateOffset(visualState, point);
 
   actualizeViewportBounds(visualState);
+  actualizeHoverCell(visualState);
+  visualState.onUpdate();
+}
+
+export function visualStateApplyUiState(
+  visualState: VisualState,
+  uiState: UiState,
+): void {
+  updateOffset(visualState, uiState.lookAt);
+  updateZoom(visualState, uiState.zoom);
+
+  actualizeViewportBounds(visualState);
+  actualizeHoverCell(visualState);
+  visualState.onUpdate();
+}
+
+export function visualStateGetUiState(visualState: VisualState): UiState {
+  return {
+    lookAt: visualState.offset,
+    zoom: visualState.zoom,
+  };
+}
+
+export function updateZoom(visualState: VisualState, zoom: number): void {
+  //  const prevZoom = visualState.zoom;
+
+  visualState.zoom = zoom;
+
+  visualState.cellSize.width = DEFAULT_CELL_SIZE * zoom;
+  visualState.cellSize.height = DEFAULT_CELL_SIZE * zoom;
+
+  //  const p = visualState.pointerPosition;
+  //
+  //  if (p) {
+  //    const s = visualState.canvasHalfSize;
+  //    const px = p.x - s.width;
+  //    const py = p.y - s.height;
+  //
+  //    const inv = (zoom - prevZoom) / prevZoom;
+  //    visualState.offset.x += (px * inv) / visualState.cellSize.width;
+  //    visualState.offset.y += (py * inv) / visualState.cellSize.height;
+  //  }
+}
+
+export function visualStateUpdateZoom(
+  visualState: VisualState,
+  zoom: number,
+): void {
+  updateZoom(visualState, zoom);
+
+  actualizeViewportBounds(visualState);
+  actualizeHoverCell(visualState);
   visualState.onUpdate();
 }
 

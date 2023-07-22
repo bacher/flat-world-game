@@ -7,12 +7,13 @@ import {
   City,
   FacilitiesByCityId,
   FacilityLikeType,
+  GameSave,
   GameState,
   GameStateSnapshot,
-  Point,
   ProductVariantId,
   ResearchId,
   StructuresByCellId,
+  UiState,
 } from './types';
 import { addCity, addPathTo } from './gameState';
 import { gamesListStorage, gameStateStorage } from './persist';
@@ -43,18 +44,17 @@ function getNewGame({ gameId }: { gameId: string }) {
   return gameState;
 }
 
-export function getNewGameSnapshot({
-  gameId,
-}: {
-  gameId: string;
-}): GameStateSnapshot {
-  return getGameStateSnapshot(getNewGame({ gameId }), { x: 0, y: 0 });
+export function getNewGameSave({ gameId }: { gameId: string }): GameSave {
+  return {
+    gameState: getGameStateSnapshot(getNewGame({ gameId })),
+    uiState: {
+      lookAt: { x: 0, y: 0 },
+      zoom: 1,
+    },
+  };
 }
 
-export function getGameStateSnapshot(
-  gameState: GameState,
-  lookAt: Point,
-): GameStateSnapshot {
+function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
   const {
     gameId,
     tickNumber,
@@ -80,14 +80,12 @@ export function getGameStateSnapshot(
     completedResearches: [...completedResearches.values()],
     currentResearchId,
     inProgressResearches: [...inProgressResearches.entries()],
-    lookAt,
   };
 }
 
-export function getGameStateBySnapshot(gameStateSnapshot: GameStateSnapshot): {
-  gameState: GameState;
-  lookAt: Point;
-} {
+function getGameStateBySnapshot(
+  gameStateSnapshot: GameStateSnapshot,
+): GameState {
   const {
     gameId,
     tickNumber,
@@ -96,7 +94,6 @@ export function getGameStateBySnapshot(gameStateSnapshot: GameStateSnapshot): {
     currentResearchId,
     inProgressResearches,
     facilities,
-    lookAt,
   } = gameStateSnapshot;
 
   const cities: City[] = dehydratedCities.map((city) => ({
@@ -121,7 +118,7 @@ export function getGameStateBySnapshot(gameStateSnapshot: GameStateSnapshot): {
     facilitiesByCityId.get(facility.assignedCityId)!.push(facility);
   }
 
-  const gameState: GameState = {
+  return {
     gameId,
     tickNumber,
     cities: new Map(cities.map((city) => [city.cityId, city])),
@@ -134,11 +131,6 @@ export function getGameStateBySnapshot(gameStateSnapshot: GameStateSnapshot): {
     facilitiesByCityId,
     structuresByCellId,
     ...collectUnlockedFacilities(completedResearches),
-  };
-
-  return {
-    gameState,
-    lookAt,
   };
 }
 
@@ -200,13 +192,16 @@ function getFullSnapshotName(gameId: string, saveName: string | undefined) {
 
 export function saveGame(
   gameState: GameState,
-  lookAt: Point,
+  uiState: UiState,
   saveName: string | undefined,
 ): void {
-  const snapshot = getGameStateSnapshot(gameState, lookAt);
+  const gameStateSnapshot = getGameStateSnapshot(gameState);
   const fullSaveName = getFullSnapshotName(gameState.gameId, saveName);
 
-  gameStateStorage.set(fullSaveName, snapshot);
+  gameStateStorage.set(fullSaveName, {
+    gameState: gameStateSnapshot,
+    uiState,
+  });
 
   const gamesList = gamesListStorage.get();
 
@@ -244,7 +239,7 @@ export function saveGame(
 export function loadGame(
   gameId: string,
   saveName: string | undefined,
-): { gameState: GameState; lookAt: Point } {
+): { gameState: GameState; uiState: UiState } {
   let actualSaveName: string | undefined = saveName;
 
   if (!actualSaveName) {
@@ -274,11 +269,15 @@ export function loadGame(
 
   const fullSaveName = getFullSnapshotName(gameId, actualSaveName);
 
-  const snapshot = gameStateStorage.get(fullSaveName);
+  const gameSave = gameStateStorage.get(fullSaveName);
 
-  if (!snapshot) {
+  if (!gameSave) {
     throw new Error('No game state found');
   }
 
-  return getGameStateBySnapshot(snapshot);
+  return {
+    // TODO: Remove default values lately
+    gameState: getGameStateBySnapshot(gameSave.gameState ?? gameSave),
+    uiState: gameSave.uiState ?? { lookAt: { x: 0, y: 0 }, zoom: 1 },
+  };
 }
