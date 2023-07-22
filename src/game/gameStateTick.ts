@@ -11,12 +11,13 @@ import {
 } from './types';
 import {
   addCarrierPath,
-  completeConstruction,
   createEmptyLastTickCityReport,
   getStructureIterationStorageInfo,
   removeAllCarrierPathsTo,
 } from './gameState';
 import { isSamePath } from './helpers';
+import { shuffledTraversal } from './pseudoRandom';
+
 import { growPhase } from './tick/growPhase';
 import { researchPhase } from './tick/researchPhase';
 import { DailyWork, JobType, planCityTickWork } from './tick/planning';
@@ -31,7 +32,11 @@ export function tick(gameState: GameState): void {
     console.group(`Tick ${gameState.tickNumber}`);
   }
 
-  for (const city of gameState.cities.values()) {
+  const shuffledCities = shuffledTraversal(gameState.tickNumber, [
+    ...gameState.cities.values(),
+  ]);
+
+  for (const city of shuffledCities) {
     city.cityReport.lastTick = createEmptyLastTickCityReport();
 
     const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
@@ -139,18 +144,6 @@ function fillInCityWorkReport(city: City, dailyWorks: DailyWork[]): void {
 
   city.cityReport.lastTick = report;
 }
-
-(window as any).completeAllConstruction = () => {
-  const gs = (window as any).gameState;
-
-  for (const facilities of gs.facilitiesByCityId.values()) {
-    for (const facility of facilities) {
-      if (facility.type === FacilityType.CONSTRUCTION) {
-        completeConstruction(gs, facility);
-      }
-    }
-  }
-};
 
 function addAutomaticInputPaths(
   gameState: GameState,

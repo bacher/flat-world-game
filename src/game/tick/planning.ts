@@ -28,6 +28,7 @@ import {
 import { facilitiesIterationInfo } from '@/game/facilities';
 import { getCarrierPathDistance } from '@/game/helpers';
 import { boosterByResourceType } from '@/game/boosters';
+import { shuffledTraversal } from '@/game/pseudoRandom';
 
 import { applyCityModifiers } from './cityBoosters';
 
@@ -74,7 +75,7 @@ export function planCityTickWork(
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
   const dailyWorksBase: DailyWorkBase[] = [];
 
-  for (const facility of facilities) {
+  for (const facility of shuffledTraversal(gameState.tickNumber, facilities)) {
     if (
       (isExactFacility(facility) ||
         facility.type === FacilityType.CONSTRUCTION) &&
@@ -97,7 +98,10 @@ export function planCityTickWork(
     }
   }
 
-  for (const carrierPath of city.carrierPaths) {
+  for (const carrierPath of shuffledTraversal(
+    gameState.tickNumber,
+    city.carrierPaths,
+  )) {
     const needWorkDays = getCarrierPathBaseWorkDays(gameState, carrierPath);
 
     if (needWorkDays) {
