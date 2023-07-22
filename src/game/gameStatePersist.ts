@@ -48,7 +48,7 @@ export function getNewGameSave({ gameId }: { gameId: string }): GameSave {
   return {
     gameState: getGameStateSnapshot(getNewGame({ gameId })),
     uiState: {
-      lookAt: { x: 0, y: 0 },
+      center: { i: 0, j: 0 },
       zoom: 1,
     },
   };
@@ -275,9 +275,16 @@ export function loadGame(
     throw new Error('No game state found');
   }
 
+  let uiState: UiState;
+  if (gameSave.uiState && gameSave.uiState.center?.i !== undefined) {
+    uiState = gameSave.uiState;
+  } else {
+    uiState = { center: { i: 0, j: 0 }, zoom: 1 };
+  }
+
   return {
     // TODO: Remove default values lately
     gameState: getGameStateBySnapshot(gameSave.gameState ?? gameSave),
-    uiState: gameSave.uiState ?? { lookAt: { x: 0, y: 0 }, zoom: 1 },
+    uiState,
   };
 }

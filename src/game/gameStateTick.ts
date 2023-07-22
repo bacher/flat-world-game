@@ -22,10 +22,14 @@ import { researchPhase } from './tick/researchPhase';
 import { DailyWork, JobType, planCityTickWork } from './tick/planning';
 import { doCarryWork, doConstructionWork, doFacilityWork } from './tick/work';
 
+const PRINT_TICKS = false;
+
 export function tick(gameState: GameState): void {
   gameState.tickNumber += 1;
 
-  console.group(`Tick ${gameState.tickNumber}`);
+  if (PRINT_TICKS) {
+    console.group(`Tick ${gameState.tickNumber}`);
+  }
 
   for (const city of gameState.cities.values()) {
     city.cityReport.lastTick = createEmptyLastTickCityReport();
@@ -78,7 +82,9 @@ export function tick(gameState: GameState): void {
 
   growPhase(gameState);
 
-  console.groupEnd();
+  if (PRINT_TICKS) {
+    console.groupEnd();
+  }
 }
 
 function updateCityNeedPopulation(

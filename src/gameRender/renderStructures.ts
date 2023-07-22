@@ -2,6 +2,9 @@ import { FacilityLikeType, FacilityType, Structure } from '@/game/types';
 import { VisualState } from '@/game/visualState';
 import { neverCall } from '@/utils/typeUtils';
 
+const SQRT2 = Math.sqrt(2);
+const SQRT2_R = 1 / SQRT2;
+
 export function drawStructureObject(
   visualState: VisualState,
   structure: Structure,
@@ -241,5 +244,50 @@ export function drawStructureObject(
     ctx.fillText(rest, 18, 14);
 
     ctx.lineWidth = 1;
+  }
+}
+
+export function drawStructurePlaceholder(
+  visualState: VisualState,
+  structure: Structure,
+): void {
+  const { ctx, cellSize } = visualState;
+  const w = Math.min(cellSize.width, cellSize.height);
+  const w2 = w * 0.5;
+
+  ctx.beginPath();
+
+  switch (structure.type) {
+    case FacilityType.CITY:
+      ctx.arc(0, 0, w2 * 0.6, 0, 2 * Math.PI);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      break;
+    case FacilityType.INTERCITY_SENDER: {
+      const y1 = -0.2 * w;
+      const y2 = 0.6 * SQRT2_R * w - 0.2 * w;
+      ctx.moveTo(-0.3 * w, y1);
+      ctx.lineTo(0, y2);
+      ctx.lineTo(0.3 * w, y1);
+      ctx.closePath();
+      ctx.fillStyle = 'orange';
+      ctx.fill();
+      break;
+    }
+    case FacilityType.INTERCITY_RECEIVER: {
+      const y1 = 0.6 * SQRT2_R * w - 0.25 * w;
+      const y2 = -0.25 * w;
+      ctx.moveTo(-0.3 * w, y1);
+      ctx.lineTo(0, y2);
+      ctx.lineTo(0.3 * w, y1);
+      ctx.closePath();
+      ctx.fillStyle = 'blue';
+      ctx.fill();
+      break;
+    }
+    default:
+      ctx.rect(-w2 * 0.5, -w2 * 0.5, w * 0.5, w * 0.5);
+      ctx.fillStyle = 'gray';
+      ctx.fill();
   }
 }

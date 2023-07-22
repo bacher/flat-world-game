@@ -166,8 +166,6 @@ export function Canvas({ gameId }: Props) {
 
   const stopGameLoopRef = useRef<() => void>();
 
-  const zoomRef = useRef(1);
-
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
       alpha: false,
@@ -514,14 +512,11 @@ export function Canvas({ gameId }: Props) {
 
   function onCanvasWheel(event: WheelEvent): void {
     event.preventDefault();
+    const visualState = visualStateRef.current!;
 
     if (event.ctrlKey) {
-      zoomRef.current = clamp(
-        zoomRef.current * (1 - event.deltaY / 100),
-        0.1,
-        2,
-      );
-      visualStateUpdateZoom(visualStateRef.current!, zoomRef.current);
+      const zoom = clamp(visualState.zoom * (1 - event.deltaY / 100), 0.1, 2);
+      visualStateUpdateZoom(visualState, zoom);
     }
   }
 

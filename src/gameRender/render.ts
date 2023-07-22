@@ -36,7 +36,10 @@ import {
   workAreaMap,
 } from '@/game/facilityConstruction';
 
-import { drawStructureObject } from './renderStructures';
+import {
+  drawStructureObject,
+  drawStructurePlaceholder,
+} from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
 
@@ -69,10 +72,11 @@ export function renderGameToCanvas(visualState: VisualState): void {
 }
 
 function moveViewport(visualState: VisualState): void {
-  const { ctx, canvasHalfSize, offset } = visualState;
+  const { ctx, canvasHalfSize, cellSize, viewportCenter } = visualState;
+
   ctx.translate(
-    offset.x + canvasHalfSize.width,
-    offset.y + canvasHalfSize.height,
+    -viewportCenter.i * cellSize.width + canvasHalfSize.width,
+    -viewportCenter.j * cellSize.height + canvasHalfSize.height,
   );
 }
 
@@ -156,19 +160,29 @@ export function isValidCarrierPlanningTarget(
 }
 
 function drawGrid(visualState: VisualState): void {
-  const { ctx, cellSize } = visualState;
+  const { ctx, cellSize, zoom } = visualState;
   const { start, end } = visualState.viewportBounds;
+
+  let startI = start.i;
+  let startJ = start.j;
+  let increment = 1;
+
+  if (zoom < 0.3) {
+    startI = Math.ceil(startI / 10) * 10;
+    startJ = Math.ceil(startJ / 10) * 10;
+    increment = 10;
+  }
 
   ctx.save();
   ctx.beginPath();
   ctx.translate(-cellSize.width / 2, -cellSize.height / 2);
-  for (let i = start.i; i < end.i; i += 1) {
+  for (let i = startI; i <= end.i + 1; i += increment) {
     ctx.moveTo(i * cellSize.width, start.j * cellSize.height);
-    ctx.lineTo(i * cellSize.width, end.j * cellSize.width);
+    ctx.lineTo(i * cellSize.width, (end.j + 1) * cellSize.width);
   }
-  for (let j = start.j; j < end.j; j += 1) {
+  for (let j = startJ; j <= end.j + 1; j += increment) {
     ctx.moveTo(start.i * cellSize.width, j * cellSize.height);
-    ctx.lineTo(end.i * cellSize.width, j * cellSize.width);
+    ctx.lineTo((end.i + 1) * cellSize.width, j * cellSize.width);
   }
   ctx.strokeStyle = '#000';
   ctx.stroke();
@@ -330,8 +344,8 @@ function iterateOverViewportCells(
 ): void {
   const { start, end } = visualState.viewportBounds;
 
-  for (let col = start.i; col < end.i; col += 1) {
-    for (let row = start.j; row < end.j; row += 1) {
+  for (let col = start.i; col <= end.i; col += 1) {
+    for (let row = start.j; row <= end.j; row += 1) {
       const cell = newCellPosition({ i: col, j: row });
       callback(cell);
     }
@@ -358,22 +372,17 @@ function highlightCell(
 ): void {
   const { ctx } = visualState;
   const { cellSize } = visualState;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.translate(-cellSize.width / 2, -cellSize.height / 2);
-
   const { i, j } = cellPosition;
 
+  ctx.beginPath();
   ctx.rect(
-    i * cellSize.width,
-    j * cellSize.height,
+    (i - 0.5) * cellSize.width,
+    (j - 0.5) * cellSize.height,
     cellSize.width,
     cellSize.height,
   );
   ctx.fillStyle = cellColor;
   ctx.fill();
-  ctx.restore();
 }
 
 function drawBuildingMode(visualState: VisualState): void {
@@ -424,15 +433,19 @@ function drawObjects(visualState: VisualState): void {
 
 function drawObject(visualState: VisualState, facility: Structure): void {
   if (isCellInRectInclusive(visualState.viewportBounds, facility.position)) {
-    const { ctx } = visualState;
+    const { ctx, zoom } = visualState;
 
     ctx.save();
     const cellCenter = getCellCenter(visualState, facility.position);
     ctx.translate(cellCenter.x, cellCenter.y);
 
-    drawStructureObject(visualState, facility);
-    drawStructureInfo(visualState, facility);
-    drawFacilityStorage(visualState, facility);
+    if (zoom >= 0.5) {
+      drawStructureObject(visualState, facility);
+      drawStructureInfo(visualState, facility);
+      drawFacilityStorage(visualState, facility);
+    } else {
+      drawStructurePlaceholder(visualState, facility);
+    }
 
     ctx.restore();
   }
@@ -446,11 +459,11 @@ function getCellCenter({ cellSize }: VisualState, cell: CellPosition): Point {
 }
 
 function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
-  return (
+  return !(
     point.i < rect.start.i ||
     point.i > rect.end.i ||
     point.j < rect.start.j ||
-    point.j < rect.end.j
+    point.j > rect.end.j
   );
 }
 
@@ -474,7 +487,7 @@ function getCarrierPathPoints(
 ): [Point, Point] {
   const fromCenter = getCellCenter(visualState, path.from);
   const toCenter = getCellCenter(visualState, path.to);
-  return addGap(fromCenter, toCenter, 30);
+  return addGap(fromCenter, toCenter, visualState.zoom * 30);
 }
 
 function drawCarrierPath(
@@ -688,8 +701,8 @@ function drawStorage(
   const isCompactMode = zoom < 1;
 
   const resourceLineHeight = isCompactMode
-    ? RESOURCE_LINE_HEIGHT
-    : RESOURCE_COMPACT_LINE_HEIGHT;
+    ? RESOURCE_COMPACT_LINE_HEIGHT
+    : RESOURCE_LINE_HEIGHT;
 
   for (let i = 0; i < storage.length; i += 1) {
     ctx.save();

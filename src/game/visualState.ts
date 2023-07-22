@@ -1,6 +1,7 @@
 import { DEFAULT_FONT } from '@/gameRender/canvasUtils';
 
 import {
+  CellCoordinates,
   CellPosition,
   CellRect,
   CompleteFacilityType,
@@ -8,7 +9,6 @@ import {
   GameState,
   Point,
   Size,
-  Structure,
   UiState,
 } from './types';
 import {
@@ -34,9 +34,10 @@ export type VisualState = {
   canvasHalfSize: Size;
   cellSize: Size;
   offset: Point;
+  viewportCenter: CellCoordinates;
   zoom: number;
   viewportBounds: CellRect;
-  pointerPosition: Point | undefined;
+  pointerScreenPosition: Point | undefined;
   hoverCell: CellPosition | undefined;
   interactiveAction: InteractiveAction | undefined;
   onUpdate: () => void;
@@ -85,12 +86,13 @@ export function createVisualState(
     canvasHalfSize: { width: halfWidth, height: halfHeight },
     cellSize: { width: DEFAULT_CELL_SIZE, height: DEFAULT_CELL_SIZE },
     offset: { x: 0, y: 0 },
+    viewportCenter: { i: 0, j: 0 },
     zoom: 1,
     viewportBounds: {
       start: { i: 0, j: 0 },
       end: { i: 0, j: 0 },
     },
-    pointerPosition: undefined,
+    pointerScreenPosition: undefined,
     hoverCell: undefined,
     interactiveAction: undefined,
     onUpdate,
@@ -102,19 +104,19 @@ export function createVisualState(
 }
 
 function actualizeViewportBounds(visualState: VisualState): void {
-  const { cellSize, canvasSize, canvasHalfSize, offset } = visualState;
+  const { cellSize, canvasHalfSize, viewportCenter } = visualState;
 
-  const offsetX = offset.x + canvasHalfSize.width - cellSize.width / 2;
-  const offsetY = offset.y + canvasHalfSize.height - cellSize.height / 2;
+  const cellsHorizontaly = canvasHalfSize.width / cellSize.width;
+  const cellsVerticaly = canvasHalfSize.height / cellSize.height;
 
   visualState.viewportBounds = {
     start: {
-      i: Math.floor(-offsetX / cellSize.width),
-      j: Math.floor(-offsetY / cellSize.height),
+      i: Math.floor(viewportCenter.i + 0.5 - cellsHorizontaly),
+      j: Math.floor(viewportCenter.j + 0.5 - cellsVerticaly),
     },
     end: {
-      i: Math.ceil((canvasSize.width - offsetX) / cellSize.width),
-      j: Math.ceil((canvasSize.height - offsetY) / cellSize.height),
+      i: Math.ceil(viewportCenter.i - 0.5 + cellsHorizontaly),
+      j: Math.ceil(viewportCenter.j - 0.5 + cellsVerticaly),
     },
   };
 }
@@ -141,31 +143,18 @@ export function lookupGridByPoint(
   });
 }
 
-export function lookupFacilityByPoint(
-  visualState: VisualState,
-  point: Point,
-): Structure | undefined {
-  const cell = lookupGridByPoint(visualState, point);
-
-  if (!cell) {
-    return undefined;
-  }
-
-  return visualState.gameState.structuresByCellId.get(cell.cellId);
-}
-
 export function visualStateOnMouseMove(
   visualState: VisualState,
   point: Point | undefined,
 ): void {
-  visualState.pointerPosition = point;
+  visualState.pointerScreenPosition = point;
   actualizeHoverCell(visualState);
 }
 
 function actualizeHoverCell(visualState: VisualState): void {
-  const { pointerPosition } = visualState;
+  const { pointerScreenPosition } = visualState;
 
-  if (!pointerPosition) {
+  if (!pointerScreenPosition) {
     if (visualState.hoverCell) {
       visualState.hoverCell = undefined;
       visualState.onUpdate();
@@ -173,7 +162,7 @@ function actualizeHoverCell(visualState: VisualState): void {
     return;
   }
 
-  const cell = lookupGridByPoint(visualState, pointerPosition);
+  const cell = lookupGridByPoint(visualState, pointerScreenPosition);
 
   if (!isSameCellPoints(visualState.hoverCell, cell)) {
     visualState.hoverCell = cell;
@@ -181,10 +170,18 @@ function actualizeHoverCell(visualState: VisualState): void {
   }
 }
 
-export function visualStateMove(visualState: VisualState, point: Point): void {
-  visualStateUpdateOffset(visualState, {
-    x: visualState.offset.x + point.x,
-    y: visualState.offset.y + point.y,
+export function visualStateMove(
+  visualState: VisualState,
+  pointerMovement: Point,
+): void {
+  const { viewportCenter, cellSize } = visualState;
+
+  const di = -pointerMovement.x / cellSize.width;
+  const dj = -pointerMovement.y / cellSize.height;
+
+  visualStateUpdateViewportCenter(visualState, {
+    i: viewportCenter.i + di,
+    j: viewportCenter.j + dj,
   });
 }
 
@@ -192,21 +189,29 @@ export function visualStateMoveToCell(
   visualState: VisualState,
   cell: CellPosition,
 ): void {
-  const { cellSize } = visualState;
-
-  visualStateUpdateOffset(visualState, {
-    x: -cell.i * cellSize.width,
-    y: -cell.j * cellSize.height,
+  visualStateUpdateViewportCenter(visualState, {
+    i: cell.i,
+    j: cell.j,
   });
 }
 
-function updateOffset(visualState: VisualState, point: Point): void {
-  visualState.offset.x = point.x;
-  visualState.offset.y = point.y;
+function updateViewportCenter(
+  visualState: VisualState,
+  coordinates: CellCoordinates,
+): void {
+  visualState.viewportCenter.i = coordinates.i;
+  visualState.viewportCenter.j = coordinates.j;
+
+  // TODO: Remove
+  visualState.offset.x = -coordinates.i * visualState.cellSize.width;
+  visualState.offset.y = -coordinates.j * visualState.cellSize.height;
 }
 
-function visualStateUpdateOffset(visualState: VisualState, point: Point): void {
-  updateOffset(visualState, point);
+function visualStateUpdateViewportCenter(
+  visualState: VisualState,
+  point: CellCoordinates,
+): void {
+  updateViewportCenter(visualState, point);
 
   actualizeViewportBounds(visualState);
   actualizeHoverCell(visualState);
@@ -217,8 +222,8 @@ export function visualStateApplyUiState(
   visualState: VisualState,
   uiState: UiState,
 ): void {
-  updateOffset(visualState, uiState.lookAt);
   updateZoom(visualState, uiState.zoom);
+  updateViewportCenter(visualState, uiState.center);
 
   actualizeViewportBounds(visualState);
   actualizeHoverCell(visualState);
@@ -227,30 +232,34 @@ export function visualStateApplyUiState(
 
 export function visualStateGetUiState(visualState: VisualState): UiState {
   return {
-    lookAt: visualState.offset,
+    center: visualState.viewportCenter,
     zoom: visualState.zoom,
   };
 }
 
 export function updateZoom(visualState: VisualState, zoom: number): void {
-  //  const prevZoom = visualState.zoom;
+  const prevZoom = visualState.zoom;
 
   visualState.zoom = zoom;
 
   visualState.cellSize.width = DEFAULT_CELL_SIZE * zoom;
   visualState.cellSize.height = DEFAULT_CELL_SIZE * zoom;
 
-  //  const p = visualState.pointerPosition;
-  //
-  //  if (p) {
-  //    const s = visualState.canvasHalfSize;
-  //    const px = p.x - s.width;
-  //    const py = p.y - s.height;
-  //
-  //    const inv = (zoom - prevZoom) / prevZoom;
-  //    visualState.offset.x += (px * inv) / visualState.cellSize.width;
-  //    visualState.offset.y += (py * inv) / visualState.cellSize.height;
-  //  }
+  const cursor = visualState.pointerScreenPosition;
+
+  if (cursor) {
+    const { canvasHalfSize, cellSize, viewportCenter } = visualState;
+
+    const px = (cursor.x - canvasHalfSize.width) / cellSize.width;
+    const py = (cursor.y - canvasHalfSize.height) / cellSize.height;
+
+    const inv = (zoom - prevZoom) / prevZoom;
+
+    updateViewportCenter(visualState, {
+      i: viewportCenter.i + px * inv,
+      j: viewportCenter.j + py * inv,
+    });
+  }
 }
 
 export function visualStateUpdateZoom(

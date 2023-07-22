@@ -113,7 +113,7 @@ export type GameStateSnapshot = {
 };
 
 export type UiState = {
-  lookAt: Point;
+  center: CellCoordinates;
   zoom: number;
 };
 
