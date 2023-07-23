@@ -94,10 +94,10 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
   }));
 
   const worldParams: WorldParams = {
-    chunkSize: 100,
-    ignoreDepositsInCenterRadius: 10,
+    chunkSize: DEFAULT_CHUNK_SIZE,
+    ignoreDepositsInCenterRadius: DEFAULT_IGNORE_DEPOSIT_RADIUS,
     maxDepositRadius: DEFAULT_MAX_DEPOSIT_RADIUS,
-    maxChunkDeposits: 10,
+    maxChunkDeposits: DEFAULT_MAX_CHUNK_DEPOSITS,
   };
 
   return {

@@ -5,6 +5,7 @@ import {
   CellShape,
   ChunkIdentity,
   DepositInfo,
+  ChunkDeposits,
   GameState,
 } from './types';
 import { mulberry32 } from './pseudoRandom';
@@ -23,7 +24,10 @@ const depositTypes = [
   DepositType.OIL,
 ];
 
-export function getChunkDeposits(gameState: GameState, chunk: ChunkIdentity) {
+export function getChunkDeposits(
+  gameState: GameState,
+  chunk: ChunkIdentity,
+): ChunkDeposits {
   const cached = gameState.depositsMapCache.get(chunk.chunkId);
   if (cached) {
     return cached;
@@ -50,9 +54,20 @@ export function getChunkDeposits(gameState: GameState, chunk: ChunkIdentity) {
     );
   });
 
-  gameState.depositsMapCache.set(chunk.chunkId, deposits);
+  const depositItem: ChunkDeposits = {
+    deposits,
+    map: new Map(),
+  };
 
-  return deposits;
+  for (const deposit of deposits) {
+    for (const cell of deposit.shape.cells) {
+      depositItem.map.set(cell.cellId, deposit.depositType);
+    }
+  }
+
+  gameState.depositsMapCache.set(chunk.chunkId, depositItem);
+
+  return depositItem;
 }
 
 function isColladeWithDeposits(
@@ -75,7 +90,7 @@ function getChunkDepositsByPlan(
 ): DepositInfo[] {
   const cached = gameState.depositsMapCache.get(chunk.chunkId);
   if (cached) {
-    return cached;
+    return cached.deposits;
   }
 
   const { gameSeed, worldParams } = gameState;

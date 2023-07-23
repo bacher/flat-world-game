@@ -114,7 +114,12 @@ export type GameState = {
   depositsMapCache: DepositsMap;
 };
 
-export type DepositsMap = Map<ChunkId, DepositInfo[]>;
+export type ChunkDeposits = {
+  deposits: DepositInfo[];
+  map: Map<CellId, DepositType>;
+};
+
+export type DepositsMap = Map<ChunkId, ChunkDeposits>;
 
 export type GameSave = {
   gameState: GameStateSnapshot;

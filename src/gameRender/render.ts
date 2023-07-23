@@ -805,9 +805,9 @@ function drawDeposits(visualState: VisualState): void {
   const { gameState, viewportBounds } = visualState;
 
   for (const chunk of getBoundedChunks(gameState, visualState.viewportBounds)) {
-    const deposits = getChunkDeposits(gameState, chunk);
+    const depositsInfo = getChunkDeposits(gameState, chunk);
 
-    for (const deposit of deposits) {
+    for (const deposit of depositsInfo.deposits) {
       if (isRectsCollade(viewportBounds, deposit.boundingRect)) {
         for (const cellPosition of deposit.shape.cells) {
           drawDepositCell(visualState, cellPosition, deposit.depositType);
