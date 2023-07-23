@@ -22,6 +22,7 @@ import {
   addCarrierPath,
   addCity,
   addConstructionStructure,
+  getChunkByCell,
   getFacilityBindedCity,
 } from '@/game/gameState';
 import { loadGame, saveGame } from '@/game/gameStatePersist';
@@ -36,12 +37,12 @@ import {
   lookupGridByPoint,
   startGameLoop,
   VisualState,
+  visualStateApplyUiState,
+  visualStateGetUiState,
   visualStateMove,
   visualStateMoveToCell,
   visualStateOnMouseMove,
   visualStateUpdateZoom,
-  visualStateApplyUiState,
-  visualStateGetUiState,
 } from '@/game/visualState';
 
 import { useForceUpdate } from '@hooks/forceUpdate';
@@ -60,7 +61,10 @@ import { neverCall } from '@/utils/typeUtils';
 import { GameMenu } from '@/app/modals/GameMenu';
 import { setHash } from '@/utils/url';
 import { isSameCellPoints } from '@/game/helpers';
-import { facilitiesIterationInfo } from '@/game/facilities';
+import {
+  depositToProductVariant,
+  facilitiesIterationInfo,
+} from '@/game/facilities';
 import { ProductionVariantModal } from '@/app/modals/ProductionVariantModal';
 import { ResourceChooseModal } from '@/app/modals/ResourceChooseModal';
 
@@ -390,7 +394,33 @@ export function Canvas({ gameId }: Props) {
                 } else {
                   const facilityInfo = facilitiesIterationInfo[facilityType];
 
-                  if (
+                  if (facilityType === FacilityType.QUARRY) {
+                    const chunk = getChunkByCell(gameState, cell);
+                    const depositType = gameState.depositsMapCache
+                      .get(chunk.chunkId)!
+                      .map.get(cell.cellId);
+
+                    if (!depositType) {
+                      return;
+                    }
+
+                    const variantId = depositToProductVariant[depositType];
+                    if (!variantId) {
+                      return;
+                    }
+
+                    const unlockedVariants =
+                      gameState.unlockedProductionVariants.get(facilityType);
+                    if (!unlockedVariants || !unlockedVariants.has(variantId)) {
+                      return;
+                    }
+
+                    addConstructionStructure(gameState, {
+                      facilityType,
+                      position: cell,
+                      productionVariantId: variantId,
+                    });
+                  } else if (
                     facilityInfo.productionVariants.length > 1 ||
                     (facilityInfo.productionVariants[0].id !==
                       ProductVariantId.BASIC &&

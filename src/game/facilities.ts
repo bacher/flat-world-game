@@ -6,6 +6,7 @@ import {
   StorageItem,
 } from './types';
 import { resourceLocalization, ResourceType } from './resources';
+import { DepositType } from '@/game/depositType.ts';
 
 export enum ItrationInfoType {
   FACILITY,
@@ -418,6 +419,44 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
+  [FacilityType.QUARRY]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 3,
+    productionVariants: [
+      {
+        id: ProductVariantId.STONE,
+        iterationPeopleDays: 5,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.STONE,
+            quantity: 2,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.IRON_ORE,
+        iterationPeopleDays: 5,
+        input: [],
+        output: [
+          {
+            resourceType: ResourceType.IRON_ORE,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
+};
+
+export const depositToProductVariant: Record<
+  DepositType,
+  ProductVariantId | undefined
+> = {
+  [DepositType.STONE]: ProductVariantId.STONE,
+  [DepositType.IRON]: ProductVariantId.IRON_ORE,
+  [DepositType.COAL]: undefined,
+  [DepositType.OIL]: undefined,
 };
 
 export const initiallyUnlockedFacilities: Set<FacilityLikeType> = new Set([
@@ -441,6 +480,7 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.HOUSING_FACTORY]: 'Housing factory',
   [FacilityType.INTERCITY_SENDER]: 'Intercity sender',
   [FacilityType.INTERCITY_RECEIVER]: 'Intercity receiver',
+  [FacilityType.QUARRY]: 'Quarry',
 };
 
 export const productVariantsTranslations: Record<ProductVariantId, string> = {
@@ -462,4 +502,6 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.WOODEN_BOW]: resourceLocalization[ResourceType.WOODEN_BOW],
   [ProductVariantId.WICKIUP]: resourceLocalization[ResourceType.WICKIUP],
   [ProductVariantId.HOVEL]: resourceLocalization[ResourceType.HOVEL],
+  [ProductVariantId.STONE]: resourceLocalization[ResourceType.STONE],
+  [ProductVariantId.IRON_ORE]: resourceLocalization[ResourceType.IRON_ORE],
 };

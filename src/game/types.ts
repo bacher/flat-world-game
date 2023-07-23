@@ -44,6 +44,7 @@ export enum FacilityType {
   HOUSING_FACTORY = 'HOUSING_FACTORY',
   INTERCITY_SENDER = 'INTERCITY_SENDER',
   INTERCITY_RECEIVER = 'INTERCITY_RECEIVER',
+  QUARRY = 'QUARRY',
 }
 
 export enum ProductVariantId {
@@ -63,6 +64,8 @@ export enum ProductVariantId {
   WOODEN_BOW = 'WOODEN_BOW',
   WICKIUP = 'WICKIUP',
   HOVEL = 'HOVEL',
+  STONE = 'STONE',
+  IRON_ORE = 'IRON_ORE',
 }
 
 export type ExactFacilityType = Exclude<
@@ -297,6 +300,7 @@ export const enum ResearchId {
   HOUSING = 'HOUSING',
   HOUSING_2 = 'HOUSING_2',
   INTERCITY = 'INTERCITY',
+  STONE = 'STONE',
 }
 
 export type Research = {

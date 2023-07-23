@@ -5,9 +5,10 @@ export function drawResourceIcon(
   ctx: CanvasRenderingContext2D,
   resourceType: ResourceType,
 ): void {
+  ctx.beginPath();
+
   switch (resourceType) {
     case ResourceType.LOG:
-      ctx.beginPath();
       ctx.moveTo(-5, -3);
       ctx.lineTo(5, -3);
       ctx.lineTo(5, 3);
@@ -17,7 +18,6 @@ export function drawResourceIcon(
       break;
     case ResourceType.ROUTH_LUMBER:
       ctx.fillStyle = 'brown';
-      ctx.beginPath();
       ctx.moveTo(-4, -6);
       ctx.lineTo(-6, -4);
       ctx.lineTo(4, 6);
@@ -33,13 +33,11 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.FOOD:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = 'orange';
       ctx.fill();
       break;
     case ResourceType.FRUIT:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = 'red';
       ctx.fill();
@@ -51,7 +49,6 @@ export function drawResourceIcon(
     case ResourceType.VEGETABLE:
       ctx.strokeStyle = '#fff';
       ctx.fillStyle = 'green';
-      ctx.beginPath();
       ctx.ellipse(0, 2, 6, 2, 0, 0, 2 * Math.PI);
       ctx.stroke();
       ctx.fill();
@@ -61,7 +58,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.NUT:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = '#be633b';
       ctx.fill();
@@ -71,7 +67,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.MEAT:
-      ctx.beginPath();
       ctx.arc(0, 0, 4, 0, 2 * Math.PI, true);
       ctx.fillStyle = 'red';
       ctx.fill();
@@ -81,7 +76,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.FRIED_MEAT:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = 'brown';
       ctx.fill();
@@ -90,7 +84,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.VEGAN_MEAL:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI, true);
       ctx.fillStyle = 'brown';
       ctx.fill();
@@ -101,7 +94,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.COMPLEX_MEAL:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI, true);
       ctx.fillStyle = 'brown';
       ctx.fill();
@@ -115,7 +107,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.BASKET:
-      ctx.beginPath();
       ctx.moveTo(-5, -2);
       ctx.lineTo(-4, 4);
       ctx.lineTo(4, 4);
@@ -126,7 +117,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.AGRICULTURAL_TOOLS:
-      ctx.beginPath();
       ctx.moveTo(0, 6);
       ctx.lineTo(0, -2);
       ctx.lineTo(-3, -5);
@@ -138,13 +128,11 @@ export function drawResourceIcon(
       ctx.stroke();
       break;
     case ResourceType.HAY:
-      ctx.beginPath();
       ctx.rect(-5, -5, 10, 10);
       ctx.fillStyle = 'orange';
       ctx.fill();
       break;
     case ResourceType.HORSE:
-      ctx.beginPath();
       ctx.moveTo(-5, -4);
       ctx.lineTo(5, -4);
       ctx.lineTo(3, 2);
@@ -153,7 +141,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.REED:
-      ctx.beginPath();
       ctx.rect(-1, -4, 2, 12);
       ctx.closePath();
       ctx.fillStyle = 'black';
@@ -165,7 +152,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.PAPYRUS:
-      ctx.beginPath();
       ctx.rect(-4, -4, 8, 8);
       ctx.closePath();
       ctx.fillStyle = 'yellow';
@@ -174,13 +160,11 @@ export function drawResourceIcon(
       ctx.stroke();
       break;
     case ResourceType.TEA_LEAVES:
-      ctx.beginPath();
       ctx.ellipse(-1, 0, 3, 5, -Math.PI / 4, 0, Math.PI * 2);
       ctx.fillStyle = 'green';
       ctx.fill();
       break;
     case ResourceType.TEA:
-      ctx.beginPath();
       ctx.moveTo(-5, -5);
       ctx.lineTo(-2, 5);
       ctx.lineTo(2, 5);
@@ -190,7 +174,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.WOODEN_BOW:
-      ctx.beginPath();
       ctx.arc(-3, 0, 5, -0.4 * Math.PI, 0.4 * Math.PI);
       ctx.strokeStyle = 'brown';
       ctx.lineWidth = 2;
@@ -203,7 +186,6 @@ export function drawResourceIcon(
       ctx.stroke();
       break;
     case ResourceType.HOUSING:
-      ctx.beginPath();
       ctx.moveTo(-5, -1);
       ctx.lineTo(0, -4);
       ctx.lineTo(5, -1);
@@ -216,7 +198,6 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.WICKIUP:
-      ctx.beginPath();
       ctx.moveTo(-6, 4);
       ctx.lineTo(0, -4);
       ctx.lineTo(6, 4);
@@ -226,7 +207,6 @@ export function drawResourceIcon(
       ctx.lineWidth = 1;
       break;
     case ResourceType.HOVEL:
-      ctx.beginPath();
       ctx.moveTo(-6, 4);
       ctx.lineTo(0, -4);
       ctx.lineTo(6, 4);
@@ -234,8 +214,28 @@ export function drawResourceIcon(
       ctx.fillStyle = 'brown';
       ctx.fill();
       break;
+    case ResourceType.STONE:
+      ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = 'gray';
+      ctx.fill();
+      break;
+    case ResourceType.IRON_ORE:
+      ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = 'blue';
+      ctx.fill();
+      break;
+    case ResourceType.IRON:
+      ctx.rect(-4, -3, 8, 6);
+      ctx.fillStyle = 'blue';
+      ctx.fill();
+      break;
+    case ResourceType.COAL:
+    case ResourceType.OIL:
+      ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      break;
     default:
-      ctx.beginPath();
       ctx.arc(0, 0, 5, 0, Math.PI * 2, true);
       ctx.fillStyle = 'black';
       ctx.fill();

@@ -18,15 +18,15 @@ export function drawStructureObject(
     drawFacilityType = structure.type;
   }
 
+  ctx.beginPath();
+
   switch (drawFacilityType) {
     case FacilityType.CITY:
-      ctx.beginPath();
       ctx.arc(0, 0, 14, 0, 2 * Math.PI, true);
       ctx.fillStyle = 'black';
       ctx.fill();
       break;
     case FacilityType.LUMBER:
-      ctx.beginPath();
       ctx.moveTo(0, -15);
       ctx.lineTo(-15, 12);
       ctx.lineTo(15, 12);
@@ -35,7 +35,6 @@ export function drawStructureObject(
       ctx.fill();
       break;
     case FacilityType.CHOP_WOOD:
-      ctx.beginPath();
       ctx.moveTo(-12, -8);
       ctx.lineTo(-8, -12);
       ctx.lineTo(12, 8);
@@ -53,7 +52,6 @@ export function drawStructureObject(
       break;
     case FacilityType.GATHERING:
     case FacilityType.GATHERING_2:
-      ctx.beginPath();
       ctx.moveTo(-12, -4);
       ctx.lineTo(-9, 8);
       ctx.lineTo(9, 8);
@@ -71,7 +69,6 @@ export function drawStructureObject(
       }
       break;
     case FacilityType.KITCHEN:
-      ctx.beginPath();
       ctx.moveTo(-12, -8);
       ctx.lineTo(-9, 8);
       ctx.lineTo(9, 8);
@@ -83,7 +80,6 @@ export function drawStructureObject(
       break;
     case FacilityType.HUNTERS_BOOTH:
     case FacilityType.HUNTERS_BOOTH_2:
-      ctx.beginPath();
       ctx.arc(-9, 0, 15, -0.4 * Math.PI, 0.4 * Math.PI);
       ctx.strokeStyle = 'brown';
       ctx.lineWidth = 3;
@@ -103,7 +99,6 @@ export function drawStructureObject(
       }
       break;
     case FacilityType.WORK_SHOP:
-      ctx.beginPath();
       ctx.moveTo(-10, -7);
       ctx.lineTo(-10, 8);
       ctx.lineTo(10, 8);
@@ -114,13 +109,11 @@ export function drawStructureObject(
       ctx.fill();
       break;
     case FacilityType.FIELD:
-      ctx.beginPath();
       ctx.rect(-12, -12, 24, 24);
       ctx.fillStyle = 'orange';
       ctx.fill();
       break;
     case FacilityType.STABLE:
-      ctx.beginPath();
       ctx.rect(-10, -5, 20, 9);
       ctx.rect(-12, -12, 5, 7);
       ctx.rect(-10, 4, 2, 6);
@@ -133,7 +126,6 @@ export function drawStructureObject(
       break;
     case FacilityType.ANCIENT_FACTORY:
     case FacilityType.HOUSING_FACTORY:
-      ctx.beginPath();
       ctx.moveTo(-10, 10);
       ctx.lineTo(-10, -5);
       ctx.lineTo(-5, -10);
@@ -166,7 +158,6 @@ export function drawStructureObject(
               second: 'blue',
             };
 
-      ctx.beginPath();
       ctx.arc(0, -2, 9, 0, Math.PI);
       ctx.lineWidth = 3;
       ctx.strokeStyle = colors.main;
@@ -188,6 +179,15 @@ export function drawStructureObject(
       ctx.fill();
       break;
     }
+    case FacilityType.QUARRY:
+      ctx.moveTo(-10, -4);
+      ctx.lineTo(-8, 4);
+      ctx.lineTo(8, 4);
+      ctx.lineTo(10, -4);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000';
+      ctx.stroke();
+      break;
     default:
       ctx.beginPath();
       ctx.moveTo(-10, -10);

@@ -19,6 +19,7 @@ import {
   CellPath,
   CellPosition,
   CellRect,
+  ChunkIdentity,
   City,
   CityId,
   CityLastTickReportInfo,
@@ -47,7 +48,11 @@ import { facilitiesIterationInfo } from './facilities';
 import { facilitiesConstructionInfo } from './facilityConstruction';
 import { generateNewCityName } from './cityNameGenerator';
 import { cityResourcesInput } from './boosters';
-import { calculateDistance, newCellPosition } from './helpers';
+import {
+  calculateDistance,
+  newCellPosition,
+  newChunkIdentity,
+} from './helpers';
 
 export function addCarrierPath(
   gameState: GameState,
@@ -682,4 +687,15 @@ export function getCityResourceSubstitute(resourceType: ResourceType): {
     resourceType,
     modifier: 1,
   };
+}
+
+export function getChunkByCell(
+  gameState: GameState,
+  cell: CellPosition,
+): ChunkIdentity {
+  const { chunkSize } = gameState.worldParams;
+  return newChunkIdentity({
+    i: Math.floor(cell.i / chunkSize) * chunkSize,
+    j: Math.floor(cell.j / chunkSize) * chunkSize,
+  });
 }

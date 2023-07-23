@@ -70,11 +70,11 @@ export function renderGameToCanvas(visualState: VisualState): void {
   moveViewport(visualState);
 
   drawViewportHighlights(visualState);
+  drawDeposits(visualState);
   drawInteractiveAction(visualState);
   drawGrid(visualState);
   drawObjects(visualState);
   drawCarrierPaths(visualState);
-  drawDeposits(visualState);
 
   ctx.restore();
 
@@ -835,7 +835,7 @@ function drawDepositCell(
     ctx.rect(-side * 0.5, -side * 0.5, side, side);
     switch (depositType) {
       case DepositType.STONE:
-        ctx.fillStyle = 'gray';
+        ctx.fillStyle = 'lightgray';
         break;
       case DepositType.IRON:
         ctx.fillStyle = 'blue';

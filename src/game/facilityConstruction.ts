@@ -207,6 +207,17 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.QUARRY]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 2,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 20,
+      },
+    ],
+  },
 };
 
 export const workAreaMap: WorkAreaMap = Object.entries(

@@ -22,6 +22,11 @@ export enum ResourceType {
   HOUSING = 'HOUSING',
   WICKIUP = 'WICKIUP',
   HOVEL = 'HOVEL',
+  STONE = 'STONE',
+  IRON_ORE = 'IRON_ORE',
+  IRON = 'IRON',
+  COAL = 'COAL',
+  OIL = 'OIL',
 }
 
 export type FoodResourceTypes =
@@ -89,4 +94,9 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.HOUSING]: 'Housing',
   [ResourceType.WICKIUP]: 'Wickiup',
   [ResourceType.HOVEL]: 'Hovel',
+  [ResourceType.STONE]: 'Stone',
+  [ResourceType.IRON_ORE]: 'Iron ore',
+  [ResourceType.IRON]: 'Iron',
+  [ResourceType.COAL]: 'Coal',
+  [ResourceType.OIL]: 'Oil',
 };
