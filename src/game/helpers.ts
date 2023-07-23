@@ -5,6 +5,8 @@ import {
   CellPath,
   CellPosition,
   CellRect,
+  ChunkId,
+  ChunkIdentity,
 } from './types';
 
 const ROW_SIZE = 2 ** 26;
@@ -17,7 +19,7 @@ export function convertCellToCellId(cell: CellCoordinates): CellId {
   return (y * ROW_SIZE + x) as CellId;
 }
 
-export function newCellPosition(pos: { i: number; j: number }): CellPosition {
+export function newCellPosition(pos: CellCoordinates): CellPosition {
   const point = {
     i: pos.i,
     j: pos.j,
@@ -28,6 +30,14 @@ export function newCellPosition(pos: { i: number; j: number }): CellPosition {
   // Object.defineProperty(point, 'cellId', { enumerable: false });
 
   return point;
+}
+
+export function newChunkIdentity(pos: CellCoordinates): ChunkIdentity {
+  return {
+    i: pos.i,
+    j: pos.j,
+    chunkId: convertCellToCellId(pos) as number as ChunkId,
+  };
 }
 
 export function getCarrierPathDistance(carrierPath: CarrierPath): number {
@@ -89,4 +99,30 @@ export function extendArea(area: CellRect, radius: number): CellRect {
       j: area.end.j + radius,
     },
   };
+}
+
+export function isRectsCollade(rect1: CellRect, rect2: CellRect): boolean {
+  const w = rect2.end.i - rect2.start.i;
+  const h = rect2.end.j - rect2.start.j;
+
+  const start = {
+    i: 2 * rect1.start.i - w,
+    j: 2 * rect1.start.j - h,
+  };
+  const end = {
+    i: 2 * rect1.end.i + w,
+    j: 2 * rect1.end.j + h,
+  };
+
+  return isPointInsideRect(
+    { start, end },
+    { i: 2 * rect2.start.i + w, j: 2 * rect2.start.j + h },
+  );
+}
+
+export function isPointInsideRect(
+  { start, end }: CellRect,
+  { i, j }: CellCoordinates,
+): boolean {
+  return i >= start.i && i <= end.i && j >= start.j && j <= end.j;
 }

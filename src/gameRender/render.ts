@@ -6,6 +6,7 @@ import {
   CellPath,
   CellPosition,
   CellRect,
+  ChunkIdentity,
   City,
   FacilityType,
   GameState,
@@ -23,9 +24,12 @@ import {
   calculateDistance,
   calculateDistanceSquare,
   extendArea,
+  isPointInsideRect,
+  isRectsCollade,
   isSameCellPoints,
   isSamePath,
   newCellPosition,
+  newChunkIdentity,
 } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
@@ -46,6 +50,9 @@ import {
 } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
+import { getChunkDeposits } from '@/game/spawning.ts';
+import { DepositType } from '@/game/depositType.ts';
+import { neverCall } from '@/utils/typeUtils.ts';
 
 const DRAW_RESOURCE_NAMES = false;
 const RESOURCE_LINE_HEIGHT = 16;
@@ -67,6 +74,7 @@ export function renderGameToCanvas(visualState: VisualState): void {
   drawGrid(visualState);
   drawObjects(visualState);
   drawCarrierPaths(visualState);
+  drawDeposits(visualState);
 
   ctx.restore();
 
@@ -791,4 +799,80 @@ function drawTopOverlay(visualState: VisualState): void {
       },
     );
   }
+}
+
+function drawDeposits(visualState: VisualState): void {
+  const { gameState, viewportBounds } = visualState;
+
+  for (const chunk of getBoundedChunks(gameState, visualState.viewportBounds)) {
+    const deposits = getChunkDeposits(gameState, chunk);
+
+    for (const deposit of deposits) {
+      if (isRectsCollade(viewportBounds, deposit.boundingRect)) {
+        for (const cellPosition of deposit.shape.cells) {
+          drawDepositCell(visualState, cellPosition, deposit.depositType);
+        }
+      }
+    }
+  }
+}
+
+function drawDepositCell(
+  visualState: VisualState,
+  position: CellPosition,
+  depositType: DepositType,
+): void {
+  const { ctx, viewportBounds, cellSize } = visualState;
+
+  if (isPointInsideRect(viewportBounds, position)) {
+    ctx.save();
+    const cellCenter = getCellCenter(visualState, position);
+    ctx.translate(cellCenter.x, cellCenter.y);
+
+    const side = cellSize.height;
+
+    ctx.beginPath();
+    ctx.rect(-side * 0.5, -side * 0.5, side, side);
+    switch (depositType) {
+      case DepositType.STONE:
+        ctx.fillStyle = 'gray';
+        break;
+      case DepositType.IRON:
+        ctx.fillStyle = 'blue';
+        break;
+      case DepositType.COAL:
+      case DepositType.OIL:
+        ctx.fillStyle = 'black';
+        break;
+      default:
+        throw neverCall(depositType);
+    }
+
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function getBoundedChunks(
+  gameState: GameState,
+  bound: CellRect,
+): ChunkIdentity[] {
+  const { worldParams } = gameState;
+  const { chunkSize } = worldParams;
+
+  const results: ChunkIdentity[] = [];
+
+  const startI = Math.floor(bound.start.i / chunkSize);
+  const startJ = Math.floor(bound.start.j / chunkSize);
+  const endI = Math.floor(bound.end.i / chunkSize);
+  const endJ = Math.floor(bound.end.j / chunkSize);
+
+  for (let j = startJ; j <= endJ; j += 1) {
+    for (let i = startI; i <= endI; i += 1) {
+      results.push(newChunkIdentity({ i: i * chunkSize, j: j * chunkSize }));
+    }
+  }
+
+  return results;
 }

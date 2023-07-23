@@ -111,6 +111,7 @@ export function Canvas({ gameId }: Props) {
   const [gameState, setGameState] = useState<GameState>(() => {
     const { gameState, uiState } = loadGame(gameId, undefined);
     initialUiStateRef.current = uiState;
+
     return gameState;
   });
 

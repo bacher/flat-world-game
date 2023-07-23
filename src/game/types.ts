@@ -1,10 +1,13 @@
 import type { Branded } from '@/utils/typeUtils';
 
 import { ResourceType } from './resources';
+import { DepositType } from './depositType';
 
 export type CellCoordinates = { i: number; j: number };
 export type CellPosition = CellCoordinates & { cellId: CellId };
 export type CellId = Branded<number, 'cellId'>;
+export type ChunkId = Branded<number, 'chunkId'>;
+export type ChunkIdentity = CellCoordinates & { chunkId: ChunkId };
 
 export type Point = { x: number; y: number };
 export type Size = { width: number; height: number };
@@ -12,6 +15,16 @@ export type Size = { width: number; height: number };
 export type CellRect = {
   start: CellCoordinates;
   end: CellCoordinates;
+};
+
+export type CellShape = {
+  cells: CellPosition[];
+};
+
+export type DepositInfo = {
+  shape: CellShape;
+  boundingRect: CellRect;
+  depositType: DepositType;
 };
 
 export enum FacilityType {
@@ -85,6 +98,7 @@ export type GameState = {
   gameId: string;
   gameSeed: number;
   tickNumber: number;
+  worldParams: WorldParams;
   cities: Map<CityId, City>;
   facilitiesByCityId: FacilitiesByCityId;
   structuresByCellId: StructuresByCellId;
@@ -97,7 +111,10 @@ export type GameState = {
   unlockedFacilities: Set<FacilityLikeType>;
   unlockedProductionVariants: Map<FacilityLikeType, Set<ProductVariantId>>;
   pseudoRandom: () => number;
+  depositsMapCache: DepositsMap;
 };
+
+export type DepositsMap = Map<ChunkId, DepositInfo[]>;
 
 export type GameSave = {
   gameState: GameStateSnapshot;
@@ -108,11 +125,19 @@ export type GameStateSnapshot = {
   gameId: string;
   gameSeed: number;
   tickNumber: number;
+  worldParams: WorldParams;
   cities: Omit<City, 'isNeedUpdateAutomaticPaths'>[];
   facilities: (Facility | StorageFacility | Construction)[];
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
   inProgressResearches: [ResearchId, { points: number }][];
+};
+
+export type WorldParams = {
+  chunkSize: number;
+  maxChunkDeposits: number;
+  maxDepositRadius: number;
+  ignoreDepositsInCenterRadius: number;
 };
 
 export type UiState = {

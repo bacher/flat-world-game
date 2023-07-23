@@ -1,6 +1,12 @@
 import { addToMapSet } from '@/utils/helpers';
 
 import {
+  DEFAULT_CHUNK_SIZE,
+  DEFAULT_IGNORE_DEPOSIT_RADIUS,
+  DEFAULT_MAX_CHUNK_DEPOSITS,
+  DEFAULT_MAX_DEPOSIT_RADIUS,
+} from '@/game/consts';
+import {
   CarrierPath,
   CarrierPathType,
   CellId,
@@ -14,12 +20,13 @@ import {
   ResearchId,
   StructuresByCellId,
   UiState,
+  WorldParams,
 } from './types';
 import { addCity, addPathTo } from './gameState';
 import { gamesListStorage, gameStateStorage } from './persist';
 import { researches } from './research';
 import { newCellPosition } from './helpers';
-import { mulberry32 } from '@/game/pseudoRandom.ts';
+import { mulberry32 } from './pseudoRandom';
 
 function getNewGame({ gameId }: { gameId: string }) {
   const gameSeed = Math.floor(Math.random() * 4294967296);
@@ -28,6 +35,12 @@ function getNewGame({ gameId }: { gameId: string }) {
     gameId,
     gameSeed,
     tickNumber: 0,
+    worldParams: {
+      chunkSize: DEFAULT_CHUNK_SIZE,
+      maxChunkDeposits: DEFAULT_MAX_CHUNK_DEPOSITS,
+      maxDepositRadius: DEFAULT_MAX_DEPOSIT_RADIUS,
+      ignoreDepositsInCenterRadius: DEFAULT_IGNORE_DEPOSIT_RADIUS,
+    },
     cities: new Map(),
     facilitiesByCityId: new Map(),
     carrierPathsFromCellId: new Map(),
@@ -40,6 +53,7 @@ function getNewGame({ gameId }: { gameId: string }) {
     unlockedFacilities: new Set(),
     unlockedProductionVariants: new Map(),
     pseudoRandom: mulberry32(gameSeed),
+    depositsMapCache: new Map(),
   };
 
   addCity(gameState, {
@@ -64,6 +78,7 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
     gameId,
     gameSeed,
     tickNumber,
+    //worldParams,
     cities,
     facilitiesByCityId,
     completedResearches,
@@ -78,10 +93,18 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
     ),
   }));
 
+  const worldParams: WorldParams = {
+    chunkSize: 100,
+    ignoreDepositsInCenterRadius: 10,
+    maxDepositRadius: DEFAULT_MAX_DEPOSIT_RADIUS,
+    maxChunkDeposits: 10,
+  };
+
   return {
     gameId,
     gameSeed,
     tickNumber,
+    worldParams,
     cities: citiesNormalized,
     facilities: [...facilitiesByCityId.values()].flat(),
     completedResearches: [...completedResearches.values()],
@@ -97,6 +120,7 @@ function getGameStateBySnapshot(
     gameId,
     gameSeed,
     tickNumber,
+    worldParams,
     cities: dehydratedCities,
     completedResearches,
     currentResearchId,
@@ -130,6 +154,7 @@ function getGameStateBySnapshot(
     gameId,
     gameSeed,
     tickNumber,
+    worldParams,
     cities: new Map(cities.map((city) => [city.cityId, city])),
     completedResearches: new Set(completedResearches),
     currentResearchId,
@@ -141,6 +166,7 @@ function getGameStateBySnapshot(
     structuresByCellId,
     ...collectUnlockedFacilities(completedResearches),
     pseudoRandom: mulberry32(gameSeed + tickNumber),
+    depositsMapCache: new Map(),
   };
 }
 
