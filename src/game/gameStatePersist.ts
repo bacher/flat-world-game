@@ -19,11 +19,15 @@ import { addCity, addPathTo } from './gameState';
 import { gamesListStorage, gameStateStorage } from './persist';
 import { researches } from './research';
 import { newCellPosition } from './helpers';
+import { mulberry32 } from '@/game/pseudoRandom.ts';
 
 function getNewGame({ gameId }: { gameId: string }) {
+  const gameSeed = Math.floor(Math.random() * 4294967296);
+
   const gameState: GameState = {
-    tickNumber: 0,
     gameId,
+    gameSeed,
+    tickNumber: 0,
     cities: new Map(),
     facilitiesByCityId: new Map(),
     carrierPathsFromCellId: new Map(),
@@ -35,6 +39,7 @@ function getNewGame({ gameId }: { gameId: string }) {
     currentResearchId: undefined,
     unlockedFacilities: new Set(),
     unlockedProductionVariants: new Map(),
+    pseudoRandom: mulberry32(gameSeed),
   };
 
   addCity(gameState, {
@@ -57,6 +62,7 @@ export function getNewGameSave({ gameId }: { gameId: string }): GameSave {
 function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
   const {
     gameId,
+    gameSeed,
     tickNumber,
     cities,
     facilitiesByCityId,
@@ -74,6 +80,7 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
 
   return {
     gameId,
+    gameSeed,
     tickNumber,
     cities: citiesNormalized,
     facilities: [...facilitiesByCityId.values()].flat(),
@@ -88,6 +95,7 @@ function getGameStateBySnapshot(
 ): GameState {
   const {
     gameId,
+    gameSeed,
     tickNumber,
     cities: dehydratedCities,
     completedResearches,
@@ -120,6 +128,7 @@ function getGameStateBySnapshot(
 
   return {
     gameId,
+    gameSeed,
     tickNumber,
     cities: new Map(cities.map((city) => [city.cityId, city])),
     completedResearches: new Set(completedResearches),
@@ -131,6 +140,7 @@ function getGameStateBySnapshot(
     facilitiesByCityId,
     structuresByCellId,
     ...collectUnlockedFacilities(completedResearches),
+    pseudoRandom: mulberry32(gameSeed + tickNumber),
   };
 }
 

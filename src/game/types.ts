@@ -82,8 +82,9 @@ export type StructuresByCellId = Map<CellId, Structure>;
 export type CarrierPathsCellIdMap = Map<CellId, CarrierPath[]>;
 
 export type GameState = {
-  tickNumber: number;
   gameId: string;
+  gameSeed: number;
+  tickNumber: number;
   cities: Map<CityId, City>;
   facilitiesByCityId: FacilitiesByCityId;
   structuresByCellId: StructuresByCellId;
@@ -95,6 +96,7 @@ export type GameState = {
   currentResearchId: ResearchId | undefined;
   unlockedFacilities: Set<FacilityLikeType>;
   unlockedProductionVariants: Map<FacilityLikeType, Set<ProductVariantId>>;
+  pseudoRandom: () => number;
 };
 
 export type GameSave = {
@@ -104,6 +106,7 @@ export type GameSave = {
 
 export type GameStateSnapshot = {
   gameId: string;
+  gameSeed: number;
   tickNumber: number;
   cities: Omit<City, 'isNeedUpdateAutomaticPaths'>[];
   facilities: (Facility | StorageFacility | Construction)[];

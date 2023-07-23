@@ -16,7 +16,7 @@ import {
   removeAllCarrierPathsTo,
 } from './gameState';
 import { isSamePath } from './helpers';
-import { shuffledTraversal } from './pseudoRandom';
+import { mulberry32, shuffledTraversalMulberry } from './pseudoRandom';
 
 import { growPhase } from './tick/growPhase';
 import { researchPhase } from './tick/researchPhase';
@@ -27,12 +27,15 @@ const PRINT_TICKS = false;
 
 export function tick(gameState: GameState): void {
   gameState.tickNumber += 1;
+  gameState.pseudoRandom = mulberry32(
+    gameState.gameSeed + gameState.tickNumber,
+  );
 
   if (PRINT_TICKS) {
     console.group(`Tick ${gameState.tickNumber}`);
   }
 
-  const shuffledCities = shuffledTraversal(gameState.tickNumber, [
+  const shuffledCities = shuffledTraversalMulberry(gameState.pseudoRandom, [
     ...gameState.cities.values(),
   ]);
 

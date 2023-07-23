@@ -15,7 +15,8 @@
 13. [ ] Update research logic
 14. [ ] Use whole work day estimatation for constructions while work planning (remove diminishing near the completion)
 15. [ ] Improve logic when do partial work on facilities/carriers, report actual work days, but start reducing from full
-    work facilities
+        work facilities
 16. [x] Setup intercity exchange
 17. [x] Add zoom in/out
 18. [ ] Add retina support
+19. [ ] Add nature resources
