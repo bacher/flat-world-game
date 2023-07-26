@@ -207,11 +207,16 @@ export function drawResourceIcon(
       ctx.lineWidth = 1;
       break;
     case ResourceType.HOVEL:
+    case ResourceType.COTTAGE:
       ctx.moveTo(-6, 4);
       ctx.lineTo(0, -4);
       ctx.lineTo(6, 4);
       ctx.closePath();
-      ctx.fillStyle = 'brown';
+      if (resourceType === ResourceType.COTTAGE) {
+        ctx.fillStyle = 'gray';
+      } else {
+        ctx.fillStyle = 'brown';
+      }
       ctx.fill();
       break;
     case ResourceType.STONE:

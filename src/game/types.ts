@@ -66,6 +66,7 @@ export enum ProductVariantId {
   HOVEL = 'HOVEL',
   STONE = 'STONE',
   IRON_ORE = 'IRON_ORE',
+  COTTAGE = 'COTTAGE',
 }
 
 export type ExactFacilityType = Exclude<
@@ -299,6 +300,7 @@ export const enum ResearchId {
   HUNTING_2 = 'HUNTING_2',
   HOUSING = 'HOUSING',
   HOUSING_2 = 'HOUSING_2',
+  HOUSING_3 = 'HOUSING_3',
   INTERCITY = 'INTERCITY',
   STONE = 'STONE',
 }

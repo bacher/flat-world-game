@@ -27,6 +27,7 @@ export enum ResourceType {
   IRON = 'IRON',
   COAL = 'COAL',
   OIL = 'OIL',
+  COTTAGE = 'COTTAGE',
 }
 
 export type FoodResourceTypes =
@@ -53,12 +54,14 @@ export function isFoodResourceType(
 export type HouseResourceTypes =
   | ResourceType.HOUSING
   | ResourceType.WICKIUP
-  | ResourceType.HOVEL;
+  | ResourceType.HOVEL
+  | ResourceType.COTTAGE;
 
 export const houseCapacities: Record<HouseResourceTypes, number> = {
   [ResourceType.HOUSING]: 1,
   [ResourceType.WICKIUP]: 0.1,
   [ResourceType.HOVEL]: 0.7,
+  [ResourceType.COTTAGE]: 2.0,
 };
 
 export const houseResourceTypes: Set<ResourceType> = new Set(
@@ -99,4 +102,5 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.IRON]: 'Iron',
   [ResourceType.COAL]: 'Coal',
   [ResourceType.OIL]: 'Oil',
+  [ResourceType.COTTAGE]: 'Cottage',
 };

@@ -417,6 +417,30 @@ export const facilitiesIterationInfo: Record<
           },
         ],
       },
+      {
+        id: ProductVariantId.COTTAGE,
+        iterationPeopleDays: 10,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 10,
+          },
+          {
+            resourceType: ResourceType.HAY,
+            quantity: 10,
+          },
+          {
+            resourceType: ResourceType.STONE,
+            quantity: 20,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.COTTAGE,
+            quantity: 1,
+          },
+        ],
+      },
     ],
   },
   [FacilityType.QUARRY]: {
@@ -504,4 +528,5 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.HOVEL]: resourceLocalization[ResourceType.HOVEL],
   [ProductVariantId.STONE]: resourceLocalization[ResourceType.STONE],
   [ProductVariantId.IRON_ORE]: resourceLocalization[ResourceType.IRON_ORE],
+  [ProductVariantId.COTTAGE]: resourceLocalization[ResourceType.COTTAGE],
 };
