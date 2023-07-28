@@ -1,22 +1,18 @@
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import cn from 'classnames';
 import clamp from 'lodash/clamp';
 
 import styles from './Canvas.module.scss';
 
 import {
   CarrierPathType,
-  CellPosition,
   City,
-  ExactFacilityType,
   Facility,
   FacilityType,
   GameState,
   Point,
   ProductVariantId,
-  Structure,
-  UiState,
+  ViewportState,
 } from '@/game/types';
 import {
   addCarrierPath,
@@ -35,10 +31,9 @@ import {
   InteractiveActionType,
   isAllowToConstructAtPosition,
   lookupGridByPoint,
-  startGameLoop,
   VisualState,
-  visualStateApplyUiState,
-  visualStateGetUiState,
+  visualStateApplyViewportState,
+  visualStateGetViewportState,
   visualStateMove,
   visualStateMoveToCell,
   visualStateOnMouseMove,
@@ -46,8 +41,6 @@ import {
 } from '@/game/visualState';
 
 import { useForceUpdate } from '@hooks/forceUpdate';
-import { ModalRef } from '@/app/modals/types';
-import { FacilityModal } from '@/app/modals/FacilityModal';
 import {
   createGameStateWatcher,
   GameStateWatcherProvider,
@@ -56,50 +49,18 @@ import { BuildingsPanel } from '@components/BuildingsPanel';
 import { StatusText } from '@components/StatusText';
 import { CitiesPanel } from '@components/CitiesPanel';
 import { CurrentResearchIcon } from '@components/CurrentResearchIcon';
-import { ResearchModal } from '@/app/modals/ResearchModal';
-import { neverCall } from '@/utils/typeUtils';
-import { GameMenu } from '@/app/modals/GameMenu';
-import { setHash } from '@/utils/url';
 import { isSameCellPoints } from '@/game/helpers';
 import {
   depositToProductVariant,
   facilitiesIterationInfo,
 } from '@/game/facilities';
-import { ProductionVariantModal } from '@/app/modals/ProductionVariantModal';
-import { ResourceChooseModal } from '@/app/modals/ResourceChooseModal';
+import { ModalsWrapper } from '@components/ModalsWrapper';
+import { ModalModeType } from '@/app/logic/types';
+import { UiState } from '@/app/logic/UiState';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
 const MAXIMUM_ZOOM = 1.5;
-
-const enum ModalModeType {
-  GAME_MENU = 'GAME_MENU',
-  FACILITY = 'FACILITY',
-  RESEARCH = 'RESEARCH',
-  PRODUCTION_VARIANT_CHOOSE = 'PRODUCTION_VARIANT_CHOOSE',
-  RESOURCE_CHOOSE = 'RESOURCE_CHOOSE',
-}
-
-type ModalMode =
-  | {
-      modeType: ModalModeType.FACILITY;
-      facility: Structure;
-    }
-  | {
-      modeType: ModalModeType.RESEARCH | ModalModeType.GAME_MENU;
-    }
-  | {
-      modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE;
-      facilityType: ExactFacilityType;
-      position: CellPosition;
-    }
-  | {
-      modeType: ModalModeType.RESOURCE_CHOOSE;
-      facilityType:
-        | FacilityType.INTERCITY_SENDER
-        | FacilityType.INTERCITY_RECEIVER;
-      position: CellPosition;
-    };
 
 type Props = {
   gameId: string;
@@ -108,24 +69,29 @@ type Props = {
 export function Canvas({ gameId }: Props) {
   const forceUpdate = useForceUpdate();
 
+  const uiStateRef = useRef<UiState | undefined>();
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const initialUiStateRef = useRef<UiState | undefined>();
+  const initialViewportStateRef = useRef<ViewportState | undefined>();
 
   const [gameState, setGameState] = useState<GameState>(() => {
-    const { gameState, uiState } = loadGame(gameId, undefined);
-    initialUiStateRef.current = uiState;
+    const { gameState, viewportState } = loadGame(gameId, undefined);
+    initialViewportStateRef.current = viewportState;
 
     return gameState;
   });
 
   useEffect(() => {
     if (gameState.gameId !== gameId) {
-      const { gameState: newGameState, uiState } = loadGame(gameId, undefined);
+      const { gameState: newGameState, viewportState } = loadGame(
+        gameId,
+        undefined,
+      );
       const visualState = visualStateRef.current!;
 
       visualState.gameState = newGameState;
-      visualStateApplyUiState(visualState, uiState);
+      visualStateApplyViewportState(visualState, viewportState);
       setGameState(newGameState);
       renderGameToCanvas(visualState);
     }
@@ -135,7 +101,7 @@ export function Canvas({ gameId }: Props) {
     const intervalId = window.setInterval(() => {
       saveGame(
         gameState,
-        visualStateGetUiState(visualStateRef.current!),
+        visualStateGetViewportState(visualStateRef.current!),
         undefined,
       );
     }, 5000);
@@ -161,16 +127,7 @@ export function Canvas({ gameId }: Props) {
 
   const visualStateRef = useRef<VisualState | undefined>();
 
-  const modalModeRef = useRef<ModalMode | undefined>();
-
-  const modalRef = useRef<ModalRef>(null);
-
   const gameStateWatcher = useMemo(createGameStateWatcher, []);
-
-  const currentTickRef = useRef(0);
-  const lastInteractionTick = useRef(0);
-
-  const stopGameLoopRef = useRef<() => void>();
 
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d', {
@@ -189,9 +146,20 @@ export function Canvas({ gameId }: Props) {
       gameStateWatcher.emitVisualStateChange();
     });
 
-    if (initialUiStateRef.current) {
-      visualStateApplyUiState(visualState, initialUiStateRef.current);
+    if (initialViewportStateRef.current) {
+      visualStateApplyViewportState(
+        visualState,
+        initialViewportStateRef.current,
+      );
     }
+
+    uiStateRef.current = new UiState({
+      gameId,
+      visualState,
+      onTick: () => {
+        gameStateWatcher.emitTick();
+      },
+    });
 
     visualStateRef.current = visualState;
 
@@ -204,45 +172,18 @@ export function Canvas({ gameId }: Props) {
 
     forceUpdate();
 
-    startGameLoopLogic();
+    uiStateRef.current?.startGameLoop();
 
     return () => {
       canvasRef.current!.removeEventListener('wheel', onCanvasWheel);
-      stopGameLoopLogic();
+      uiStateRef.current?.stopGameLoop();
     };
   }, []);
 
-  function startGameLoopLogic() {
-    if (stopGameLoopRef.current) {
-      return;
-    }
-
-    const visualState = visualStateRef.current!;
-
-    stopGameLoopRef.current = startGameLoop(visualState, () => {
-      currentTickRef.current += 1;
-      renderGameToCanvas(visualState);
-      gameStateWatcher.emitTick();
-
-      // TODO: While developing
-      if (currentTickRef.current > lastInteractionTick.current + 200) {
-        console.log('Game stopped');
-        stopGameLoopLogic();
-      }
-    });
-  }
-
-  function stopGameLoopLogic() {
-    if (stopGameLoopRef.current) {
-      stopGameLoopRef.current();
-      stopGameLoopRef.current = undefined;
-    }
-  }
-
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
-    lastInteractionTick.current = currentTickRef.current;
+    uiStateRef.current?.markUserActivity();
 
-    if (modalModeRef.current) {
+    if (uiStateRef.current?.modalState) {
       return;
     }
 
@@ -283,7 +224,7 @@ export function Canvas({ gameId }: Props) {
   }
 
   function onKeyDown(event: KeyboardEvent): void {
-    lastInteractionTick.current = currentTickRef.current;
+    uiStateRef.current?.markUserActivity();
 
     if (!visualStateRef.current || event.defaultPrevented) {
       return;
@@ -299,9 +240,9 @@ export function Canvas({ gameId }: Props) {
           visualState.onUpdate();
         }
 
-        if (modalModeRef.current) {
+        if (uiStateRef.current?.modalState) {
           event.preventDefault();
-          modalRef.current?.close();
+          uiStateRef.current?.askToCloseCurrentModal();
         }
 
         break;
@@ -325,7 +266,7 @@ export function Canvas({ gameId }: Props) {
   function onMouseDown(event: React.MouseEvent) {
     event.preventDefault();
 
-    if (modalModeRef.current) {
+    if (uiStateRef.current?.modalState) {
       return;
     }
 
@@ -355,8 +296,8 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    if (modalModeRef.current) {
-      modalRef.current?.close();
+    if (uiStateRef.current?.modalState) {
+      uiStateRef.current?.askToCloseCurrentModal();
       return;
     }
 
@@ -385,12 +326,11 @@ export function Canvas({ gameId }: Props) {
                   facilityType === FacilityType.INTERCITY_SENDER ||
                   facilityType === FacilityType.INTERCITY_RECEIVER
                 ) {
-                  modalModeRef.current = {
+                  uiStateRef.current?.openModal({
                     modeType: ModalModeType.RESOURCE_CHOOSE,
                     facilityType,
                     position: cell,
-                  };
-                  forceUpdate();
+                  });
                 } else {
                   const facilityInfo = facilitiesIterationInfo[facilityType];
 
@@ -428,12 +368,11 @@ export function Canvas({ gameId }: Props) {
                         .get(facilityType)
                         ?.has(facilityInfo.productionVariants[0].id))
                   ) {
-                    modalModeRef.current = {
+                    uiStateRef.current?.openModal({
                       modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
                       facilityType,
                       position: cell,
-                    };
-                    forceUpdate();
+                    });
                   } else {
                     addConstructionStructure(gameState, {
                       facilityType,
@@ -509,12 +448,12 @@ export function Canvas({ gameId }: Props) {
         }
       } else {
         if (facility) {
-          modalModeRef.current = {
+          uiStateRef.current?.openModal({
             modeType: ModalModeType.FACILITY,
             facility,
-          };
+          });
         } else {
-          modalModeRef.current = undefined;
+          uiStateRef.current?.forceCloseCurrentModal();
         }
 
         visualStateOnMouseMove(visualState, undefined);
@@ -524,22 +463,15 @@ export function Canvas({ gameId }: Props) {
     }
   }
 
-  function closeModal() {
-    modalModeRef.current = undefined;
-    forceUpdate();
-  }
-
   function onCityClick(city: City): void {
     visualStateMoveToCell(visualStateRef.current!, city.position);
   }
 
   function openGameMenu() {
-    modalModeRef.current = {
+    uiStateRef.current?.openModal({
       modeType: ModalModeType.GAME_MENU,
-    };
-
-    stopGameLoopLogic();
-    forceUpdate();
+    });
+    uiStateRef.current?.stopGameLoop();
   }
 
   function onCanvasWheel(event: WheelEvent): void {
@@ -577,10 +509,9 @@ export function Canvas({ gameId }: Props) {
             <CurrentResearchIcon
               gameState={gameState}
               onChooseResearchClick={() => {
-                modalModeRef.current = {
+                uiStateRef.current?.openModal({
                   modeType: ModalModeType.RESEARCH,
-                };
-                forceUpdate();
+                });
               }}
             />
           </div>
@@ -588,142 +519,8 @@ export function Canvas({ gameId }: Props) {
           {visualStateRef.current && (
             <>
               <StatusText visualState={visualStateRef.current} />
-              {modalModeRef.current && (
-                <>
-                  <div
-                    className={cn(styles.modalShadow, {
-                      [styles.modalShadowFade]:
-                        modalModeRef.current.modeType ===
-                        ModalModeType.GAME_MENU,
-                    })}
-                    onClick={() => {
-                      modalRef.current?.close();
-                    }}
-                  />
-                  <div className={styles.modalWrapper}>
-                    {(() => {
-                      switch (modalModeRef.current.modeType) {
-                        case ModalModeType.FACILITY:
-                          return (
-                            <FacilityModal
-                              modalRef={modalRef}
-                              gameState={gameState}
-                              visualState={visualStateRef.current}
-                              facility={modalModeRef.current.facility}
-                              onClose={closeModal}
-                            />
-                          );
-                        case ModalModeType.RESEARCH:
-                          return (
-                            <ResearchModal
-                              modalRef={modalRef}
-                              gameState={gameState}
-                              onStartResearchClick={(research) => {
-                                gameState.currentResearchId =
-                                  research.researchId;
-                                closeModal();
-                                forceUpdate();
-                              }}
-                              onClose={closeModal}
-                            />
-                          );
-                        case ModalModeType.GAME_MENU:
-                          return (
-                            <GameMenu
-                              currentGameId={gameId}
-                              onResume={() => {
-                                startGameLoopLogic();
-                                closeModal();
-                              }}
-                              onLoadGame={({ gameId, saveName }) => {
-                                if (gameState.gameId !== gameId) {
-                                  setHash(`/g/${gameId}`, { replace: true });
-                                } else {
-                                  const visualState = visualStateRef.current!;
-                                  const { gameState: newGameState, uiState } =
-                                    loadGame(gameId, saveName);
-
-                                  visualState.gameState = newGameState;
-                                  visualStateApplyUiState(visualState, uiState);
-                                  setGameState(newGameState);
-                                  renderGameToCanvas(visualState);
-                                }
-
-                                startGameLoopLogic();
-                                closeModal();
-                              }}
-                              onSaveGame={({ saveName }) => {
-                                saveGame(
-                                  gameState,
-                                  visualStateGetUiState(
-                                    visualStateRef.current!,
-                                  ),
-                                  saveName,
-                                );
-                                startGameLoopLogic();
-                                closeModal();
-                              }}
-                              onExit={() => {
-                                saveGame(
-                                  gameState,
-                                  visualStateGetUiState(
-                                    visualStateRef.current!,
-                                  ),
-                                  undefined,
-                                );
-                                location.hash = '';
-                              }}
-                            />
-                          );
-                        case ModalModeType.PRODUCTION_VARIANT_CHOOSE: {
-                          const { facilityType, position } =
-                            modalModeRef.current;
-
-                          return (
-                            <ProductionVariantModal
-                              gameState={gameState}
-                              facilityType={facilityType}
-                              onClose={closeModal}
-                              onProductionVariantChoose={(
-                                productionVariantId,
-                              ) => {
-                                closeModal();
-                                addConstructionStructure(gameState, {
-                                  facilityType,
-                                  position,
-                                  productionVariantId,
-                                });
-                                visualStateRef.current?.onUpdate();
-                              }}
-                            />
-                          );
-                        }
-                        case ModalModeType.RESOURCE_CHOOSE: {
-                          const { facilityType, position } =
-                            modalModeRef.current;
-
-                          return (
-                            <ResourceChooseModal
-                              gameState={gameState}
-                              onClose={closeModal}
-                              onResourceTypeChoose={(resourceType) => {
-                                closeModal();
-                                addConstructionStructure(gameState, {
-                                  facilityType,
-                                  position,
-                                  productionVariantId: resourceType,
-                                });
-                                visualStateRef.current?.onUpdate();
-                              }}
-                            />
-                          );
-                        }
-                        default:
-                          throw neverCall(modalModeRef.current);
-                      }
-                    })()}
-                  </div>
-                </>
+              {uiStateRef.current && (
+                <ModalsWrapper uiState={uiStateRef.current} />
               )}
             </>
           )}

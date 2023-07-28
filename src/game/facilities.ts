@@ -6,7 +6,7 @@ import {
   StorageItem,
 } from './types';
 import { resourceLocalization, ResourceType } from './resources';
-import { DepositType } from '@/game/depositType.ts';
+import { DepositType } from '@/game/depositType';
 
 export enum ItrationInfoType {
   FACILITY,

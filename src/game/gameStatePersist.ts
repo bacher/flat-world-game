@@ -19,7 +19,7 @@ import {
   ProductVariantId,
   ResearchId,
   StructuresByCellId,
-  UiState,
+  ViewportState,
   WorldParams,
 } from './types';
 import { addCity, addPathTo } from './gameState';
@@ -66,7 +66,7 @@ function getNewGame({ gameId }: { gameId: string }) {
 export function getNewGameSave({ gameId }: { gameId: string }): GameSave {
   return {
     gameState: getGameStateSnapshot(getNewGame({ gameId })),
-    uiState: {
+    viewportState: {
       center: { i: 0, j: 0 },
       zoom: 1,
     },
@@ -228,7 +228,7 @@ function getFullSnapshotName(gameId: string, saveName: string | undefined) {
 
 export function saveGame(
   gameState: GameState,
-  uiState: UiState,
+  viewportState: ViewportState,
   saveName: string | undefined,
 ): void {
   const gameStateSnapshot = getGameStateSnapshot(gameState);
@@ -236,7 +236,7 @@ export function saveGame(
 
   gameStateStorage.set(fullSaveName, {
     gameState: gameStateSnapshot,
-    uiState,
+    viewportState: viewportState,
   });
 
   const gamesList = gamesListStorage.get();
@@ -275,7 +275,7 @@ export function saveGame(
 export function loadGame(
   gameId: string,
   saveName: string | undefined,
-): { gameState: GameState; uiState: UiState } {
+): { gameState: GameState; viewportState: ViewportState } {
   let actualSaveName: string | undefined = saveName;
 
   if (!actualSaveName) {
@@ -311,16 +311,19 @@ export function loadGame(
     throw new Error('No game state found');
   }
 
-  let uiState: UiState;
-  if (gameSave.uiState && gameSave.uiState.center?.i !== undefined) {
-    uiState = gameSave.uiState;
+  let viewportState: ViewportState;
+  if (
+    gameSave.viewportState &&
+    gameSave.viewportState.center?.i !== undefined
+  ) {
+    viewportState = gameSave.viewportState;
   } else {
-    uiState = { center: { i: 0, j: 0 }, zoom: 1 };
+    viewportState = { center: { i: 0, j: 0 }, zoom: 1 };
   }
 
   return {
     // TODO: Remove default values lately
     gameState: getGameStateBySnapshot(gameSave.gameState ?? gameSave),
-    uiState,
+    viewportState,
   };
 }

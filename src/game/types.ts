@@ -127,7 +127,7 @@ export type DepositsMap = Map<ChunkId, ChunkDeposits>;
 
 export type GameSave = {
   gameState: GameStateSnapshot;
-  uiState: UiState;
+  viewportState: ViewportState;
 };
 
 export type GameStateSnapshot = {
@@ -149,7 +149,7 @@ export type WorldParams = {
   ignoreDepositsInCenterRadius: number;
 };
 
-export type UiState = {
+export type ViewportState = {
   center: CellCoordinates;
   zoom: number;
 };

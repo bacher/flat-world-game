@@ -1,4 +1,4 @@
-export function neverCall(_: never, silence?: boolean) {
+export function neverCall(_: never, silence?: boolean): any {
   if (!silence) {
     throw new Error('Invariant');
   }

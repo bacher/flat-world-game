@@ -50,9 +50,9 @@ import {
 } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
-import { getChunkDeposits } from '@/game/spawning.ts';
-import { DepositType } from '@/game/depositType.ts';
-import { neverCall } from '@/utils/typeUtils.ts';
+import { getChunkDeposits } from '@/game/spawning';
+import { DepositType } from '@/game/depositType';
+import { neverCall } from '@/utils/typeUtils';
 
 const DRAW_RESOURCE_NAMES = false;
 const RESOURCE_LINE_HEIGHT = 16;

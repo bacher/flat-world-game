@@ -9,7 +9,7 @@ import {
   GameState,
   Point,
   Size,
-  UiState,
+  ViewportState,
 } from './types';
 import {
   MAX_EXPEDITION_DISTANCE_SQUARE,
@@ -218,19 +218,21 @@ function visualStateUpdateViewportCenter(
   visualState.onUpdate();
 }
 
-export function visualStateApplyUiState(
+export function visualStateApplyViewportState(
   visualState: VisualState,
-  uiState: UiState,
+  viewportState: ViewportState,
 ): void {
-  updateZoom(visualState, uiState.zoom);
-  updateViewportCenter(visualState, uiState.center);
+  updateZoom(visualState, viewportState.zoom);
+  updateViewportCenter(visualState, viewportState.center);
 
   actualizeViewportBounds(visualState);
   actualizeHoverCell(visualState);
   visualState.onUpdate();
 }
 
-export function visualStateGetUiState(visualState: VisualState): UiState {
+export function visualStateGetViewportState(
+  visualState: VisualState,
+): ViewportState {
   return {
     center: visualState.viewportCenter,
     zoom: visualState.zoom,

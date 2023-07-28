@@ -1,0 +1,19 @@
+.modalWrapper {
+  grid-area: A;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+
+  & > * {
+    pointer-events: initial;
+  }
+}
+
+.modalShadow {
+  grid-area: A;
+
+  &Fade {
+    background: rgba(50, 50, 50, 0.3);
+  }
+}
