@@ -1,15 +1,39 @@
 import { RefObject } from 'react';
 
-import { ModalMode, UiUpdateType } from '@/app/logic/types';
+import { ModalMode, ModalModeType, UiUpdateType } from '@/app/logic/types';
 import {
+  InteractiveActionType,
+  isAllowToConstructAtPosition,
+  lookupGridByPoint,
   startGameLoop,
   VisualState,
   visualStateApplyViewportState,
   visualStateGetViewportState,
+  visualStateOnMouseMove,
 } from '@/game/visualState';
-import { GameState } from '@/game/types';
+import {
+  CarrierPathType,
+  Facility,
+  FacilityType,
+  GameState,
+  Point,
+  ProductVariantId,
+} from '@/game/types';
 import { loadGame, saveGame } from '@/game/gameStatePersist';
 import { ModalRef } from '@/app/modals/types';
+import {
+  addCarrierPath,
+  addCity,
+  addConstructionStructure,
+  getChunkByCell,
+  getFacilityBindedCity,
+} from '@/game/gameState.ts';
+import {
+  depositToProductVariant,
+  facilitiesIterationInfo,
+} from '@/game/facilities.ts';
+import { isValidCarrierPlanningTarget } from '@/gameRender/render.ts';
+import { isSameCellPoints } from '@/game/helpers.ts';
 
 type Callback = () => void;
 
@@ -124,6 +148,167 @@ export class UiState {
 
   markUserActivity(): void {
     this.lastInteractionTick = this.currentTick;
+  }
+
+  handleCanvasClick(position: Point): void {
+    const { visualState, gameState } = this;
+
+    const cell = lookupGridByPoint(visualState, position);
+
+    if (!cell) {
+      return;
+    }
+
+    const facility = gameState.structuresByCellId.get(cell.cellId);
+
+    if (visualState.interactiveAction) {
+      switch (visualState.interactiveAction.actionType) {
+        case InteractiveActionType.CONSTRUCTION_PLANNING: {
+          const isAllow = isAllowToConstructAtPosition(visualState, cell);
+
+          if (isAllow) {
+            const { facilityType } = visualState.interactiveAction;
+
+            if (facilityType === FacilityType.CITY) {
+              addCity(gameState, { position: cell });
+            } else {
+              if (
+                facilityType === FacilityType.INTERCITY_SENDER ||
+                facilityType === FacilityType.INTERCITY_RECEIVER
+              ) {
+                this.openModal({
+                  modeType: ModalModeType.RESOURCE_CHOOSE,
+                  facilityType,
+                  position: cell,
+                });
+              } else {
+                const facilityInfo = facilitiesIterationInfo[facilityType];
+
+                if (facilityType === FacilityType.QUARRY) {
+                  const chunk = getChunkByCell(gameState, cell);
+                  const depositType = gameState.depositsMapCache
+                    .get(chunk.chunkId)!
+                    .map.get(cell.cellId);
+
+                  if (!depositType) {
+                    return;
+                  }
+
+                  const variantId = depositToProductVariant[depositType];
+                  if (!variantId) {
+                    return;
+                  }
+
+                  const unlockedVariants =
+                    gameState.unlockedProductionVariants.get(facilityType);
+                  if (!unlockedVariants || !unlockedVariants.has(variantId)) {
+                    return;
+                  }
+
+                  addConstructionStructure(gameState, {
+                    facilityType,
+                    position: cell,
+                    productionVariantId: variantId,
+                  });
+                } else if (
+                  facilityInfo.productionVariants.length > 1 ||
+                  (facilityInfo.productionVariants[0].id !==
+                    ProductVariantId.BASIC &&
+                    !gameState.unlockedProductionVariants
+                      .get(facilityType)
+                      ?.has(facilityInfo.productionVariants[0].id))
+                ) {
+                  this.openModal({
+                    modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
+                    facilityType,
+                    position: cell,
+                  });
+                } else {
+                  addConstructionStructure(gameState, {
+                    facilityType,
+                    position: cell,
+                    productionVariantId: facilityInfo.productionVariants[0].id,
+                  });
+                }
+              }
+            }
+
+            visualState.interactiveAction = undefined;
+            visualState.onUpdate();
+          }
+          break;
+        }
+        case InteractiveActionType.CARRIER_PATH_PLANNING: {
+          const facility = gameState.structuresByCellId.get(cell.cellId);
+
+          if (
+            facility &&
+            isValidCarrierPlanningTarget(
+              visualState,
+              facility,
+              visualState.interactiveAction,
+            )
+          ) {
+            const originFacility = gameState.structuresByCellId.get(
+              visualState.interactiveAction.cell.cellId,
+            ) as Facility;
+
+            const action = visualState.interactiveAction;
+            const { direction } = action;
+
+            const fromFacility =
+              direction === 'from' ? originFacility : facility;
+            const toFacility = direction === 'from' ? facility : originFacility;
+
+            const alreadyCarrierPaths = gameState.carrierPathsFromCellId.get(
+              fromFacility.position.cellId,
+            );
+
+            if (
+              alreadyCarrierPaths &&
+              alreadyCarrierPaths.some(
+                (path) =>
+                  path.resourceType === action.resourceType &&
+                  isSameCellPoints(path.path.from, fromFacility.position) &&
+                  isSameCellPoints(path.path.to, toFacility.position),
+              )
+            ) {
+              console.log('already path, do nothing');
+            } else {
+              const bindCity = getFacilityBindedCity(gameState, fromFacility);
+
+              addCarrierPath(gameState, {
+                assignedCityId: bindCity.cityId,
+                people: 1,
+                resourceType: action.resourceType,
+                pathType: CarrierPathType.EXPLICIT,
+                path: {
+                  from: fromFacility.position,
+                  to: toFacility.position,
+                },
+              });
+              visualState.interactiveAction = undefined;
+              visualState.onUpdate();
+            }
+          }
+          break;
+        }
+      }
+    } else {
+      if (facility) {
+        this.openModal({
+          modeType: ModalModeType.FACILITY,
+          facility,
+        });
+      } else {
+        this.forceCloseCurrentModal();
+      }
+
+      visualStateOnMouseMove(visualState, undefined);
+
+      // TODO: Only canvas?
+      this.onUpdate(UiUpdateType.CANVAS);
+    }
   }
 
   onUpdate(updateType?: UiUpdateType | UiUpdateType[]): void {

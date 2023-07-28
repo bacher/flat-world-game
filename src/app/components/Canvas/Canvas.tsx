@@ -4,33 +4,13 @@ import clamp from 'lodash/clamp';
 
 import styles from './Canvas.module.scss';
 
-import {
-  CarrierPathType,
-  City,
-  Facility,
-  FacilityType,
-  GameState,
-  Point,
-  ProductVariantId,
-  ViewportState,
-} from '@/game/types';
-import {
-  addCarrierPath,
-  addCity,
-  addConstructionStructure,
-  getChunkByCell,
-  getFacilityBindedCity,
-} from '@/game/gameState';
+import { City, GameState, Point, ViewportState } from '@/game/types';
+
 import { loadGame, saveGame } from '@/game/gameStatePersist';
-import {
-  isValidCarrierPlanningTarget,
-  renderGameToCanvas,
-} from '@/gameRender/render';
+import { renderGameToCanvas } from '@/gameRender/render';
 import {
   createVisualState,
   InteractiveActionType,
-  isAllowToConstructAtPosition,
-  lookupGridByPoint,
   VisualState,
   visualStateApplyViewportState,
   visualStateGetViewportState,
@@ -49,11 +29,6 @@ import { BuildingsPanel } from '@components/BuildingsPanel';
 import { StatusText } from '@components/StatusText';
 import { CitiesPanel } from '@components/CitiesPanel';
 import { CurrentResearchIcon } from '@components/CurrentResearchIcon';
-import { isSameCellPoints } from '@/game/helpers';
-import {
-  depositToProductVariant,
-  facilitiesIterationInfo,
-} from '@/game/facilities';
 import { ModalsWrapper } from '@components/ModalsWrapper';
 import { ModalModeType } from '@/app/logic/types';
 import { UiState } from '@/app/logic/UiState';
@@ -301,166 +276,10 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    const visualState = visualStateRef.current!;
-
-    const cell = lookupGridByPoint(visualState, {
+    uiStateRef.current?.handleCanvasClick({
       x: event.pageX,
       y: event.pageY,
     });
-
-    if (cell) {
-      const facility = gameState.structuresByCellId.get(cell.cellId);
-
-      if (visualState.interactiveAction) {
-        switch (visualState.interactiveAction.actionType) {
-          case InteractiveActionType.CONSTRUCTION_PLANNING: {
-            const isAllow = isAllowToConstructAtPosition(visualState, cell);
-
-            if (isAllow) {
-              const { facilityType } = visualState.interactiveAction;
-
-              if (facilityType === FacilityType.CITY) {
-                addCity(gameState, { position: cell });
-              } else {
-                if (
-                  facilityType === FacilityType.INTERCITY_SENDER ||
-                  facilityType === FacilityType.INTERCITY_RECEIVER
-                ) {
-                  uiStateRef.current?.openModal({
-                    modeType: ModalModeType.RESOURCE_CHOOSE,
-                    facilityType,
-                    position: cell,
-                  });
-                } else {
-                  const facilityInfo = facilitiesIterationInfo[facilityType];
-
-                  if (facilityType === FacilityType.QUARRY) {
-                    const chunk = getChunkByCell(gameState, cell);
-                    const depositType = gameState.depositsMapCache
-                      .get(chunk.chunkId)!
-                      .map.get(cell.cellId);
-
-                    if (!depositType) {
-                      return;
-                    }
-
-                    const variantId = depositToProductVariant[depositType];
-                    if (!variantId) {
-                      return;
-                    }
-
-                    const unlockedVariants =
-                      gameState.unlockedProductionVariants.get(facilityType);
-                    if (!unlockedVariants || !unlockedVariants.has(variantId)) {
-                      return;
-                    }
-
-                    addConstructionStructure(gameState, {
-                      facilityType,
-                      position: cell,
-                      productionVariantId: variantId,
-                    });
-                  } else if (
-                    facilityInfo.productionVariants.length > 1 ||
-                    (facilityInfo.productionVariants[0].id !==
-                      ProductVariantId.BASIC &&
-                      !gameState.unlockedProductionVariants
-                        .get(facilityType)
-                        ?.has(facilityInfo.productionVariants[0].id))
-                  ) {
-                    uiStateRef.current?.openModal({
-                      modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE,
-                      facilityType,
-                      position: cell,
-                    });
-                  } else {
-                    addConstructionStructure(gameState, {
-                      facilityType,
-                      position: cell,
-                      productionVariantId:
-                        facilityInfo.productionVariants[0].id,
-                    });
-                  }
-                }
-              }
-
-              visualState.interactiveAction = undefined;
-              visualState.onUpdate();
-            }
-            break;
-          }
-          case InteractiveActionType.CARRIER_PATH_PLANNING: {
-            const facility = gameState.structuresByCellId.get(cell.cellId);
-
-            if (
-              facility &&
-              isValidCarrierPlanningTarget(
-                visualState,
-                facility,
-                visualState.interactiveAction,
-              )
-            ) {
-              const originFacility = gameState.structuresByCellId.get(
-                visualState.interactiveAction.cell.cellId,
-              ) as Facility;
-
-              const action = visualState.interactiveAction;
-              const { direction } = action;
-
-              const fromFacility =
-                direction === 'from' ? originFacility : facility;
-              const toFacility =
-                direction === 'from' ? facility : originFacility;
-
-              const alreadyCarrierPaths = gameState.carrierPathsFromCellId.get(
-                fromFacility.position.cellId,
-              );
-
-              if (
-                alreadyCarrierPaths &&
-                alreadyCarrierPaths.some(
-                  (path) =>
-                    path.resourceType === action.resourceType &&
-                    isSameCellPoints(path.path.from, fromFacility.position) &&
-                    isSameCellPoints(path.path.to, toFacility.position),
-                )
-              ) {
-                console.log('already path, do nothing');
-              } else {
-                const bindCity = getFacilityBindedCity(gameState, fromFacility);
-
-                addCarrierPath(gameState, {
-                  assignedCityId: bindCity.cityId,
-                  people: 1,
-                  resourceType: action.resourceType,
-                  pathType: CarrierPathType.EXPLICIT,
-                  path: {
-                    from: fromFacility.position,
-                    to: toFacility.position,
-                  },
-                });
-                visualState.interactiveAction = undefined;
-                visualState.onUpdate();
-              }
-            }
-            break;
-          }
-        }
-      } else {
-        if (facility) {
-          uiStateRef.current?.openModal({
-            modeType: ModalModeType.FACILITY,
-            facility,
-          });
-        } else {
-          uiStateRef.current?.forceCloseCurrentModal();
-        }
-
-        visualStateOnMouseMove(visualState, undefined);
-
-        forceUpdate();
-      }
-    }
   }
 
   function onCityClick(city: City): void {
