@@ -1,10 +1,11 @@
 import { facilitiesDescription } from '@/game/facilities';
 import { resourceLocalization } from '@/game/resources';
 import { InteractiveActionType } from '@/game/visualState';
-import { useRenderOnVisualStateChange } from '@hooks/useRenderOnVisualStateChange';
+import { UiState } from '@/app/logic/UiState';
+import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types.ts';
 
 import styles from './StatusText.module.scss';
-import { UiState } from '@/app/logic/UiState';
 
 type Props = {
   uiState: UiState;
@@ -13,7 +14,7 @@ type Props = {
 export function StatusText({ uiState }: Props) {
   const { visualState } = uiState;
 
-  useRenderOnVisualStateChange();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   if (!visualState.interactiveAction) {
     return null;

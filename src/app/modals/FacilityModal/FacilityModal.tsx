@@ -2,13 +2,8 @@ import { RefObject, useImperativeHandle, useRef } from 'react';
 
 import styles from './FacilityModal.module.scss';
 
-import {
-  FacilityType,
-  GameState,
-  isStorageFacility,
-  Structure,
-} from '@/game/types';
-import type { VisualState } from '@/game/visualState';
+import { FacilityType, isStorageFacility, Structure } from '@/game/types';
+import { UiState } from '@/app/logic/UiState.ts';
 
 import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
@@ -19,20 +14,13 @@ import { ConstructionContent } from './content/ConstructionContent';
 import { StorageContent } from './content/StorageContent';
 
 type Props = {
-  gameState: GameState;
-  visualState: VisualState;
+  uiState: UiState;
   facility: Structure;
   modalRef: RefObject<ModalRef>;
   onClose: () => void;
 };
 
-export function FacilityModal({
-  gameState,
-  visualState,
-  facility,
-  modalRef,
-  onClose,
-}: Props) {
+export function FacilityModal({ uiState, facility, modalRef, onClose }: Props) {
   const controlRef = useRef<ModalControl | undefined>();
 
   function onCloseClick() {
@@ -47,8 +35,7 @@ export function FacilityModal({
   return (
     <div className={styles.modalWindow}>
       <Content
-        gameState={gameState}
-        visualState={visualState}
+        uiState={uiState}
         facility={facility}
         controlRef={controlRef}
         onCloseClick={onCloseClick}
@@ -59,21 +46,23 @@ export function FacilityModal({
   );
 }
 
-function Content({
-  gameState,
-  visualState,
-  facility,
-  controlRef,
-  onCloseClick,
-  closeWithoutApplying,
-}: {
-  gameState: GameState;
-  visualState: VisualState;
+type ContentProps = {
+  uiState: UiState;
   facility: Structure;
   controlRef: ModalControlRef;
   onCloseClick: () => void;
   closeWithoutApplying: () => void;
-}) {
+};
+
+function Content({
+  uiState,
+  facility,
+  controlRef,
+  onCloseClick,
+  closeWithoutApplying,
+}: ContentProps) {
+  const { gameState, visualState } = uiState;
+
   if (facility.type === FacilityType.CITY) {
     return <CityContent city={facility} />;
   }
@@ -93,7 +82,7 @@ function Content({
   if (isStorageFacility(facility)) {
     return (
       <StorageContent
-        visualState={visualState}
+        uiState={uiState}
         storageFacility={facility}
         onCloseClick={onCloseClick}
       />
@@ -102,8 +91,7 @@ function Content({
 
   return (
     <FacilityContent
-      visualState={visualState}
-      gameState={gameState}
+      uiState={uiState}
       facility={facility}
       controlRef={controlRef}
       onCloseClick={onCloseClick}

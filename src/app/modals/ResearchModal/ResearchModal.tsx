@@ -3,17 +3,18 @@ import cn from 'classnames';
 
 import styles from './ResearchModal.module.scss';
 
-import { type GameState, type Research, ExactFacilityType } from '@/game/types';
+import { type Research, ExactFacilityType } from '@/game/types';
 import { researchTranslations, researches } from '@/game/research';
 import {
   facilitiesDescription,
   productVariantsTranslations,
 } from '@/game/facilities';
 
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
-
 import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
+import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types.ts';
+import { UiState } from '@/app/logic/UiState.ts';
 
 // Enum should stay numerical because of sorting
 enum ResearchStatus {
@@ -25,18 +26,18 @@ enum ResearchStatus {
 
 type Props = {
   modalRef: RefObject<ModalRef>;
-  gameState: GameState;
+  uiState: UiState;
   onStartResearchClick: (research: Research) => void;
   onClose: () => void;
 };
 
 export function ResearchModal({
   modalRef,
-  gameState,
+  uiState,
   onStartResearchClick,
   onClose,
 }: Props) {
-  useRenderOnGameTick();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   useImperativeHandle(modalRef, () => ({
     close: onClose,
@@ -44,7 +45,7 @@ export function ResearchModal({
 
   const [isShowCompleted, setIsShowCompleted] = useState(false);
 
-  const { completedResearches, currentResearchId } = gameState;
+  const { completedResearches, currentResearchId } = uiState.gameState;
 
   let extendedResearches = Object.values(researches).map((research) => {
     let status: ResearchStatus;

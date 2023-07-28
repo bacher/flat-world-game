@@ -2,10 +2,10 @@ import { ReactNode, useRef } from 'react';
 import cn from 'classnames';
 
 import type { ResearchId } from '@/game/types';
-import { researchTranslations, researches } from '@/game/research';
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { researches, researchTranslations } from '@/game/research';
 import { UiState } from '@/app/logic/UiState';
-import { ModalModeType } from '@/app/logic/types';
+import { ModalModeType, UiUpdateType } from '@/app/logic/types';
+import { useUiUpdate } from '@/app/logic/hook.ts';
 
 import styles from './CurrentResearchIcon.module.scss';
 
@@ -16,7 +16,7 @@ type Props = {
 export function CurrentResearchIcon({ uiState }: Props) {
   const { gameState } = uiState;
 
-  useRenderOnGameTick();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const lastResearchRef = useRef<ResearchId | undefined>();
   if (gameState.currentResearchId) {

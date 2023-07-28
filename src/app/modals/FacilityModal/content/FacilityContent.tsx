@@ -1,39 +1,42 @@
 import { useImperativeHandle, useMemo, useState } from 'react';
 import clamp from 'lodash/clamp';
 
-import { VisualState } from '@/game/visualState';
-import { Facility, GameState } from '@/game/types';
+import { Facility } from '@/game/types';
 import {
   facilitiesDescription,
   facilitiesIterationInfo,
 } from '@/game/facilities';
 import { useForceUpdate } from '@hooks/forceUpdate';
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { StorateType, SupplySection } from '@components/SupplySection';
+import { UiState } from '@/app/logic/UiState.ts';
 
 import { ModalControlRef } from '../types';
 import { addPath, useAlreadyPathsState } from '../helpers';
 import { ModalFooter } from '../ModalFooter';
 import styles from './share.module.scss';
+import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types.ts';
 
-export function FacilityContent({
-  visualState,
-  gameState,
-  facility,
-  controlRef,
-  onCloseClick,
-  closeWithoutApplying,
-}: {
-  visualState: VisualState;
-  gameState: GameState;
+type Props = {
+  uiState: UiState;
   facility: Facility;
   controlRef: ModalControlRef;
   onCloseClick: () => void;
   closeWithoutApplying: () => void;
-}) {
+};
+
+export function FacilityContent({
+  uiState,
+  facility,
+  controlRef,
+  onCloseClick,
+  closeWithoutApplying,
+}: Props) {
+  const { gameState, visualState } = uiState;
+
   const forceUpdate = useForceUpdate();
-  useRenderOnGameTick();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const [workersCountString, setWorkersCountString] = useState(
     facility.assignedWorkersCount.toString(),
@@ -126,7 +129,7 @@ export function FacilityContent({
         />
       </div>
       <ModalFooter
-        visualState={visualState}
+        uiState={uiState}
         facility={facility}
         close={closeWithoutApplying}
       />

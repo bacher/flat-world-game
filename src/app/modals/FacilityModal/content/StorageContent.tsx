@@ -1,26 +1,26 @@
 import { StorageFacility } from '@/game/types';
-import { VisualState } from '@/game/visualState';
 import { facilitiesDescription } from '@/game/facilities';
 import { StorateType, SupplySection } from '@components/SupplySection';
 import { useForceUpdate } from '@hooks/forceUpdate';
+import { UiState } from '@/app/logic/UiState.ts';
 
 import { ModalFooter } from '../ModalFooter';
 import { addPath, useAlreadyPathsState } from '../helpers';
 import styles from './share.module.scss';
 
 type Props = {
-  visualState: VisualState;
+  uiState: UiState;
   storageFacility: StorageFacility;
   onCloseClick: () => void;
 };
 
 export function StorageContent({
-  visualState,
+  uiState,
   storageFacility,
   onCloseClick,
 }: Props) {
   const forceUpdate = useForceUpdate();
-  const { gameState } = visualState;
+  const { gameState, visualState } = uiState;
 
   const alreadyToPaths = useAlreadyPathsState({
     availableResources: [storageFacility.resourceType],
@@ -63,7 +63,7 @@ export function StorageContent({
         />
       </div>
       <ModalFooter
-        visualState={visualState}
+        uiState={uiState}
         facility={storageFacility}
         close={onCloseClick}
       />

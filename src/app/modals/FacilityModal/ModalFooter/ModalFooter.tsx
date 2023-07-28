@@ -1,19 +1,17 @@
-import type { VisualState } from '@/game/visualState';
 import { removeFacility } from '@/game/gameState';
-import { useRenderOnVisualStateChange } from '@hooks/useRenderOnVisualStateChange';
 import { FacilityLike } from '@/game/types';
+import { UiState } from '@/app/logic/UiState.ts';
 
 import styles from './ModalFooter.module.scss';
 
 type Props = {
-  visualState: VisualState;
+  uiState: UiState;
   facility: FacilityLike;
   close: () => void;
 };
 
-export function ModalFooter({ visualState, facility, close }: Props) {
-  useRenderOnVisualStateChange();
-  const { gameState } = visualState;
+export function ModalFooter({ uiState, facility, close }: Props) {
+  const { gameState, visualState } = uiState;
 
   return (
     <div className={styles.footer}>

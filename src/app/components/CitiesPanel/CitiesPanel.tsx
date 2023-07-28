@@ -1,6 +1,7 @@
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 import { UiState } from '@/app/logic/UiState';
 import { visualStateMoveToCell } from '@/game/visualState';
+import { UiUpdateType } from '@/app/logic/types.ts';
+import { useUiUpdate } from '@/app/logic/hook.ts';
 
 type Props = {
   uiState: UiState;
@@ -9,7 +10,7 @@ type Props = {
 export function CitiesPanel({ uiState }: Props) {
   const { visualState, gameState } = uiState;
 
-  useRenderOnGameTick();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const citiesList = [...gameState.cities.values()].sort((a, b) =>
     a.name.localeCompare(b.name),

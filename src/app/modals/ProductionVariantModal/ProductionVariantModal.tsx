@@ -5,30 +5,32 @@ import styles from './ProductionVariantModal.module.scss';
 
 import type {
   ExactFacilityType,
-  GameState,
   ProductVariantId,
   StorageItem,
 } from '@/game/types';
 import { facilitiesIterationInfo } from '@/game/facilities';
 import { resourceLocalization } from '@/game/resources';
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { UiState } from '@/app/logic/UiState.ts';
+import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types.ts';
 
 import { ModalCloseButton } from '../ModalCloseButton';
 
 type Props = {
-  gameState: GameState;
+  uiState: UiState;
   facilityType: ExactFacilityType;
   onProductionVariantChoose: (productionVariantId: ProductVariantId) => void;
   onClose: () => void;
 };
 
 export function ProductionVariantModal({
-  gameState,
+  uiState,
   facilityType,
   onProductionVariantChoose,
   onClose,
 }: Props) {
-  useRenderOnGameTick();
+  const { gameState } = uiState;
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const iterationInfo = facilitiesIterationInfo[facilityType];
 

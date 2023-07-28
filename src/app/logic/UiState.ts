@@ -2,6 +2,7 @@ import { RefObject } from 'react';
 
 import { ModalMode, ModalModeType, UiUpdateType } from '@/app/logic/types';
 import {
+  createVisualState,
   InteractiveActionType,
   isAllowToConstructAtPosition,
   lookupGridByPoint,
@@ -10,6 +11,7 @@ import {
   visualStateApplyViewportState,
   visualStateGetViewportState,
   visualStateOnMouseMove,
+  visualStateUpdateZoom,
 } from '@/game/visualState';
 import {
   CarrierPathType,
@@ -32,10 +34,18 @@ import {
   depositToProductVariant,
   facilitiesIterationInfo,
 } from '@/game/facilities';
-import { isValidCarrierPlanningTarget } from '@/gameRender/render';
+import {
+  isValidCarrierPlanningTarget,
+  renderGameToCanvas,
+} from '@/gameRender/render';
 import { isSameCellPoints } from '@/game/helpers';
+import clamp from 'lodash/clamp';
 
 type Callback = () => void;
+
+const MINIMUM_ZOOM = 0.1;
+const MAXIMUM_ZOOM = 1.5;
+const AUTOSAVE_EVERY = 5000;
 
 const allUpdateTypes: UiUpdateType[] = [
   UiUpdateType.MODAL,
@@ -59,25 +69,38 @@ export class UiState {
     [UiUpdateType.CANVAS]: [],
   };
   private stopGameLoopCallback: Callback | undefined;
-  private readonly onTickCallback: Callback;
+  private requestAnimationId: number | undefined;
+  private autoSaveIntervalId: number | undefined;
 
   constructor({
     gameId,
-    visualState,
-    onTick,
+    ctx,
+    mousePosition,
   }: {
     gameId: string;
-    visualState: VisualState;
-    onTick: Callback;
+    ctx: CanvasRenderingContext2D;
+    mousePosition: Point;
   }) {
+    const { gameState, viewportState } = loadGame(gameId, undefined);
+
+    const visualState = createVisualState(gameState, ctx, () => {
+      this.onUpdate([UiUpdateType.CANVAS, UiUpdateType.MODAL]);
+    });
+
+    visualStateApplyViewportState(visualState, viewportState);
+    visualStateOnMouseMove(visualState, mousePosition);
+
     this.gameId = gameId;
     this.visualState = visualState;
     this.gameState = visualState.gameState;
-    this.onTickCallback = onTick;
 
     // TODO: Debug
     (window as any).visualState = this.visualState;
     (window as any).gameState = this.gameState;
+  }
+
+  renderCanvas() {
+    renderGameToCanvas(this.visualState);
   }
 
   replaceGameState(gameState: GameState): void {
@@ -122,7 +145,6 @@ export class UiState {
       visualStateGetViewportState(this.visualState),
       saveName,
     );
-    this.startGameLoop();
   }
 
   startGameLoop() {
@@ -137,7 +159,6 @@ export class UiState {
     this.stopGameLoopCallback = startGameLoop(visualState, () => {
       this.currentTick += 1;
       this.onUpdate(UiUpdateType.CANVAS);
-      this.onTickCallback();
 
       // TODO: While developing
       if (this.currentTick > this.lastInteractionTick + 200) {
@@ -145,6 +166,8 @@ export class UiState {
         this.stopGameLoop();
       }
     });
+
+    this.enableAutoSave();
   }
 
   stopGameLoop() {
@@ -152,7 +175,23 @@ export class UiState {
       this.stopGameLoopCallback();
       this.stopGameLoopCallback = undefined;
       this.isInGameLoop = false;
+
+      this.disableAutoSave();
+      this.saveGame();
     }
+  }
+
+  enableAutoSave() {
+    if (!this.autoSaveIntervalId) {
+      this.autoSaveIntervalId = window.setInterval(() => {
+        this.saveGame();
+      }, AUTOSAVE_EVERY);
+    }
+  }
+
+  disableAutoSave() {
+    window.clearInterval(this.autoSaveIntervalId);
+    this.autoSaveIntervalId = undefined;
   }
 
   markUserActivity(): void {
@@ -320,6 +359,30 @@ export class UiState {
     }
   }
 
+  onCanvasZoom(delta: number): void {
+    const zoom = clamp(
+      this.visualState.zoom * (1 - delta / 100),
+      MINIMUM_ZOOM,
+      MAXIMUM_ZOOM,
+    );
+    visualStateUpdateZoom(this.visualState, zoom);
+  }
+
+  cancelCurrentAction(): boolean {
+    if (this.modalState) {
+      this.askToCloseCurrentModal();
+      return true;
+    }
+
+    if (this.visualState.interactiveAction) {
+      this.visualState.interactiveAction = undefined;
+      this.visualState.onUpdate();
+      return true;
+    }
+
+    return false;
+  }
+
   onUpdate(updateType?: UiUpdateType | UiUpdateType[]): void {
     const updateTypes = Array.isArray(updateType)
       ? updateType
@@ -330,6 +393,13 @@ export class UiState {
     const alreadyCalled = new Set<Callback>();
 
     for (const type of updateTypes) {
+      if (type === UiUpdateType.CANVAS && !this.requestAnimationId) {
+        this.requestAnimationId = window.requestAnimationFrame(() => {
+          this.requestAnimationId = undefined;
+          this.renderCanvas();
+        });
+      }
+
       for (const callback of this.listeners[type]) {
         if (!alreadyCalled.has(callback)) {
           alreadyCalled.add(callback);

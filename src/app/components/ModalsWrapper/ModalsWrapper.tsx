@@ -53,8 +53,7 @@ export function ModalsWrapper({ uiState }: Props) {
               return (
                 <FacilityModal
                   modalRef={modalRef}
-                  gameState={gameState}
-                  visualState={visualState}
+                  uiState={uiState}
                   facility={modalState.facility}
                   onClose={closeModal}
                 />
@@ -63,7 +62,7 @@ export function ModalsWrapper({ uiState }: Props) {
               return (
                 <ResearchModal
                   modalRef={modalRef}
-                  gameState={gameState}
+                  uiState={uiState}
                   onStartResearchClick={(research) => {
                     gameState.currentResearchId = research.researchId;
                     uiState.onUpdate(UiUpdateType.RESEARCH);
@@ -92,6 +91,7 @@ export function ModalsWrapper({ uiState }: Props) {
                   }}
                   onSaveGame={({ saveName }) => {
                     uiState.saveGame({ saveName });
+                    uiState.startGameLoop();
                     closeModal();
                   }}
                   onExit={() => {
@@ -105,7 +105,7 @@ export function ModalsWrapper({ uiState }: Props) {
 
               return (
                 <ProductionVariantModal
-                  gameState={gameState}
+                  uiState={uiState}
                   facilityType={facilityType}
                   onClose={closeModal}
                   onProductionVariantChoose={(productionVariantId) => {
@@ -125,7 +125,7 @@ export function ModalsWrapper({ uiState }: Props) {
 
               return (
                 <ResourceChooseModal
-                  gameState={gameState}
+                  uiState={uiState}
                   onClose={closeModal}
                   onResourceTypeChoose={(resourceType) => {
                     closeModal();

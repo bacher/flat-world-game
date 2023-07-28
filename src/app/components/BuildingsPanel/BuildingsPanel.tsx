@@ -5,9 +5,10 @@ import {
   facilitiesDescription,
   initiallyUnlockedFacilities,
 } from '@/game/facilities';
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
 import { UiState } from '@/app/logic/UiState';
 import { InteractiveActionType } from '@/game/visualState';
+import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types.ts';
 
 type Props = {
   uiState: UiState;
@@ -16,7 +17,7 @@ type Props = {
 export function BuildingsPanel({ uiState }: Props) {
   const { visualState, gameState } = uiState;
 
-  useRenderOnGameTick();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const facilityTypes = useMemo<CompleteFacilityType[]>(
     () =>

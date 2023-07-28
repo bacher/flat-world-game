@@ -1,25 +1,25 @@
 import { useMemo, useState } from 'react';
 
 import styles from './ResourceChooseModal.module.scss';
-
-import type { GameState } from '@/game/types';
 import { resourceLocalization, ResourceType } from '@/game/resources';
-import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { UiState } from '@/app/logic/UiState.ts';
+import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types.ts';
 
 import { ModalCloseButton } from '../ModalCloseButton';
 
 type Props = {
-  gameState: GameState;
+  uiState: UiState;
   onResourceTypeChoose: (resourceType: ResourceType) => void;
   onClose: () => void;
 };
 
 export function ResourceChooseModal({
-  gameState: _,
+  uiState,
   onResourceTypeChoose,
   onClose,
 }: Props) {
-  useRenderOnGameTick();
+  useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const [filterText, setFilterText] = useState('');
 

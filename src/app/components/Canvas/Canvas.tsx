@@ -1,26 +1,12 @@
 import type React from 'react';
 import { useEffect, useMemo, useRef } from 'react';
-import clamp from 'lodash/clamp';
 
 import styles from './Canvas.module.scss';
 
 import type { Point } from '@/game/types';
-import { loadGame, saveGame } from '@/game/gameStatePersist';
-import { renderGameToCanvas } from '@/gameRender/render';
-import {
-  createVisualState,
-  visualStateApplyViewportState,
-  visualStateGetViewportState,
-  visualStateMove,
-  visualStateOnMouseMove,
-  visualStateUpdateZoom,
-} from '@/game/visualState';
+import { visualStateMove, visualStateOnMouseMove } from '@/game/visualState';
 import { UiState } from '@/app/logic/UiState';
 import { useForceUpdate } from '@hooks/forceUpdate';
-import {
-  createGameStateWatcher,
-  GameStateWatcherProvider,
-} from '@/app/contexts/GameStateWatcher';
 import { BuildingsPanel } from '@components/BuildingsPanel';
 import { StatusText } from '@components/StatusText';
 import { CitiesPanel } from '@components/CitiesPanel';
@@ -30,7 +16,6 @@ import { MenuOpener } from '@components/MenuOpener';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
-const MAXIMUM_ZOOM = 1.5;
 
 type Props = {
   gameId: string;
@@ -58,8 +43,6 @@ export function Canvas({ gameId }: Props) {
     [],
   );
 
-  const gameStateWatcher = useMemo(createGameStateWatcher, []);
-
   useEffect(() => {
     const canvas = canvasRef.current!;
 
@@ -74,31 +57,18 @@ export function Canvas({ gameId }: Props) {
 
     canvas.addEventListener('wheel', onCanvasWheel);
 
-    const { gameState, viewportState } = loadGame(gameId, undefined);
-
-    const visualState = createVisualState(gameState, ctx, () => {
-      renderGameToCanvas(visualState);
-      gameStateWatcher.emitVisualStateChange();
-    });
-
-    visualStateApplyViewportState(visualState, viewportState);
-
     const uiState = new UiState({
       gameId,
-      visualState,
-      onTick: () => {
-        gameStateWatcher.emitTick();
-      },
+      ctx,
+      mousePosition: mouseState.mousePos,
     });
 
     uiStateRef.current = uiState;
 
-    visualStateOnMouseMove(visualState, mouseState.mousePos);
-    renderGameToCanvas(visualState);
+    uiState.renderCanvas();
+    uiState.startGameLoop();
 
     forceUpdate();
-
-    uiState.startGameLoop();
 
     return () => {
       canvas.removeEventListener('wheel', onCanvasWheel);
@@ -114,28 +84,12 @@ export function Canvas({ gameId }: Props) {
     }
   }, [gameId]);
 
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      const uiState = uiStateRef.current;
-
-      if (uiState) {
-        saveGame(
-          uiState.gameState,
-          visualStateGetViewportState(uiState.visualState),
-          undefined,
-        );
-      }
-    }, 5000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [uiStateRef.current?.gameState]);
-
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
-    uiStateRef.current?.markUserActivity();
+    const uiState = uiStateRef.current;
 
-    if (uiStateRef.current?.modalState) {
+    uiState?.markUserActivity();
+
+    if (uiState?.modalState) {
       return;
     }
 
@@ -161,43 +115,32 @@ export function Canvas({ gameId }: Props) {
       }
     }
 
-    const visualState = uiStateRef.current?.visualState;
-
-    if (visualState) {
+    if (uiState) {
       if (mouseState.isMouseDown) {
-        visualStateMove(visualState, {
+        visualStateMove(uiState.visualState, {
           x: event.movementX,
           y: event.movementY,
         });
       }
 
-      visualStateOnMouseMove(visualState, mouseState.mousePos);
+      visualStateOnMouseMove(uiState.visualState, mouseState.mousePos);
     }
   }
 
   function onKeyDown(event: KeyboardEvent): void {
-    uiStateRef.current?.markUserActivity();
+    const uiState = uiStateRef.current;
 
-    if (!uiStateRef.current || event.defaultPrevented) {
+    uiState?.markUserActivity();
+
+    if (!uiState || event.defaultPrevented) {
       return;
     }
 
-    const visualState = uiStateRef.current.visualState;
-
     switch (event.key) {
       case 'Escape':
-        if (visualState.interactiveAction) {
+        if (uiState.cancelCurrentAction()) {
           event.preventDefault();
-          visualState.interactiveAction = undefined;
-          visualState.onUpdate();
         }
-
-        if (uiStateRef.current?.modalState) {
-          event.preventDefault();
-          uiStateRef.current?.askToCloseCurrentModal();
-        }
-
-        break;
     }
   }
 
@@ -251,75 +194,66 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    if (uiStateRef.current?.modalState) {
-      uiStateRef.current?.askToCloseCurrentModal();
-      return;
-    }
+    const uiState = uiStateRef.current;
 
-    uiStateRef.current?.handleCanvasClick({
-      x: event.pageX,
-      y: event.pageY,
-    });
+    if (uiState) {
+      if (uiState.modalState) {
+        uiState.askToCloseCurrentModal();
+        return;
+      }
+
+      uiState.handleCanvasClick({
+        x: event.pageX,
+        y: event.pageY,
+      });
+    }
   }
 
   function onCanvasWheel(event: WheelEvent): void {
     event.preventDefault();
 
-    const visualState = uiStateRef.current!.visualState;
-
     actualizeMouseState(event);
-    visualStateOnMouseMove(visualState, mouseState.mousePos);
 
-    if (event.ctrlKey) {
-      const zoom = clamp(
-        visualState.zoom * (1 - event.deltaY / 100),
-        0.1,
-        MAXIMUM_ZOOM,
-      );
-      visualStateUpdateZoom(visualState, zoom);
+    if (event.ctrlKey && uiStateRef.current) {
+      uiStateRef.current.onCanvasZoom(event.deltaY);
     }
   }
 
   return (
-    <GameStateWatcherProvider value={gameStateWatcher}>
-      <div className={styles.wrapper}>
-        <div className={styles.canvasWrapper}>
-          <canvas
-            ref={canvasRef}
-            className={styles.canvas}
-            data-drag={mouseState.isMouseDown || undefined}
-            width={INITIAL_CANVAS_WIDTH}
-            height={INITIAL_CANVAS_HEIGHT}
-            onMouseDown={onMouseDown}
-            onClick={onClick}
-          />
+    <div className={styles.wrapper}>
+      <div className={styles.canvasWrapper}>
+        <canvas
+          ref={canvasRef}
+          className={styles.canvas}
+          data-drag={mouseState.isMouseDown || undefined}
+          width={INITIAL_CANVAS_WIDTH}
+          height={INITIAL_CANVAS_HEIGHT}
+          onMouseDown={onMouseDown}
+          onClick={onClick}
+        />
 
-          {uiStateRef.current && (
+        {uiStateRef.current && (
+          <>
             <div className={styles.researchPanel}>
               <CurrentResearchIcon uiState={uiStateRef.current} />
             </div>
-          )}
-
-          {uiStateRef.current && (
-            <>
-              <StatusText uiState={uiStateRef.current} />
-              {uiStateRef.current && (
-                <ModalsWrapper uiState={uiStateRef.current} />
-              )}
-            </>
-          )}
-        </div>
-
-        <div className={styles.sidePanel}>
-          {uiStateRef.current && (
-            <>
-              <MenuOpener uiState={uiStateRef.current} />
-              <BuildingsPanel uiState={uiStateRef.current} />
-              <CitiesPanel uiState={uiStateRef.current} />
-            </>
-          )}
-        </div>
+            <StatusText uiState={uiStateRef.current} />
+            {uiStateRef.current && (
+              <ModalsWrapper uiState={uiStateRef.current} />
+            )}
+          </>
+        )}
       </div>
-    </GameStateWatcherProvider>
+
+      <div className={styles.sidePanel}>
+        {uiStateRef.current && (
+          <>
+            <MenuOpener uiState={uiStateRef.current} />
+            <BuildingsPanel uiState={uiStateRef.current} />
+            <CitiesPanel uiState={uiStateRef.current} />
+          </>
+        )}
+      </div>
+    </div>
   );
 }
