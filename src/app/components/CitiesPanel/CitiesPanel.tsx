@@ -1,12 +1,14 @@
-import type { City, GameState } from '@/game/types';
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { UiState } from '@/app/logic/UiState';
+import { visualStateMoveToCell } from '@/game/visualState';
 
 type Props = {
-  gameState: GameState;
-  onCityClick: (city: City) => void;
+  uiState: UiState;
 };
 
-export function CitiesPanel({ gameState, onCityClick }: Props) {
+export function CitiesPanel({ uiState }: Props) {
+  const { visualState, gameState } = uiState;
+
   useRenderOnGameTick();
 
   const citiesList = [...gameState.cities.values()].sort((a, b) =>
@@ -22,7 +24,7 @@ export function CitiesPanel({ gameState, onCityClick }: Props) {
             <button
               type="button"
               onClick={() => {
-                onCityClick(city);
+                visualStateMoveToCell(visualState, city.position);
               }}
             >
               {city.name}

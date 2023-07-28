@@ -1,18 +1,21 @@
 import { useMemo } from 'react';
 
-import { CompleteFacilityType, FacilityType, GameState } from '@/game/types';
+import { CompleteFacilityType, FacilityType } from '@/game/types';
 import {
   facilitiesDescription,
   initiallyUnlockedFacilities,
 } from '@/game/facilities';
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { UiState } from '@/app/logic/UiState';
+import { InteractiveActionType } from '@/game/visualState';
 
 type Props = {
-  gameState: GameState;
-  onBuildingClick: (params: { facilityType: CompleteFacilityType }) => void;
+  uiState: UiState;
 };
 
-export function BuildingsPanel({ gameState, onBuildingClick }: Props) {
+export function BuildingsPanel({ uiState }: Props) {
+  const { visualState, gameState } = uiState;
+
   useRenderOnGameTick();
 
   const facilityTypes = useMemo<CompleteFacilityType[]>(
@@ -38,7 +41,10 @@ export function BuildingsPanel({ gameState, onBuildingClick }: Props) {
           <button
             type="button"
             onClick={() => {
-              onBuildingClick({ facilityType });
+              visualState.interactiveAction = {
+                actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
+                facilityType,
+              };
             }}
           >
             {facilitiesDescription[facilityType] ?? facilityType}

@@ -1,22 +1,21 @@
 import { ReactNode, useRef } from 'react';
 import cn from 'classnames';
 
-import type { GameState, ResearchId } from '@/game/types';
+import type { ResearchId } from '@/game/types';
 import { researchTranslations, researches } from '@/game/research';
-
 import { useRenderOnGameTick } from '@hooks/useRenderOnGameTick';
+import { UiState } from '@/app/logic/UiState';
+import { ModalModeType } from '@/app/logic/types';
 
 import styles from './CurrentResearchIcon.module.scss';
 
 type Props = {
-  gameState: GameState;
-  onChooseResearchClick: () => void;
+  uiState: UiState;
 };
 
-export function CurrentResearchIcon({
-  gameState,
-  onChooseResearchClick,
-}: Props) {
+export function CurrentResearchIcon({ uiState }: Props) {
+  const { gameState } = uiState;
+
   useRenderOnGameTick();
 
   const lastResearchRef = useRef<ResearchId | undefined>();
@@ -69,7 +68,11 @@ export function CurrentResearchIcon({
     <button
       className={cn(styles.button, additionalClassName)}
       type="button"
-      onClick={() => onChooseResearchClick()}
+      onClick={() => {
+        uiState.openModal({
+          modeType: ModalModeType.RESEARCH,
+        });
+      }}
     >
       {content}
     </button>

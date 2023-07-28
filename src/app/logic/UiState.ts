@@ -27,13 +27,13 @@ import {
   addConstructionStructure,
   getChunkByCell,
   getFacilityBindedCity,
-} from '@/game/gameState.ts';
+} from '@/game/gameState';
 import {
   depositToProductVariant,
   facilitiesIterationInfo,
-} from '@/game/facilities.ts';
-import { isValidCarrierPlanningTarget } from '@/gameRender/render.ts';
-import { isSameCellPoints } from '@/game/helpers.ts';
+} from '@/game/facilities';
+import { isValidCarrierPlanningTarget } from '@/gameRender/render';
+import { isSameCellPoints } from '@/game/helpers';
 
 type Callback = () => void;
 
@@ -74,6 +74,20 @@ export class UiState {
     this.visualState = visualState;
     this.gameState = visualState.gameState;
     this.onTickCallback = onTick;
+
+    // TODO: Debug
+    (window as any).visualState = this.visualState;
+    (window as any).gameState = this.gameState;
+  }
+
+  replaceGameState(gameState: GameState): void {
+    this.gameState = gameState;
+    this.visualState.gameState = gameState;
+
+    // TODO: Debug
+    (window as any).gameState = this.gameState;
+
+    this.onUpdate(UiUpdateType.CANVAS);
   }
 
   openModal(modalMode: ModalMode) {
@@ -95,15 +109,10 @@ export class UiState {
   }
 
   loadGame(gameId: string, saveName?: string): void {
-    const { gameState: newGameState, viewportState } = loadGame(
-      gameId,
-      saveName,
-    );
+    const { gameState, viewportState } = loadGame(gameId, saveName);
 
-    this.visualState.gameState = newGameState;
-    this.gameState = newGameState;
+    this.replaceGameState(gameState);
     visualStateApplyViewportState(this.visualState, viewportState);
-
     this.onUpdate();
   }
 

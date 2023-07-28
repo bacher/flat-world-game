@@ -1,15 +1,18 @@
 import { facilitiesDescription } from '@/game/facilities';
 import { resourceLocalization } from '@/game/resources';
-import { InteractiveActionType, VisualState } from '@/game/visualState';
+import { InteractiveActionType } from '@/game/visualState';
 import { useRenderOnVisualStateChange } from '@hooks/useRenderOnVisualStateChange';
 
 import styles from './StatusText.module.scss';
+import { UiState } from '@/app/logic/UiState';
 
 type Props = {
-  visualState: VisualState;
+  uiState: UiState;
 };
 
-export function StatusText({ visualState }: Props) {
+export function StatusText({ uiState }: Props) {
+  const { visualState } = uiState;
+
   useRenderOnVisualStateChange();
 
   if (!visualState.interactiveAction) {

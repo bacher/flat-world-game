@@ -1,25 +1,21 @@
 import type React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import clamp from 'lodash/clamp';
 
 import styles from './Canvas.module.scss';
 
-import { City, GameState, Point, ViewportState } from '@/game/types';
-
+import type { Point } from '@/game/types';
 import { loadGame, saveGame } from '@/game/gameStatePersist';
 import { renderGameToCanvas } from '@/gameRender/render';
 import {
   createVisualState,
-  InteractiveActionType,
-  VisualState,
   visualStateApplyViewportState,
   visualStateGetViewportState,
   visualStateMove,
-  visualStateMoveToCell,
   visualStateOnMouseMove,
   visualStateUpdateZoom,
 } from '@/game/visualState';
-
+import { UiState } from '@/app/logic/UiState';
 import { useForceUpdate } from '@hooks/forceUpdate';
 import {
   createGameStateWatcher,
@@ -30,8 +26,7 @@ import { StatusText } from '@components/StatusText';
 import { CitiesPanel } from '@components/CitiesPanel';
 import { CurrentResearchIcon } from '@components/CurrentResearchIcon';
 import { ModalsWrapper } from '@components/ModalsWrapper';
-import { ModalModeType } from '@/app/logic/types';
-import { UiState } from '@/app/logic/UiState';
+import { MenuOpener } from '@components/MenuOpener';
 
 const INITIAL_CANVAS_WIDTH = 800;
 const INITIAL_CANVAS_HEIGHT = 600;
@@ -48,64 +43,27 @@ export function Canvas({ gameId }: Props) {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const initialViewportStateRef = useRef<ViewportState | undefined>();
-
-  const [gameState, setGameState] = useState<GameState>(() => {
-    const { gameState, viewportState } = loadGame(gameId, undefined);
-    initialViewportStateRef.current = viewportState;
-
-    return gameState;
-  });
-
-  useEffect(() => {
-    if (gameState.gameId !== gameId) {
-      const { gameState: newGameState, viewportState } = loadGame(
-        gameId,
-        undefined,
-      );
-      const visualState = visualStateRef.current!;
-
-      visualState.gameState = newGameState;
-      visualStateApplyViewportState(visualState, viewportState);
-      setGameState(newGameState);
-      renderGameToCanvas(visualState);
-    }
-  }, [gameId]);
-
-  useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      saveGame(
-        gameState,
-        visualStateGetViewportState(visualStateRef.current!),
-        undefined,
-      );
-    }, 5000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [gameState]);
-
   const mouseState = useMemo<{
     isMouseDown: boolean;
     isDrag: boolean;
     mouseDownPosition: Point | undefined;
+    mousePos: Point;
   }>(
     () => ({
       isMouseDown: false,
       isDrag: false,
       mouseDownPosition: undefined,
+      mousePos: { x: 0, y: 0 },
     }),
     [],
   );
-  const [mousePos] = useState<Point>(() => ({ x: 0, y: 0 }));
-
-  const visualStateRef = useRef<VisualState | undefined>();
 
   const gameStateWatcher = useMemo(createGameStateWatcher, []);
 
   useEffect(() => {
-    const ctx = canvasRef.current!.getContext('2d', {
+    const canvas = canvasRef.current!;
+
+    const ctx = canvas.getContext('2d', {
       alpha: false,
       willReadFrequently: false,
     });
@@ -114,21 +72,18 @@ export function Canvas({ gameId }: Props) {
       throw new Error('No 2d context');
     }
 
-    canvasRef.current!.addEventListener('wheel', onCanvasWheel);
+    canvas.addEventListener('wheel', onCanvasWheel);
+
+    const { gameState, viewportState } = loadGame(gameId, undefined);
 
     const visualState = createVisualState(gameState, ctx, () => {
       renderGameToCanvas(visualState);
       gameStateWatcher.emitVisualStateChange();
     });
 
-    if (initialViewportStateRef.current) {
-      visualStateApplyViewportState(
-        visualState,
-        initialViewportStateRef.current,
-      );
-    }
+    visualStateApplyViewportState(visualState, viewportState);
 
-    uiStateRef.current = new UiState({
+    const uiState = new UiState({
       gameId,
       visualState,
       onTick: () => {
@@ -136,24 +91,46 @@ export function Canvas({ gameId }: Props) {
       },
     });
 
-    visualStateRef.current = visualState;
+    uiStateRef.current = uiState;
 
-    // TODO: Debug
-    (window as any).visualState = visualState;
-    (window as any).gameState = visualState.gameState;
-
-    visualStateOnMouseMove(visualStateRef.current, mousePos);
-    renderGameToCanvas(visualStateRef.current);
+    visualStateOnMouseMove(visualState, mouseState.mousePos);
+    renderGameToCanvas(visualState);
 
     forceUpdate();
 
-    uiStateRef.current?.startGameLoop();
+    uiState.startGameLoop();
 
     return () => {
-      canvasRef.current!.removeEventListener('wheel', onCanvasWheel);
-      uiStateRef.current?.stopGameLoop();
+      canvas.removeEventListener('wheel', onCanvasWheel);
+      uiState.stopGameLoop();
     };
   }, []);
+
+  useEffect(() => {
+    const uiState = uiStateRef.current;
+
+    if (uiState && uiState.gameId !== gameId) {
+      uiState.loadGame(gameId);
+    }
+  }, [gameId]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const uiState = uiStateRef.current;
+
+      if (uiState) {
+        saveGame(
+          uiState.gameState,
+          visualStateGetViewportState(uiState.visualState),
+          undefined,
+        );
+      }
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [uiStateRef.current?.gameState]);
 
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
     uiStateRef.current?.markUserActivity();
@@ -162,8 +139,8 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    mousePos.x = event.pageX;
-    mousePos.y = event.pageY;
+    mouseState.mousePos.x = event.pageX;
+    mouseState.mousePos.y = event.pageY;
 
     if (mouseState.isMouseDown && event.buttons !== 1) {
       mouseState.isMouseDown = false;
@@ -176,15 +153,15 @@ export function Canvas({ gameId }: Props) {
       mouseState.mouseDownPosition &&
       mouseState.isMouseDown
     ) {
-      const dx = mouseState.mouseDownPosition.x - mousePos.x;
-      const dy = mouseState.mouseDownPosition.y - mousePos.y;
+      const dx = mouseState.mouseDownPosition.x - mouseState.mousePos.x;
+      const dy = mouseState.mouseDownPosition.y - mouseState.mousePos.y;
 
       if (Math.abs(dx) + Math.abs(dy) > 3) {
         mouseState.isDrag = true;
       }
     }
 
-    const visualState = visualStateRef.current;
+    const visualState = uiStateRef.current?.visualState;
 
     if (visualState) {
       if (mouseState.isMouseDown) {
@@ -194,18 +171,18 @@ export function Canvas({ gameId }: Props) {
         });
       }
 
-      visualStateOnMouseMove(visualState, mousePos);
+      visualStateOnMouseMove(visualState, mouseState.mousePos);
     }
   }
 
   function onKeyDown(event: KeyboardEvent): void {
     uiStateRef.current?.markUserActivity();
 
-    if (!visualStateRef.current || event.defaultPrevented) {
+    if (!uiStateRef.current || event.defaultPrevented) {
       return;
     }
 
-    const visualState = visualStateRef.current;
+    const visualState = uiStateRef.current.visualState;
 
     switch (event.key) {
       case 'Escape':
@@ -245,11 +222,14 @@ export function Canvas({ gameId }: Props) {
       return;
     }
 
-    mousePos.x = event.pageX;
-    mousePos.y = event.pageY;
+    mouseState.mousePos.x = event.pageX;
+    mouseState.mousePos.y = event.pageY;
 
     mouseState.isMouseDown = true;
-    mouseState.mouseDownPosition = { x: mousePos.x, y: mousePos.y };
+    mouseState.mouseDownPosition = {
+      x: event.pageX,
+      y: event.pageY,
+    };
     forceUpdate();
   }
 
@@ -282,23 +262,13 @@ export function Canvas({ gameId }: Props) {
     });
   }
 
-  function onCityClick(city: City): void {
-    visualStateMoveToCell(visualStateRef.current!, city.position);
-  }
-
-  function openGameMenu() {
-    uiStateRef.current?.openModal({
-      modeType: ModalModeType.GAME_MENU,
-    });
-    uiStateRef.current?.stopGameLoop();
-  }
-
   function onCanvasWheel(event: WheelEvent): void {
     event.preventDefault();
-    const visualState = visualStateRef.current!;
+
+    const visualState = uiStateRef.current!.visualState;
 
     actualizeMouseState(event);
-    visualStateOnMouseMove(visualState, mousePos);
+    visualStateOnMouseMove(visualState, mouseState.mousePos);
 
     if (event.ctrlKey) {
       const zoom = clamp(
@@ -324,20 +294,15 @@ export function Canvas({ gameId }: Props) {
             onClick={onClick}
           />
 
-          <div className={styles.researchPanel}>
-            <CurrentResearchIcon
-              gameState={gameState}
-              onChooseResearchClick={() => {
-                uiStateRef.current?.openModal({
-                  modeType: ModalModeType.RESEARCH,
-                });
-              }}
-            />
-          </div>
+          {uiStateRef.current && (
+            <div className={styles.researchPanel}>
+              <CurrentResearchIcon uiState={uiStateRef.current} />
+            </div>
+          )}
 
-          {visualStateRef.current && (
+          {uiStateRef.current && (
             <>
-              <StatusText visualState={visualStateRef.current} />
+              <StatusText uiState={uiStateRef.current} />
               {uiStateRef.current && (
                 <ModalsWrapper uiState={uiStateRef.current} />
               )}
@@ -346,19 +311,13 @@ export function Canvas({ gameId }: Props) {
         </div>
 
         <div className={styles.sidePanel}>
-          <button type="button" onClick={openGameMenu}>
-            Menu
-          </button>
-          <BuildingsPanel
-            gameState={gameState}
-            onBuildingClick={({ facilityType }) => {
-              visualStateRef.current!.interactiveAction = {
-                actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
-                facilityType,
-              };
-            }}
-          />
-          <CitiesPanel gameState={gameState} onCityClick={onCityClick} />
+          {uiStateRef.current && (
+            <>
+              <MenuOpener uiState={uiStateRef.current} />
+              <BuildingsPanel uiState={uiStateRef.current} />
+              <CitiesPanel uiState={uiStateRef.current} />
+            </>
+          )}
         </div>
       </div>
     </GameStateWatcherProvider>
