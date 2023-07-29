@@ -8,6 +8,7 @@ import {
   CellRect,
   ChunkIdentity,
   City,
+  CompleteFacilityType,
   FacilityType,
   GameState,
   Point,
@@ -18,11 +19,11 @@ import {
 import {
   getAllStructuresInArea,
   getStructureIterationStorageInfo,
+  isCellInsideCityBorder,
 } from '@/game/gameState';
 import { resourceLocalization, ResourceType } from '@/game/resources';
 import {
   calculateDistance,
-  calculateDistanceSquare,
   extendArea,
   isPointInsideRect,
   isRectsCollade,
@@ -38,13 +39,13 @@ import {
   VisualState,
 } from '@/game/visualState';
 import { humanFormat } from '@/utils/format';
-import { CITY_BORDER_RADIUS_SQUARE } from '@/game/consts';
 import {
   facilitiesConstructionInfo,
   workAreaMap,
 } from '@/game/facilityConstruction';
 
 import {
+  drawStructureIcon,
   drawStructureObject,
   drawStructurePlaceholder,
 } from './renderStructures';
@@ -399,13 +400,6 @@ function iterateOverViewportCells(
   }
 }
 
-function isCellInsideCityBorder(
-  cityCell: CellPosition,
-  cell: CellPosition,
-): boolean {
-  return calculateDistanceSquare(cityCell, cell) < CITY_BORDER_RADIUS_SQUARE;
-}
-
 function highlightHoverCell(visualState: VisualState): void {
   if (visualState.hoverCell) {
     highlightCell(visualState, visualState.hoverCell, 'azure');
@@ -476,6 +470,39 @@ function drawObjects(visualState: VisualState): void {
       drawObject(visualState, facility);
     }
   }
+
+  if (
+    visualState.interactiveAction &&
+    visualState.interactiveAction.actionType ===
+      InteractiveActionType.CONSTRUCTION_PLANNING &&
+    visualState.hoverCell
+  ) {
+    drawObjectDraft(
+      visualState,
+      visualState.interactiveAction.facilityType,
+      visualState.hoverCell,
+    );
+  }
+}
+
+function drawObjectDraft(
+  visualState: VisualState,
+  facilityType: CompleteFacilityType,
+  position: CellPosition,
+): void {
+  const { ctx, zoom } = visualState;
+
+  ctx.save();
+  const cellCenter = getCellCenter(visualState, position);
+  ctx.translate(cellCenter.x, cellCenter.y);
+
+  if (zoom >= 0.5) {
+    drawStructureIcon(visualState, facilityType);
+  } else {
+    drawStructurePlaceholder(visualState, facilityType);
+  }
+
+  ctx.restore();
 }
 
 function drawObject(visualState: VisualState, facility: Structure): void {
@@ -491,7 +518,7 @@ function drawObject(visualState: VisualState, facility: Structure): void {
       drawStructureInfo(visualState, facility);
       drawFacilityStorage(visualState, facility);
     } else {
-      drawStructurePlaceholder(visualState, facility);
+      drawStructurePlaceholder(visualState, facility.type);
     }
 
     ctx.restore();

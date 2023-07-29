@@ -7,6 +7,7 @@ import {
   BASE_PEOPLE_DAY_PER_CELL,
   BASE_PEOPLE_WORK_MODIFIER,
   BASE_WEIGHT_PER_PEOPLE_DAY,
+  CITY_BORDER_RADIUS_SQUARE,
   CITY_POPULATION_STATISTICS_LENGTH,
   MINIMAL_CITY_PEOPLE,
   OUTPUT_BUFFER_DAYS,
@@ -50,6 +51,7 @@ import { generateNewCityName } from './cityNameGenerator';
 import { cityResourcesInput } from './boosters';
 import {
   calculateDistance,
+  calculateDistanceSquare,
   newCellPosition,
   newChunkIdentity,
 } from './helpers';
@@ -708,4 +710,11 @@ export function changeCityName(
   gameState.alreadyCityNames.delete(name);
   city.name = name;
   gameState.alreadyCityNames.add(name);
+}
+
+export function isCellInsideCityBorder(
+  cityCell: CellPosition,
+  cell: CellPosition,
+): boolean {
+  return calculateDistanceSquare(cityCell, cell) < CITY_BORDER_RADIUS_SQUARE;
 }

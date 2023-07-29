@@ -1,26 +1,24 @@
-import { FacilityLikeType, FacilityType, Structure } from '@/game/types';
+import {
+  CompleteFacilityType,
+  FacilityLikeType,
+  FacilityType,
+  Structure,
+} from '@/game/types';
 import { VisualState } from '@/game/visualState';
 import { neverCall } from '@/utils/typeUtils';
 
 const SQRT2 = Math.sqrt(2);
 const SQRT2_R = 1 / SQRT2;
 
-export function drawStructureObject(
+export function drawStructureIcon(
   visualState: VisualState,
-  structure: Structure,
+  facilityType: CompleteFacilityType,
 ): void {
-  const { ctx, cellSize } = visualState;
-  let drawFacilityType: FacilityLikeType | FacilityType.CITY;
-
-  if (structure.type === FacilityType.CONSTRUCTION) {
-    drawFacilityType = structure.buildingFacilityType;
-  } else {
-    drawFacilityType = structure.type;
-  }
+  const { ctx } = visualState;
 
   ctx.beginPath();
 
-  switch (drawFacilityType) {
+  switch (facilityType) {
     case FacilityType.CITY:
       ctx.arc(0, 0, 14, 0, 2 * Math.PI, true);
       ctx.fillStyle = 'black';
@@ -61,7 +59,7 @@ export function drawStructureObject(
       ctx.fillStyle = 'brown';
       ctx.fill();
 
-      if (drawFacilityType === FacilityType.GATHERING_2) {
+      if (facilityType === FacilityType.GATHERING_2) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#fff';
@@ -91,7 +89,7 @@ export function drawStructureObject(
       ctx.strokeStyle = 'gray';
       ctx.stroke();
 
-      if (drawFacilityType === FacilityType.HUNTERS_BOOTH_2) {
+      if (facilityType === FacilityType.HUNTERS_BOOTH_2) {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#000';
@@ -138,7 +136,7 @@ export function drawStructureObject(
       ctx.lineTo(10, -5);
       ctx.lineTo(10, 10);
       ctx.closePath();
-      if (drawFacilityType === FacilityType.ANCIENT_FACTORY) {
+      if (facilityType === FacilityType.ANCIENT_FACTORY) {
         ctx.fillStyle = '#8e4ee8';
       } else {
         ctx.fillStyle = 'brown';
@@ -148,7 +146,7 @@ export function drawStructureObject(
     case FacilityType.INTERCITY_SENDER:
     case FacilityType.INTERCITY_RECEIVER: {
       const colors =
-        drawFacilityType === FacilityType.INTERCITY_SENDER
+        facilityType === FacilityType.INTERCITY_SENDER
           ? {
               main: 'blue',
               second: 'orange',
@@ -165,7 +163,7 @@ export function drawStructureObject(
       ctx.lineWidth = 1;
 
       ctx.beginPath();
-      if (drawFacilityType === FacilityType.INTERCITY_SENDER) {
+      if (facilityType === FacilityType.INTERCITY_SENDER) {
         ctx.moveTo(-4, -5);
         ctx.lineTo(0, 1);
         ctx.lineTo(4, -5);
@@ -198,9 +196,25 @@ export function drawStructureObject(
       ctx.strokeStyle = 'black';
       ctx.stroke();
       ctx.lineWidth = 1;
-      console.warn(`No render function for facility ${drawFacilityType}`);
-      neverCall(drawFacilityType, true);
+      console.warn(`No render function for facility ${facilityType}`);
+      neverCall(facilityType, true);
   }
+}
+
+export function drawStructureObject(
+  visualState: VisualState,
+  structure: Structure,
+): void {
+  const { ctx, cellSize } = visualState;
+  let drawFacilityType: FacilityLikeType | FacilityType.CITY;
+
+  if (structure.type === FacilityType.CONSTRUCTION) {
+    drawFacilityType = structure.buildingFacilityType;
+  } else {
+    drawFacilityType = structure.type;
+  }
+
+  drawStructureIcon(visualState, drawFacilityType);
 
   if (structure.type === FacilityType.CONSTRUCTION) {
     ctx.beginPath();
@@ -249,7 +263,7 @@ export function drawStructureObject(
 
 export function drawStructurePlaceholder(
   visualState: VisualState,
-  structure: Structure,
+  facilityType: FacilityType,
 ): void {
   const { ctx, cellSize } = visualState;
   const w = Math.min(cellSize.width, cellSize.height);
@@ -257,7 +271,7 @@ export function drawStructurePlaceholder(
 
   ctx.beginPath();
 
-  switch (structure.type) {
+  switch (facilityType) {
     case FacilityType.CITY:
       ctx.arc(0, 0, w2 * 0.6, 0, 2 * Math.PI);
       ctx.fillStyle = '#000';

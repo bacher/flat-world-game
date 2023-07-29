@@ -26,6 +26,7 @@ import {
   facilitiesConstructionInfo,
   workAreaMap,
 } from './facilityConstruction';
+import { isCellInsideCityBorder } from '@/game/gameState.ts';
 
 export const DEFAULT_CELL_SIZE = 90;
 
@@ -353,6 +354,19 @@ export function isAllowToConstructAtPosition(
 
           return inExpeditionDistance;
         } else {
+          let isInsideSomeCity = false;
+
+          for (const city of gameState.cities.values()) {
+            if (isCellInsideCityBorder(city.position, cell)) {
+              isInsideSomeCity = true;
+              break;
+            }
+          }
+
+          if (!isInsideSomeCity) {
+            return false;
+          }
+
           const constructionInfo =
             facilitiesConstructionInfo[interactiveAction.facilityType];
 
