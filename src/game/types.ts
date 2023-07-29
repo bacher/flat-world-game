@@ -29,13 +29,15 @@ export type DepositInfo = {
 
 export enum FacilityType {
   CITY = 'CITY',
-  LUMBER = 'LUMBER',
+  LOGGING = 'LUMBER', // TODO: rename to LOGGING
+  LOGGING_2 = 'LOGGING_2',
   CONSTRUCTION = 'CONSTRUCTION',
   CHOP_WOOD = 'CHOP_WOOD',
   GATHERING = 'GATHERING',
   GATHERING_2 = 'GATHERING_2',
   KITCHEN = 'KITCHEN',
   WORK_SHOP = 'WORK_SHOP',
+  WORK_SHOP_2 = 'WORK_SHOP_2',
   FIELD = 'FIELD',
   STABLE = 'STABLE',
   ANCIENT_FACTORY = 'ANCIENT_FACTORY',
@@ -50,6 +52,7 @@ export enum FacilityType {
 export enum ProductVariantId {
   BASIC = 'BASIC',
   AGRICULTURAL_TOOLS = 'AGRICULTURAL_TOOLS',
+  AGRICULTURAL_TOOLS_STONE = 'AGRICULTURAL_TOOLS_STONE',
   PAPYRUS = 'PAPYRUS',
   HAY = 'HAY',
   REED = 'REED',
@@ -67,6 +70,7 @@ export enum ProductVariantId {
   STONE = 'STONE',
   IRON_ORE = 'IRON_ORE',
   COTTAGE = 'COTTAGE',
+  AXE_STONE = 'AXE_STONE',
 }
 
 export type ExactFacilityType = Exclude<
@@ -289,6 +293,8 @@ export type FacilityWorkReport = {
 export const enum ResearchId {
   WOOD_WORK = 'WOOD_WORK',
   WORK_SHOP = 'WORK_SHOP',
+  WORK_SHOP_2 = 'WORK_SHOP_2',
+  LOGGING = 'LOGGING',
   AGRO_1 = 'AGRO_1',
   HORSES = 'HORSES',
   PAPYRUS = 'PAPYRUS',

@@ -126,6 +126,8 @@ export function visualStateResize(
   canvas.halfSize.width = Math.floor(width / 2);
   canvas.halfSize.height = Math.floor(height / 2);
   canvas.pixelRatio = pixelRatio;
+
+  actualizeViewportBounds(visualState);
 }
 
 function actualizeViewportBounds(visualState: VisualState): void {

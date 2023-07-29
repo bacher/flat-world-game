@@ -6,12 +6,28 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
   [ResearchId.WOOD_WORK]: {
     points: 100,
     requires: [],
-    unlockFacilities: [FacilityType.CHOP_WOOD, FacilityType.LUMBER],
+    unlockFacilities: [FacilityType.CHOP_WOOD, FacilityType.LOGGING],
   },
   [ResearchId.WORK_SHOP]: {
     points: 150,
     requires: [ResearchId.WOOD_WORK],
     unlockFacilities: [FacilityType.WORK_SHOP],
+  },
+  [ResearchId.WORK_SHOP_2]: {
+    points: 150,
+    requires: [ResearchId.STONE],
+    unlockFacilities: [FacilityType.WORK_SHOP_2],
+    unlockProductionVariants: {
+      [FacilityType.WORK_SHOP_2]: [
+        ProductVariantId.AGRICULTURAL_TOOLS_STONE,
+        ProductVariantId.AXE_STONE,
+      ],
+    },
+  },
+  [ResearchId.LOGGING]: {
+    points: 150,
+    requires: [ResearchId.STONE],
+    unlockFacilities: [FacilityType.LOGGING_2],
   },
   [ResearchId.GATHERING_2]: {
     points: 100,
@@ -141,6 +157,8 @@ export const researches: Record<ResearchId, Research> = mapValues(
 export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.WOOD_WORK]: 'Wood work',
   [ResearchId.WORK_SHOP]: 'Workshops',
+  [ResearchId.WORK_SHOP_2]: 'Workshops II',
+  [ResearchId.LOGGING]: 'Advanced logging',
   [ResearchId.AGRO_1]: 'Agroculture',
   [ResearchId.HORSES]: 'Horses',
   [ResearchId.PAPYRUS]: 'Papyrus',

@@ -24,7 +24,8 @@ export function drawStructureIcon(
       ctx.fillStyle = 'black';
       ctx.fill();
       break;
-    case FacilityType.LUMBER:
+    case FacilityType.LOGGING:
+    case FacilityType.LOGGING_2:
       ctx.moveTo(0, -15);
       ctx.lineTo(-15, 12);
       ctx.lineTo(15, 12);
@@ -97,13 +98,18 @@ export function drawStructureIcon(
       }
       break;
     case FacilityType.WORK_SHOP:
+    case FacilityType.WORK_SHOP_2:
       ctx.moveTo(-10, -7);
       ctx.lineTo(-10, 8);
       ctx.lineTo(10, 8);
       ctx.lineTo(10, -7);
       ctx.lineTo(0, -11);
       ctx.closePath();
-      ctx.fillStyle = 'brown';
+      if (facilityType === FacilityType.WORK_SHOP) {
+        ctx.fillStyle = 'brown';
+      } else {
+        ctx.fillStyle = 'gray';
+      }
       ctx.fill();
       break;
     case FacilityType.FIELD:

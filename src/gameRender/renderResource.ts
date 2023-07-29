@@ -117,6 +117,7 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.AGRICULTURAL_TOOLS:
+    case ResourceType.AGRICULTURAL_TOOLS_STONE:
       ctx.moveTo(0, 6);
       ctx.lineTo(0, -2);
       ctx.lineTo(-3, -5);
@@ -124,7 +125,11 @@ export function drawResourceIcon(
       ctx.lineTo(0, -5);
       ctx.moveTo(0, -2);
       ctx.lineTo(3, -5);
-      ctx.strokeStyle = '#000';
+      if (resourceType === ResourceType.AGRICULTURAL_TOOLS) {
+        ctx.strokeStyle = 'brown';
+      } else {
+        ctx.strokeStyle = 'gray';
+      }
       ctx.stroke();
       break;
     case ResourceType.HAY:
@@ -223,6 +228,20 @@ export function drawResourceIcon(
       ctx.arc(0, 0, 5, 0, 2 * Math.PI);
       ctx.fillStyle = 'gray';
       ctx.fill();
+      break;
+    case ResourceType.AXE_STONE:
+      ctx.moveTo(-6, -3);
+      ctx.lineTo(-3, 3);
+      ctx.lineTo(0, -3);
+      ctx.fillStyle = 'gray';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(-2, -2);
+      ctx.lineTo(2, 5);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'brown';
+      ctx.stroke();
       break;
     case ResourceType.IRON_ORE:
       ctx.arc(0, 0, 5, 0, 2 * Math.PI);

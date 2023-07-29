@@ -33,7 +33,7 @@ export function BuildingsPanel({ uiState }: Props) {
           initiallyUnlockedFacilities.has(facilityType) ||
           gameState.unlockedFacilities.has(facilityType),
       ),
-    [],
+    [gameState.completedResearches.size],
   );
 
   return (

@@ -127,7 +127,7 @@ export function ResearchModal({
               <div className={styles.block}>
                 {research.unlockFacilities.length > 0 && (
                   <div>
-                    <h4>Unlocks:</h4>
+                    <h4>Unlocks facilities:</h4>
                     <ul>
                       {research.unlockFacilities.map((facilityType) => (
                         <li key={facilityType}>

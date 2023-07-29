@@ -11,6 +11,7 @@ export enum ResourceType {
   VEGAN_MEAL = 'VEGAN_MEAL',
   COMPLEX_MEAL = 'COMPLEX_MEAL',
   AGRICULTURAL_TOOLS = 'AGRICULTURAL_TOOLS',
+  AGRICULTURAL_TOOLS_STONE = 'AGRICULTURAL_TOOLS_STONE',
   HAY = 'HAY',
   HORSE = 'HORSE',
   REED = 'REED',
@@ -28,6 +29,7 @@ export enum ResourceType {
   COAL = 'COAL',
   OIL = 'OIL',
   COTTAGE = 'COTTAGE',
+  AXE_STONE = 'AXE_STONE',
 }
 
 export type FoodResourceTypes =
@@ -84,6 +86,7 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.MEAT]: 'Meat',
   [ResourceType.FRIED_MEAT]: 'Fried meat',
   [ResourceType.AGRICULTURAL_TOOLS]: 'Agricultural tools',
+  [ResourceType.AGRICULTURAL_TOOLS_STONE]: 'Stone agricultural tools',
   [ResourceType.HAY]: 'Hay',
   [ResourceType.HORSE]: 'Horse',
   [ResourceType.REED]: 'Reed',
@@ -103,4 +106,5 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.COAL]: 'Coal',
   [ResourceType.OIL]: 'Oil',
   [ResourceType.COTTAGE]: 'Cottage',
+  [ResourceType.AXE_STONE]: 'Stone Axe',
 };

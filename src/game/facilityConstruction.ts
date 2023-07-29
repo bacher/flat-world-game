@@ -35,7 +35,17 @@ export const facilitiesConstructionInfo: Record<
   | FacilityType.INTERCITY_RECEIVER,
   FacilityConstructionInfo
 > = {
-  [FacilityType.LUMBER]: {
+  [FacilityType.LOGGING]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    workArea: {
+      areaType: WorkAreaType.LUMBER,
+      radius: 2,
+    },
+    input: [],
+  },
+  [FacilityType.LOGGING_2]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
@@ -130,6 +140,21 @@ export const facilitiesConstructionInfo: Record<
       {
         resourceType: ResourceType.ROUTH_LUMBER,
         quantity: 20,
+      },
+    ],
+  },
+  [FacilityType.WORK_SHOP_2]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.ROUTH_LUMBER,
+        quantity: 20,
+      },
+      {
+        resourceType: ResourceType.STONE,
+        quantity: 10,
       },
     ],
   },

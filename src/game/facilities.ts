@@ -195,7 +195,7 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
-  [FacilityType.LUMBER]: {
+  [FacilityType.LOGGING]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
@@ -205,6 +205,25 @@ export const facilitiesIterationInfo: Record<
         {
           resourceType: ResourceType.LOG,
           quantity: 1,
+        },
+      ],
+    }),
+  },
+  [FacilityType.LOGGING_2]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.AXE_STONE,
+          quantity: 0.1,
+        },
+      ],
+      output: [
+        {
+          resourceType: ResourceType.LOG,
+          quantity: 2,
         },
       ],
     }),
@@ -230,7 +249,7 @@ export const facilitiesIterationInfo: Record<
   },
   [FacilityType.WORK_SHOP]: {
     iterationInfoType: ItrationInfoType.FACILITY,
-    maximumPeopleAtWork: 4,
+    maximumPeopleAtWork: 3,
     productionVariants: [
       {
         id: ProductVariantId.AGRICULTURAL_TOOLS,
@@ -277,6 +296,68 @@ export const facilitiesIterationInfo: Record<
           {
             resourceType: ResourceType.WOODEN_BOW,
             quantity: 1,
+          },
+        ],
+      },
+    ],
+  },
+  [FacilityType.WORK_SHOP_2]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: [
+      {
+        id: ProductVariantId.AGRICULTURAL_TOOLS_STONE,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.STONE,
+            quantity: 0.5,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.AGRICULTURAL_TOOLS_STONE,
+            quantity: 2,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.BASKET,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.REED,
+            quantity: 5,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.BASKET,
+            quantity: 1,
+          },
+        ],
+      },
+      {
+        id: ProductVariantId.AXE_STONE,
+        iterationPeopleDays: 1,
+        input: [
+          {
+            resourceType: ResourceType.ROUTH_LUMBER,
+            quantity: 1,
+          },
+          {
+            resourceType: ResourceType.STONE,
+            quantity: 0.5,
+          },
+        ],
+        output: [
+          {
+            resourceType: ResourceType.AXE_STONE,
+            quantity: 2,
           },
         ],
       },
@@ -490,7 +571,8 @@ export const initiallyUnlockedFacilities: Set<FacilityLikeType> = new Set([
 export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CITY]: 'City',
   [FacilityType.CONSTRUCTION]: 'Building',
-  [FacilityType.LUMBER]: 'Lumber',
+  [FacilityType.LOGGING]: 'Logging',
+  [FacilityType.LOGGING_2]: 'Logging II',
   [FacilityType.GATHERING]: 'Gathering',
   [FacilityType.GATHERING_2]: 'Gathering II',
   [FacilityType.KITCHEN]: 'Kitchen',
@@ -499,6 +581,7 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.CHOP_WOOD]: 'Chop wood',
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
+  [FacilityType.WORK_SHOP_2]: 'Work shop II',
   [FacilityType.STABLE]: 'Stable',
   [FacilityType.ANCIENT_FACTORY]: 'Ancient factory',
   [FacilityType.HOUSING_FACTORY]: 'Housing factory',
@@ -511,6 +594,8 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.BASIC]: '',
   [ProductVariantId.AGRICULTURAL_TOOLS]:
     resourceLocalization[ResourceType.AGRICULTURAL_TOOLS],
+  [ProductVariantId.AGRICULTURAL_TOOLS_STONE]:
+    resourceLocalization[ResourceType.AGRICULTURAL_TOOLS_STONE],
   [ProductVariantId.HAY]: resourceLocalization[ResourceType.HAY],
   [ProductVariantId.REED]: resourceLocalization[ResourceType.REED],
   [ProductVariantId.PAPYRUS]: resourceLocalization[ResourceType.PAPYRUS],
@@ -529,4 +614,5 @@ export const productVariantsTranslations: Record<ProductVariantId, string> = {
   [ProductVariantId.STONE]: resourceLocalization[ResourceType.STONE],
   [ProductVariantId.IRON_ORE]: resourceLocalization[ResourceType.IRON_ORE],
   [ProductVariantId.COTTAGE]: resourceLocalization[ResourceType.COTTAGE],
+  [ProductVariantId.AXE_STONE]: resourceLocalization[ResourceType.AXE_STONE],
 };
