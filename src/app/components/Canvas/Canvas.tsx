@@ -7,7 +7,7 @@ import type { Point } from '@/game/types';
 import {
   visualStateMove,
   visualStateOnMouseMove,
-  visualStateResize,
+  visualStateOnResize,
   visualStateSetCanvasActive,
 } from '@/game/visualState';
 import { UiState } from '@/app/logic/UiState';
@@ -198,7 +198,7 @@ export function Canvas({ gameId }: Props) {
     const canvasParams = fitCanvasSize();
     const uiState = uiStateRef.current;
     if (uiState) {
-      visualStateResize(uiState.visualState, canvasParams);
+      visualStateOnResize(uiState.visualState, canvasParams);
       uiState.renderCanvas();
     }
   }

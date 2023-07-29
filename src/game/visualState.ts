@@ -108,18 +108,20 @@ export function createVisualState(
     onUpdate,
   };
 
-  visualStateResize(visualState, canvasParams);
+  visualStateOnResize(visualState, canvasParams);
   actualizeViewportBounds(visualState);
 
   return visualState;
 }
 
-export function visualStateResize(
+export function visualStateOnResize(
   visualState: VisualState,
   canvasParams: CanvasParams,
 ): void {
   const { width, height, pixelRatio } = canvasParams;
-  const { canvas } = visualState;
+  const { canvas, ctx } = visualState;
+
+  ctx.font = DEFAULT_FONT;
 
   canvas.size.width = width;
   canvas.size.height = height;
