@@ -8,6 +8,7 @@ import {
   visualStateMove,
   visualStateOnMouseMove,
   visualStateResize,
+  visualStateSetCanvasActive,
 } from '@/game/visualState';
 import { UiState } from '@/app/logic/UiState';
 import { useForceUpdate } from '@hooks/forceUpdate';
@@ -26,7 +27,6 @@ export function Canvas({ gameId }: Props) {
   const forceUpdate = useForceUpdate();
 
   const uiStateRef = useRef<UiState | undefined>();
-
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -110,6 +110,13 @@ export function Canvas({ gameId }: Props) {
   function actualizeMouseState(event: MouseEvent | React.MouseEvent) {
     const uiState = uiStateRef.current;
 
+    if (uiState) {
+      visualStateSetCanvasActive(
+        uiState.visualState,
+        event.target === canvasRef.current,
+      );
+    }
+
     uiState?.markUserActivity();
 
     if (uiState?.modalState) {
@@ -122,7 +129,7 @@ export function Canvas({ gameId }: Props) {
     if (mouseState.isMouseDown && event.buttons !== 1) {
       mouseState.isMouseDown = false;
       mouseState.mouseDownPosition = undefined;
-      forceUpdate();
+      toggleDragStyle(false);
     }
 
     if (
@@ -196,6 +203,16 @@ export function Canvas({ gameId }: Props) {
     }
   }
 
+  function toggleDragStyle(enable: boolean): void {
+    if (canvasRef.current) {
+      if (enable) {
+        canvasRef.current.dataset['drag'] = '';
+      } else {
+        delete canvasRef.current.dataset['drag'];
+      }
+    }
+  }
+
   function onMouseDown(event: React.MouseEvent) {
     event.preventDefault();
 
@@ -211,7 +228,8 @@ export function Canvas({ gameId }: Props) {
       x: event.pageX,
       y: event.pageY,
     };
-    forceUpdate();
+
+    toggleDragStyle(true);
   }
 
   function onClick(event: React.MouseEvent) {
@@ -272,7 +290,6 @@ export function Canvas({ gameId }: Props) {
         <canvas
           ref={canvasRef}
           className={styles.canvas}
-          data-drag={mouseState.isMouseDown || undefined}
           width="10"
           height="10"
           onMouseDown={onMouseDown}

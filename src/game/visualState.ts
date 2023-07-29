@@ -36,6 +36,7 @@ export type VisualState = {
     size: Size;
     halfSize: Size;
     pixelRatio: number;
+    isActive: boolean;
   };
   cellSize: Size;
   offset: Point;
@@ -90,6 +91,7 @@ export function createVisualState(
       size: { width: 0, height: 0 },
       halfSize: { width: 0, height: 0 },
       pixelRatio: 1,
+      isActive: false,
     },
     cellSize: { width: DEFAULT_CELL_SIZE, height: DEFAULT_CELL_SIZE },
     offset: { x: 0, y: 0 },
@@ -173,10 +175,20 @@ export function visualStateOnMouseMove(
   actualizeHoverCell(visualState);
 }
 
-function actualizeHoverCell(visualState: VisualState): void {
-  const { pointerScreenPosition } = visualState;
+export function visualStateSetCanvasActive(
+  visualState: VisualState,
+  isActive: boolean,
+): void {
+  if (visualState.canvas.isActive !== isActive) {
+    visualState.canvas.isActive = isActive;
+    visualState.onUpdate();
+  }
+}
 
-  if (!pointerScreenPosition) {
+function actualizeHoverCell(visualState: VisualState): void {
+  const { canvas, pointerScreenPosition } = visualState;
+
+  if (!pointerScreenPosition || !canvas.isActive) {
     if (visualState.hoverCell) {
       visualState.hoverCell = undefined;
       visualState.onUpdate();

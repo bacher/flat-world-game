@@ -20,6 +20,22 @@ export function StatusText({ uiState }: Props) {
     return null;
   }
 
+  const cancelBlock = (
+    <div className={styles.lowerTitle}>
+      [press Escape or click{' '}
+      <button
+        type="button"
+        className={styles.cancelButton}
+        onClick={() => {
+          uiState.cancelCurrentAction();
+        }}
+      >
+        Cancel
+      </button>{' '}
+      to cancel]
+    </div>
+  );
+
   switch (visualState.interactiveAction.actionType) {
     case InteractiveActionType.CONSTRUCTION_PLANNING: {
       return (
@@ -29,7 +45,7 @@ export function StatusText({ uiState }: Props) {
             Construct:{' '}
             {facilitiesDescription[visualState.interactiveAction.facilityType]}
           </div>
-          <div className={styles.lowerTitle}>[press Escape to cancel]</div>
+          {cancelBlock}
         </div>
       );
     }
@@ -42,7 +58,7 @@ export function StatusText({ uiState }: Props) {
             {resourceLocalization[visualState.interactiveAction.resourceType]}"{' '}
             {getOpositeDirection(visualState.interactiveAction.direction)}:
           </div>
-          <div className={styles.lowerTitle}>[press Escape to cancel]</div>
+          {cancelBlock}
         </div>
       );
     }
