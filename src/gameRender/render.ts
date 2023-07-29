@@ -59,11 +59,12 @@ const RESOURCE_LINE_HEIGHT = 16;
 const RESOURCE_COMPACT_LINE_HEIGHT = 12;
 
 export function renderGameToCanvas(visualState: VisualState): void {
-  const { ctx, canvasSize } = visualState;
+  const { ctx, canvas } = visualState;
 
   ctx.save();
 
-  clearCanvas(ctx, canvasSize);
+  setupCanvas(visualState);
+  clearCanvas(ctx, canvas.size);
 
   ctx.save();
 
@@ -83,12 +84,20 @@ export function renderGameToCanvas(visualState: VisualState): void {
   ctx.restore();
 }
 
+function setupCanvas(visualState: VisualState): void {
+  const { ctx, canvas } = visualState;
+
+  if (canvas.pixelRatio !== 1) {
+    ctx.scale(canvas.pixelRatio, canvas.pixelRatio);
+  }
+}
+
 function moveViewport(visualState: VisualState): void {
-  const { ctx, canvasHalfSize, cellSize, viewportCenter } = visualState;
+  const { ctx, canvas, cellSize, viewportCenter } = visualState;
 
   ctx.translate(
-    -viewportCenter.i * cellSize.width + canvasHalfSize.width,
-    -viewportCenter.j * cellSize.height + canvasHalfSize.height,
+    -viewportCenter.i * cellSize.width + canvas.halfSize.width,
+    -viewportCenter.j * cellSize.height + canvas.halfSize.height,
   );
 }
 
@@ -783,14 +792,17 @@ function drawStorage(
 
 function drawTopOverlay(visualState: VisualState): void {
   if (visualState.hoverCell) {
-    const { ctx, canvasSize } = visualState;
+    const { ctx, canvas } = visualState;
 
     const text = `(${visualState.hoverCell.i},${visualState.hoverCell.j})`;
 
     drawText(
       ctx,
       text,
-      { x: canvasSize.width, y: canvasSize.height },
+      {
+        x: canvas.size.width,
+        y: canvas.size.height,
+      },
       {
         align: 'right',
         baseline: 'bottom',

@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef } from 'react';
 import styles from './Canvas.module.scss';
 
 import type { Point } from '@/game/types';
-import { visualStateMove, visualStateOnMouseMove } from '@/game/visualState';
+import {
+  visualStateMove,
+  visualStateOnMouseMove,
+  visualStateResize,
+} from '@/game/visualState';
 import { UiState } from '@/app/logic/UiState';
 import { useForceUpdate } from '@hooks/forceUpdate';
 import { BuildingsPanel } from '@components/BuildingsPanel';
@@ -13,9 +17,6 @@ import { CitiesPanel } from '@components/CitiesPanel';
 import { CurrentResearchIcon } from '@components/CurrentResearchIcon';
 import { ModalsWrapper } from '@components/ModalsWrapper';
 import { MenuOpener } from '@components/MenuOpener';
-
-const INITIAL_CANVAS_WIDTH = 800;
-const INITIAL_CANVAS_HEIGHT = 600;
 
 type Props = {
   gameId: string;
@@ -27,6 +28,7 @@ export function Canvas({ gameId }: Props) {
   const uiStateRef = useRef<UiState | undefined>();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement | null>(null);
 
   const mouseState = useMemo<{
     isMouseDown: boolean;
@@ -43,7 +45,30 @@ export function Canvas({ gameId }: Props) {
     [],
   );
 
+  function fitCanvasSize() {
+    const canvas = canvasRef.current!;
+    const canvasWrapper = canvasWrapperRef.current!;
+
+    const width = canvasWrapper.clientWidth;
+    const height = canvasWrapper.clientHeight;
+
+    const factor = window.devicePixelRatio ?? 1;
+
+    canvas.width = width * factor;
+    canvas.height = height * factor;
+
+    (canvas as any).style = `width: ${width}px; height: ${height}px;`;
+
+    return {
+      width,
+      height,
+      pixelRatio: factor,
+    };
+  }
+
   useEffect(() => {
+    const canvasParams = fitCanvasSize();
+
     const canvas = canvasRef.current!;
 
     const ctx = canvas.getContext('2d', {
@@ -55,11 +80,10 @@ export function Canvas({ gameId }: Props) {
       throw new Error('No 2d context');
     }
 
-    canvas.addEventListener('wheel', onCanvasWheel);
-
     const uiState = new UiState({
       gameId,
       ctx,
+      canvasParams,
       mousePosition: mouseState.mousePos,
     });
 
@@ -71,7 +95,6 @@ export function Canvas({ gameId }: Props) {
     forceUpdate();
 
     return () => {
-      canvas.removeEventListener('wheel', onCanvasWheel);
       uiState.stopGameLoop();
     };
   }, []);
@@ -145,18 +168,33 @@ export function Canvas({ gameId }: Props) {
   }
 
   useEffect(() => {
+    const canvas = canvasRef.current!;
+
     window.addEventListener('mousemove', actualizeMouseState, {
       passive: true,
     });
     window.addEventListener('mouseup', actualizeMouseState, { passive: true });
     window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('resize', onResize, { passive: true });
+    canvas.addEventListener('wheel', onCanvasWheel);
 
     return () => {
+      canvas.removeEventListener('wheel', onCanvasWheel);
       window.removeEventListener('mousemove', actualizeMouseState);
       window.removeEventListener('mouseup', actualizeMouseState);
       window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
+
+  function onResize() {
+    const canvasParams = fitCanvasSize();
+    const uiState = uiStateRef.current;
+    if (uiState) {
+      visualStateResize(uiState.visualState, canvasParams);
+      uiState.renderCanvas();
+    }
+  }
 
   function onMouseDown(event: React.MouseEvent) {
     event.preventDefault();
@@ -221,13 +259,13 @@ export function Canvas({ gameId }: Props) {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.canvasWrapper}>
+      <div className={styles.canvasWrapper} ref={canvasWrapperRef}>
         <canvas
           ref={canvasRef}
           className={styles.canvas}
           data-drag={mouseState.isMouseDown || undefined}
-          width={INITIAL_CANVAS_WIDTH}
-          height={INITIAL_CANVAS_HEIGHT}
+          width="10"
+          height="10"
           onMouseDown={onMouseDown}
           onClick={onClick}
         />
@@ -248,9 +286,15 @@ export function Canvas({ gameId }: Props) {
       <div className={styles.sidePanel}>
         {uiStateRef.current && (
           <>
-            <MenuOpener uiState={uiStateRef.current} />
-            <BuildingsPanel uiState={uiStateRef.current} />
-            <CitiesPanel uiState={uiStateRef.current} />
+            <div className={styles.sidePanelMenu}>
+              <MenuOpener uiState={uiStateRef.current} />
+            </div>
+            <div className={styles.sidePanelBuildings}>
+              <BuildingsPanel uiState={uiStateRef.current} />
+            </div>
+            <div className={styles.sidePanelCities}>
+              <CitiesPanel uiState={uiStateRef.current} />
+            </div>
           </>
         )}
       </div>

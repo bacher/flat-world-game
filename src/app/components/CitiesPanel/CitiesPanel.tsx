@@ -3,6 +3,8 @@ import { visualStateMoveToCell } from '@/game/visualState';
 import { UiUpdateType } from '@/app/logic/types.ts';
 import { useUiUpdate } from '@/app/logic/hook.ts';
 
+import styles from './CitiesPanel.module.scss';
+
 type Props = {
   uiState: UiState;
 };
@@ -17,9 +19,9 @@ export function CitiesPanel({ uiState }: Props) {
   );
 
   return (
-    <div>
+    <div className={styles.wrapper}>
       <h2>Cities:</h2>
-      <ul>
+      <ul className={styles.list}>
         {citiesList.map((city) => (
           <li key={city.cityId}>
             <button

@@ -1,7 +1,9 @@
 import { RefObject } from 'react';
+import clamp from 'lodash/clamp';
 
 import { ModalMode, ModalModeType, UiUpdateType } from '@/app/logic/types';
 import {
+  CanvasParams,
   createVisualState,
   InteractiveActionType,
   isAllowToConstructAtPosition,
@@ -39,7 +41,6 @@ import {
   renderGameToCanvas,
 } from '@/gameRender/render';
 import { isSameCellPoints } from '@/game/helpers';
-import clamp from 'lodash/clamp';
 
 type Callback = () => void;
 
@@ -75,15 +76,17 @@ export class UiState {
   constructor({
     gameId,
     ctx,
+    canvasParams,
     mousePosition,
   }: {
     gameId: string;
     ctx: CanvasRenderingContext2D;
+    canvasParams: CanvasParams;
     mousePosition: Point;
   }) {
     const { gameState, viewportState } = loadGame(gameId, undefined);
 
-    const visualState = createVisualState(gameState, ctx, () => {
+    const visualState = createVisualState(gameState, ctx, canvasParams, () => {
       this.onUpdate([UiUpdateType.CANVAS, UiUpdateType.MODAL]);
     });
 

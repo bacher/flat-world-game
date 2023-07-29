@@ -27,11 +27,16 @@ import {
   workAreaMap,
 } from './facilityConstruction';
 
+export const DEFAULT_CELL_SIZE = 90;
+
 export type VisualState = {
   gameState: GameState;
   ctx: CanvasRenderingContext2D;
-  canvasSize: Size;
-  canvasHalfSize: Size;
+  canvas: {
+    size: Size;
+    halfSize: Size;
+    pixelRatio: number;
+  };
   cellSize: Size;
   offset: Point;
   viewportCenter: CellCoordinates;
@@ -64,26 +69,28 @@ export type InteractActionCarrierPlanning = {
   resourceType: ResourceType;
 };
 
-export const DEFAULT_CELL_SIZE = 90;
+export type CanvasParams = {
+  width: number;
+  height: number;
+  pixelRatio: number;
+};
 
 export function createVisualState(
   gameState: GameState,
   ctx: CanvasRenderingContext2D,
+  canvasParams: CanvasParams,
   onUpdate: () => void,
 ): VisualState {
-  const canvasWidth = ctx.canvas.width;
-  const canvasHeight = ctx.canvas.height;
-
   ctx.font = DEFAULT_FONT;
-
-  const halfWidth = Math.floor(canvasWidth / 2);
-  const halfHeight = Math.floor(canvasHeight / 2);
 
   const visualState: VisualState = {
     gameState,
     ctx,
-    canvasSize: { width: canvasWidth, height: canvasHeight },
-    canvasHalfSize: { width: halfWidth, height: halfHeight },
+    canvas: {
+      size: { width: 0, height: 0 },
+      halfSize: { width: 0, height: 0 },
+      pixelRatio: 1,
+    },
     cellSize: { width: DEFAULT_CELL_SIZE, height: DEFAULT_CELL_SIZE },
     offset: { x: 0, y: 0 },
     viewportCenter: { i: 0, j: 0 },
@@ -98,16 +105,31 @@ export function createVisualState(
     onUpdate,
   };
 
+  visualStateResize(visualState, canvasParams);
   actualizeViewportBounds(visualState);
 
   return visualState;
 }
 
-function actualizeViewportBounds(visualState: VisualState): void {
-  const { cellSize, canvasHalfSize, viewportCenter } = visualState;
+export function visualStateResize(
+  visualState: VisualState,
+  canvasParams: CanvasParams,
+): void {
+  const { width, height, pixelRatio } = canvasParams;
+  const { canvas } = visualState;
 
-  const cellsHorizontaly = canvasHalfSize.width / cellSize.width;
-  const cellsVerticaly = canvasHalfSize.height / cellSize.height;
+  canvas.size.width = width;
+  canvas.size.height = height;
+  canvas.halfSize.width = Math.floor(width / 2);
+  canvas.halfSize.height = Math.floor(height / 2);
+  canvas.pixelRatio = pixelRatio;
+}
+
+function actualizeViewportBounds(visualState: VisualState): void {
+  const { cellSize, canvas, viewportCenter } = visualState;
+
+  const cellsHorizontaly = canvas.halfSize.width / cellSize.width;
+  const cellsVerticaly = canvas.halfSize.height / cellSize.height;
 
   visualState.viewportBounds = {
     start: {
@@ -125,17 +147,17 @@ export function lookupGridByPoint(
   visualState: VisualState,
   point: Point,
 ): CellPosition | undefined {
-  const { canvasSize, canvasHalfSize, offset } = visualState;
+  const { canvas, offset } = visualState;
   const { x, y } = point;
 
-  if (x < 0 || x >= canvasSize.width || y < 0 || y >= canvasSize.height) {
+  if (x < 0 || x >= canvas.size.width || y < 0 || y >= canvas.size.height) {
     return undefined;
   }
 
   const { cellSize } = visualState;
 
-  const canvasX = x - offset.x - canvasHalfSize.width + cellSize.width / 2;
-  const canvasY = y - offset.y - canvasHalfSize.height + cellSize.height / 2;
+  const canvasX = x - offset.x - canvas.halfSize.width + cellSize.width / 2;
+  const canvasY = y - offset.y - canvas.halfSize.height + cellSize.height / 2;
 
   return newCellPosition({
     i: Math.floor(canvasX / cellSize.width),
@@ -250,10 +272,10 @@ export function updateZoom(visualState: VisualState, zoom: number): void {
   const cursor = visualState.pointerScreenPosition;
 
   if (cursor) {
-    const { canvasHalfSize, cellSize, viewportCenter } = visualState;
+    const { canvas, cellSize, viewportCenter } = visualState;
 
-    const px = (cursor.x - canvasHalfSize.width) / cellSize.width;
-    const py = (cursor.y - canvasHalfSize.height) / cellSize.height;
+    const px = (cursor.x - canvas.halfSize.width) / cellSize.width;
+    const py = (cursor.y - canvas.halfSize.height) / cellSize.height;
 
     const inv = (zoom - prevZoom) / prevZoom;
 

@@ -10,6 +10,8 @@ import { InteractiveActionType } from '@/game/visualState';
 import { useUiUpdate } from '@/app/logic/hook.ts';
 import { UiUpdateType } from '@/app/logic/types.ts';
 
+import styles from './BuildingsPanel.module.scss';
+
 type Props = {
   uiState: UiState;
 };
@@ -35,23 +37,25 @@ export function BuildingsPanel({ uiState }: Props) {
   );
 
   return (
-    <div>
+    <div className={styles.wrapper}>
       <h2>Build new facility:</h2>
-      {facilityTypes.map((facilityType) => (
-        <div key={facilityType}>
-          <button
-            type="button"
-            onClick={() => {
-              visualState.interactiveAction = {
-                actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
-                facilityType,
-              };
-            }}
-          >
-            {facilitiesDescription[facilityType] ?? facilityType}
-          </button>
-        </div>
-      ))}
+      <div className={styles.list}>
+        {facilityTypes.map((facilityType) => (
+          <div key={facilityType}>
+            <button
+              type="button"
+              onClick={() => {
+                visualState.interactiveAction = {
+                  actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
+                  facilityType,
+                };
+              }}
+            >
+              {facilitiesDescription[facilityType] ?? facilityType}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

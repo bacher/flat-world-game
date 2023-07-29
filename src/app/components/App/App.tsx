@@ -1,10 +1,9 @@
-import './App.css';
-
+import styles from './App.module.scss';
 import { GameRoot } from '@components/GameRoot';
 
 export function App() {
   return (
-    <div>
+    <div className={styles.root}>
       <GameRoot />
     </div>
   );
