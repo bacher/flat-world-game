@@ -252,8 +252,17 @@ export function Canvas({ gameId }: Props) {
 
     actualizeMouseState(event);
 
-    if (event.ctrlKey && uiStateRef.current) {
-      uiStateRef.current.onCanvasZoom(event.deltaY);
+    const uiState = uiStateRef.current;
+
+    if (uiState) {
+      if (event.ctrlKey) {
+        uiState.onCanvasZoom(event.deltaY);
+      } else {
+        visualStateMove(uiState.visualState, {
+          x: -event.deltaX * 0.8,
+          y: -event.deltaY * 0.8,
+        });
+      }
     }
   }
 
