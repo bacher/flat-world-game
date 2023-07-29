@@ -6,7 +6,7 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  width: 100px;
+  width: 120px;
   height: 50px;
   padding: 4px;
   white-space: normal;
@@ -46,6 +46,8 @@
 
 .researchTitle {
   white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .researchProgress {

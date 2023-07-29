@@ -29,10 +29,11 @@ export type DepositInfo = {
 
 export enum FacilityType {
   CITY = 'CITY',
-  LOGGING = 'LUMBER', // TODO: rename to LOGGING
+  LOGGING = 'LUMBER', // TODO: rename
   LOGGING_2 = 'LOGGING_2',
   CONSTRUCTION = 'CONSTRUCTION',
-  CHOP_WOOD = 'CHOP_WOOD',
+  SAWMILL = 'CHOP_WOOD', // TODO: rename
+  SAWMILL_2 = 'SAWMILL_2',
   GATHERING = 'GATHERING',
   GATHERING_2 = 'GATHERING_2',
   KITCHEN = 'KITCHEN',
@@ -292,6 +293,7 @@ export type FacilityWorkReport = {
 
 export const enum ResearchId {
   WOOD_WORK = 'WOOD_WORK',
+  WOOD_WORK_2 = 'WOOD_WORK_2',
   WORK_SHOP = 'WORK_SHOP',
   WORK_SHOP_2 = 'WORK_SHOP_2',
   LOGGING = 'LOGGING',

@@ -33,20 +33,25 @@ export function drawStructureIcon(
       ctx.fillStyle = 'green';
       ctx.fill();
       break;
-    case FacilityType.CHOP_WOOD:
-      ctx.moveTo(-12, -8);
-      ctx.lineTo(-8, -12);
-      ctx.lineTo(12, 8);
-      ctx.lineTo(8, 12);
-      ctx.closePath();
-      ctx.fillStyle = 'black';
-      ctx.fill();
+    case FacilityType.SAWMILL:
+    case FacilityType.SAWMILL_2:
+      ctx.moveTo(-6, -12);
+      ctx.lineTo(6, 12);
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
       ctx.beginPath();
-      ctx.moveTo(-12, -8);
-      ctx.lineTo(-15, 6);
-      ctx.lineTo(2, 6);
+      ctx.moveTo(-14, -8);
+      ctx.lineTo(-10, 4);
+      ctx.lineTo(2, -8);
       ctx.closePath();
-      ctx.fillStyle = 'gray';
+      if (facilityType === FacilityType.SAWMILL) {
+        ctx.fillStyle = 'brown';
+      } else {
+        ctx.fillStyle = 'gray';
+      }
       ctx.fill();
       break;
     case FacilityType.GATHERING:

@@ -1,7 +1,7 @@
 import { addToMapSet } from '@/utils/helpers';
 import { ExactFacilityType, GameState, ResearchId } from '@/game/types';
 import { researches } from '@/game/research';
-import { RESEARCH_WORK_PERSON_MODIFICATOR } from '@/game/consts';
+import { RESEARCH_PERSON_MODIFICATOR } from '@/game/consts';
 import { boosters } from '@/game/boosters';
 import { grabResource } from '@/game/gameState';
 
@@ -13,16 +13,7 @@ export function researchPhase(gameState: GameState): void {
   let researchPoints = 0;
 
   for (const city of gameState.cities.values()) {
-    const freePeople = Math.max(
-      0,
-      city.population - city.cityReport.population.lastTick,
-    );
-
-    const researchWorkDays =
-      freePeople +
-      (city.population - freePeople) * RESEARCH_WORK_PERSON_MODIFICATOR;
-
-    const needBoosters = researchWorkDays * boosters.research.perWorker;
+    const needBoosters = city.population * boosters.research.perWorker;
 
     const { quantity: grabbedBoosters } = grabResource(city.input, {
       // TODO: Try to use all resource types
@@ -31,7 +22,8 @@ export function researchPhase(gameState: GameState): void {
     });
 
     researchPoints +=
-      researchWorkDays *
+      city.population *
+      RESEARCH_PERSON_MODIFICATOR *
       (1 + boosters.research.boost * (grabbedBoosters / needBoosters));
   }
 

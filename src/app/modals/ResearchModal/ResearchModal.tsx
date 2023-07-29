@@ -76,9 +76,12 @@ export function ResearchModal({
     );
   }
 
-  extendedResearches.sort(
-    (research1, research2) => research1.status - research2.status,
-  );
+  extendedResearches.sort((research1, research2) => {
+    if (research1.status !== research2.status) {
+      return research1.status - research2.status;
+    }
+    return research1.research.points - research2.research.points;
+  });
 
   return (
     <div className={styles.modal}>

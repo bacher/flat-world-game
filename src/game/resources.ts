@@ -1,7 +1,7 @@
 // TODO: Make numerical enum for production builds
 export enum ResourceType {
   LOG = 'LOG',
-  ROUTH_LUMBER = 'ROUTH_LUMBER',
+  LUMBER_ROUGH = 'LUMBER_ROUGH',
   FOOD = 'FOOD',
   FRUIT = 'FRUIT',
   VEGETABLE = 'VEGETABLE',
@@ -78,7 +78,7 @@ export function isHouseResourceType(
 
 export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.LOG]: 'Log',
-  [ResourceType.ROUTH_LUMBER]: 'Rough Lumber',
+  [ResourceType.LUMBER_ROUGH]: 'Rough Lumber',
   [ResourceType.FOOD]: 'Food',
   [ResourceType.FRUIT]: 'Fruit',
   [ResourceType.VEGETABLE]: 'Vegetables',

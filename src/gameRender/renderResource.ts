@@ -16,7 +16,7 @@ export function drawResourceIcon(
       ctx.fillStyle = 'brown';
       ctx.fill();
       break;
-    case ResourceType.ROUTH_LUMBER:
+    case ResourceType.LUMBER_ROUGH:
       ctx.fillStyle = 'brown';
       ctx.moveTo(-4, -6);
       ctx.lineTo(-6, -4);

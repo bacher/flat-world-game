@@ -228,7 +228,7 @@ export const facilitiesIterationInfo: Record<
       ],
     }),
   },
-  [FacilityType.CHOP_WOOD]: {
+  [FacilityType.SAWMILL]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
@@ -241,8 +241,31 @@ export const facilitiesIterationInfo: Record<
       ],
       output: [
         {
-          resourceType: ResourceType.ROUTH_LUMBER,
+          resourceType: ResourceType.LUMBER_ROUGH,
           quantity: 2,
+        },
+      ],
+    }),
+  },
+  [FacilityType.SAWMILL_2]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 4,
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.LOG,
+          quantity: 1,
+        },
+        {
+          resourceType: ResourceType.AXE_STONE,
+          quantity: 0.1,
+        },
+      ],
+      output: [
+        {
+          resourceType: ResourceType.LUMBER_ROUGH,
+          quantity: 3,
         },
       ],
     }),
@@ -256,7 +279,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 1,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 1,
           },
         ],
@@ -288,7 +311,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 1,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 2,
           },
         ],
@@ -310,7 +333,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 1,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 1,
           },
           {
@@ -346,7 +369,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 1,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 1,
           },
           {
@@ -467,7 +490,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 4,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 10,
           },
         ],
@@ -483,7 +506,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 10,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 40,
           },
           {
@@ -503,7 +526,7 @@ export const facilitiesIterationInfo: Record<
         iterationPeopleDays: 10,
         input: [
           {
-            resourceType: ResourceType.ROUTH_LUMBER,
+            resourceType: ResourceType.LUMBER_ROUGH,
             quantity: 10,
           },
           {
@@ -578,7 +601,8 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.KITCHEN]: 'Kitchen',
   [FacilityType.HUNTERS_BOOTH]: "Hunter's booth",
   [FacilityType.HUNTERS_BOOTH_2]: "Hunter's booth II",
-  [FacilityType.CHOP_WOOD]: 'Chop wood',
+  [FacilityType.SAWMILL]: 'Sawmill',
+  [FacilityType.SAWMILL_2]: 'Sawmill II',
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
   [FacilityType.WORK_SHOP_2]: 'Work shop II',

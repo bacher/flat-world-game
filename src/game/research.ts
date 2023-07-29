@@ -6,15 +6,20 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
   [ResearchId.WOOD_WORK]: {
     points: 100,
     requires: [],
-    unlockFacilities: [FacilityType.CHOP_WOOD, FacilityType.LOGGING],
+    unlockFacilities: [FacilityType.SAWMILL, FacilityType.LOGGING],
+  },
+  [ResearchId.WOOD_WORK_2]: {
+    points: 500,
+    requires: [ResearchId.WOOD_WORK],
+    unlockFacilities: [FacilityType.SAWMILL_2],
   },
   [ResearchId.WORK_SHOP]: {
-    points: 150,
+    points: 200,
     requires: [ResearchId.WOOD_WORK],
     unlockFacilities: [FacilityType.WORK_SHOP],
   },
   [ResearchId.WORK_SHOP_2]: {
-    points: 150,
+    points: 500,
     requires: [ResearchId.STONE],
     unlockFacilities: [FacilityType.WORK_SHOP_2],
     unlockProductionVariants: {
@@ -25,13 +30,13 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
     },
   },
   [ResearchId.LOGGING]: {
-    points: 150,
+    points: 500,
     requires: [ResearchId.STONE],
     unlockFacilities: [FacilityType.LOGGING_2],
   },
   [ResearchId.GATHERING_2]: {
-    points: 100,
-    requires: [],
+    points: 300,
+    requires: [ResearchId.WORK_SHOP, ResearchId.AGRO_1],
     unlockFacilities: [FacilityType.GATHERING_2],
     unlockProductionVariants: {
       [FacilityType.GATHERING_2]: [
@@ -64,7 +69,7 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
     },
   },
   [ResearchId.HORSES]: {
-    points: 200,
+    points: 250,
     requires: [ResearchId.AGRO_1],
     unlockFacilities: [FacilityType.STABLE],
   },
@@ -106,7 +111,7 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
   },
   [ResearchId.HOUSING]: {
     points: 500,
-    requires: [],
+    requires: [ResearchId.FACTORY_1],
     unlockFacilities: [FacilityType.HOUSING_FACTORY],
     unlockProductionVariants: {
       [FacilityType.HOUSING_FACTORY]: [ProductVariantId.WICKIUP],
@@ -121,16 +126,16 @@ const researchesInit: Record<ResearchId, Omit<Research, 'researchId'>> = {
     },
   },
   [ResearchId.INTERCITY]: {
-    points: 100,
-    requires: [],
+    points: 1000,
+    requires: [ResearchId.HORSES],
     unlockFacilities: [
       FacilityType.INTERCITY_SENDER,
       FacilityType.INTERCITY_RECEIVER,
     ],
   },
   [ResearchId.STONE]: {
-    points: 100,
-    requires: [],
+    points: 2000,
+    requires: [ResearchId.INTERCITY],
     unlockFacilities: [FacilityType.QUARRY],
     unlockProductionVariants: {
       [FacilityType.QUARRY]: [ProductVariantId.STONE],
@@ -156,6 +161,7 @@ export const researches: Record<ResearchId, Research> = mapValues(
 
 export const researchTranslations: Record<ResearchId, string> = {
   [ResearchId.WOOD_WORK]: 'Wood work',
+  [ResearchId.WOOD_WORK_2]: 'Wood work II',
   [ResearchId.WORK_SHOP]: 'Workshops',
   [ResearchId.WORK_SHOP_2]: 'Workshops II',
   [ResearchId.LOGGING]: 'Advanced logging',

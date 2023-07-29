@@ -75,7 +75,7 @@ export const facilitiesConstructionInfo: Record<
     },
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 10,
       },
     ],
@@ -90,7 +90,7 @@ export const facilitiesConstructionInfo: Record<
     },
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 10,
       },
     ],
@@ -105,7 +105,7 @@ export const facilitiesConstructionInfo: Record<
     },
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
     ],
@@ -116,12 +116,12 @@ export const facilitiesConstructionInfo: Record<
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 10,
       },
     ],
   },
-  [FacilityType.CHOP_WOOD]: {
+  [FacilityType.SAWMILL]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
@@ -132,13 +132,28 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.SAWMILL_2]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.LUMBER_ROUGH,
+        quantity: 10,
+      },
+      {
+        resourceType: ResourceType.STONE,
+        quantity: 5,
+      },
+    ],
+  },
   [FacilityType.WORK_SHOP]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
     ],
@@ -149,7 +164,7 @@ export const facilitiesConstructionInfo: Record<
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
       {
@@ -205,7 +220,7 @@ export const facilitiesConstructionInfo: Record<
         quantity: 10,
       },
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
     ],
@@ -216,7 +231,7 @@ export const facilitiesConstructionInfo: Record<
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
     ],
@@ -227,7 +242,7 @@ export const facilitiesConstructionInfo: Record<
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
     ],
@@ -238,7 +253,7 @@ export const facilitiesConstructionInfo: Record<
     maximumPeopleAtWork: 3,
     input: [
       {
-        resourceType: ResourceType.ROUTH_LUMBER,
+        resourceType: ResourceType.LUMBER_ROUGH,
         quantity: 20,
       },
     ],

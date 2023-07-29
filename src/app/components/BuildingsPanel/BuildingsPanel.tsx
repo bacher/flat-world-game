@@ -49,6 +49,7 @@ export function BuildingsPanel({ uiState }: Props) {
                   actionType: InteractiveActionType.CONSTRUCTION_PLANNING,
                   facilityType,
                 };
+                visualState.onUpdate();
               }}
             >
               {facilitiesDescription[facilityType] ?? facilityType}
