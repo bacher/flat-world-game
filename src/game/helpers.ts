@@ -59,7 +59,7 @@ export function calculateDistance(
 }
 
 export function isSamePos(cell1: CellPosition, cell2: CellPosition): boolean {
-  return cell1.i === cell2.i && cell1.j === cell2.j;
+  return cell1.cellId === cell2.cellId;
 }
 
 export function isSamePath(path1: CellPath, path2: CellPath): boolean {

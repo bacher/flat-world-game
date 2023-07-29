@@ -325,5 +325,6 @@ export type Research = {
 
 export type WorkDaysSummary = {
   exclusiveWorkDays: number;
+  privilegedWorkDays: number;
   restWorkDays: number;
 };

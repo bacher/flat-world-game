@@ -29,6 +29,7 @@ import { facilitiesIterationInfo } from '@/game/facilities';
 import { getCarrierPathDistance } from '@/game/helpers';
 import { boosterByResourceType } from '@/game/boosters';
 import { shuffledTraversalMulberry } from '@/game/pseudoRandom';
+import { privilegedResourcesTypes } from '@/game/resources';
 
 import { applyCityModifiers } from './cityBoosters';
 
@@ -52,10 +53,12 @@ type DailyTask = FacilityWork | CarrierWork;
 type DailyWorkBase = {
   task: DailyTask;
   needWorkDays: number;
+  isPrivileged: boolean;
 };
 
 type DailyWorkNeed = DailyWorkBase & {
   exclusiveWorkDays: number;
+  privilegedWorkDays: number;
   restWorkDays: number;
 };
 
@@ -96,6 +99,7 @@ export function planCityTickWork(
             facility,
           },
           needWorkDays,
+          isPrivileged: false,
         });
       }
     }
@@ -114,16 +118,25 @@ export function planCityTickWork(
           carrierPath,
         },
         needWorkDays,
+        isPrivileged: privilegedResourcesTypes.has(carrierPath.resourceType),
       });
     }
   }
 
   const dailyWorksNeed: DailyWorkNeed[] = dailyWorksBase.map(
-    (work): DailyWorkNeed => ({
-      ...work,
-      exclusiveWorkDays: Math.min(work.needWorkDays, EXCLUSIVE_WORK_DAYS),
-      restWorkDays: Math.max(0, work.needWorkDays - EXCLUSIVE_WORK_DAYS),
-    }),
+    (work): DailyWorkNeed => {
+      const overExclusiveWorkDays = Math.max(
+        0,
+        work.needWorkDays - EXCLUSIVE_WORK_DAYS,
+      );
+
+      return {
+        ...work,
+        exclusiveWorkDays: Math.min(work.needWorkDays, EXCLUSIVE_WORK_DAYS),
+        privilegedWorkDays: work.isPrivileged ? overExclusiveWorkDays : 0,
+        restWorkDays: work.isPrivileged ? 0 : overExclusiveWorkDays,
+      };
+    },
   );
 
   const workDaySummaries: Record<JobType, WorkDaysSummary> = {
@@ -131,13 +144,19 @@ export function planCityTickWork(
     [JobType.CARRIER]: createEmptyWorkDaysSummary(),
   };
 
-  for (const { task, exclusiveWorkDays, restWorkDays } of dailyWorksNeed) {
+  for (const {
+    task,
+    exclusiveWorkDays,
+    privilegedWorkDays,
+    restWorkDays,
+  } of dailyWorksNeed) {
     const summary = workDaySummaries[task.jobType];
     summary.exclusiveWorkDays += exclusiveWorkDays;
+    summary.privilegedWorkDays += privilegedWorkDays;
     summary.restWorkDays += restWorkDays;
   }
 
-  const { workRatio, totalNeedPeopleCount } = applyCityModifiers(city, {
+  const { ratios, totalNeedPeopleCount } = applyCityModifiers(city, {
     needWorkersWorkDays: workDaySummaries[JobType.WORKER],
     needCarriersWorkDays: workDaySummaries[JobType.CARRIER],
   });
@@ -145,7 +164,10 @@ export function planCityTickWork(
   const dailyWorks: DailyWork[] = dailyWorksNeed.map(
     (work): DailyWork => ({
       ...work,
-      actualWorkDays: work.exclusiveWorkDays + work.restWorkDays * workRatio,
+      actualWorkDays:
+        work.exclusiveWorkDays * ratios.exclusive +
+        work.privilegedWorkDays * ratios.privileged +
+        work.restWorkDays * ratios.rest,
     }),
   );
 
@@ -234,8 +256,9 @@ function getIterationsCountByStorage(
 
 function createEmptyWorkDaysSummary(): WorkDaysSummary {
   return {
-    restWorkDays: 0,
     exclusiveWorkDays: 0,
+    privilegedWorkDays: 0,
+    restWorkDays: 0,
   };
 }
 

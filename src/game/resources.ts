@@ -76,6 +76,11 @@ export function isHouseResourceType(
   return houseResourceTypes.has(resourceType);
 }
 
+export const privilegedResourcesTypes = new Set<ResourceType>([
+  ...foodResourceTypes,
+  ...houseResourceTypes,
+]);
+
 export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.LOG]: 'Log',
   [ResourceType.LUMBER_ROUGH]: 'Rough Lumber',

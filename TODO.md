@@ -20,4 +20,4 @@
 17. [x] Add zoom in/out
 18. [ ] Add retina support
 19. [ ] Add nature resources
-20. [ ] Make food carrying is more privileged
+20. [x] Make food carrying is more privileged
