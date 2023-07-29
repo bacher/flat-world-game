@@ -699,3 +699,13 @@ export function getChunkByCell(
     j: Math.floor(cell.j / chunkSize) * chunkSize,
   });
 }
+
+export function changeCityName(
+  gameState: GameState,
+  city: City,
+  name: string,
+): void {
+  gameState.alreadyCityNames.delete(name);
+  city.name = name;
+  gameState.alreadyCityNames.add(name);
+}

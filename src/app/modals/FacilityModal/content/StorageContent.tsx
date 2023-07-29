@@ -2,7 +2,7 @@ import { StorageFacility } from '@/game/types';
 import { facilitiesDescription } from '@/game/facilities';
 import { StorateType, SupplySection } from '@components/SupplySection';
 import { useForceUpdate } from '@hooks/forceUpdate';
-import { UiState } from '@/app/logic/UiState.ts';
+import { UiState } from '@/app/logic/UiState';
 
 import { ModalFooter } from '../ModalFooter';
 import { addPath, useAlreadyPathsState } from '../helpers';

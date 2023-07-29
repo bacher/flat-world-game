@@ -3,7 +3,7 @@ import { RefObject, useImperativeHandle, useRef } from 'react';
 import styles from './FacilityModal.module.scss';
 
 import { FacilityType, isStorageFacility, Structure } from '@/game/types';
-import { UiState } from '@/app/logic/UiState.ts';
+import { UiState } from '@/app/logic/UiState';
 
 import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
@@ -64,7 +64,9 @@ function Content({
   const { gameState, visualState } = uiState;
 
   if (facility.type === FacilityType.CITY) {
-    return <CityContent city={facility} />;
+    return (
+      <CityContent city={facility} uiState={uiState} controlRef={controlRef} />
+    );
   }
 
   if (facility.type === FacilityType.CONSTRUCTION) {

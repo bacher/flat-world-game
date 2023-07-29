@@ -7,8 +7,8 @@ import {
 } from '@/game/facilities';
 import { UiState } from '@/app/logic/UiState';
 import { InteractiveActionType } from '@/game/visualState';
-import { useUiUpdate } from '@/app/logic/hook.ts';
-import { UiUpdateType } from '@/app/logic/types.ts';
+import { useUiUpdate } from '@/app/logic/hook';
+import { UiUpdateType } from '@/app/logic/types';
 
 import styles from './BuildingsPanel.module.scss';
 

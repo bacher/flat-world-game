@@ -1,22 +1,23 @@
 import { useImperativeHandle, useMemo, useState } from 'react';
 import clamp from 'lodash/clamp';
 
+import styles from './share.module.scss';
+
 import { Facility } from '@/game/types';
 import {
   facilitiesDescription,
   facilitiesIterationInfo,
 } from '@/game/facilities';
-import { useForceUpdate } from '@hooks/forceUpdate';
 import { getStructureIterationStorageInfo } from '@/game/gameState';
+import { UiState } from '@/app/logic/UiState';
+import { useUiUpdate } from '@/app/logic/hook';
+import { UiUpdateType } from '@/app/logic/types';
+import { useForceUpdate } from '@hooks/forceUpdate';
 import { StorateType, SupplySection } from '@components/SupplySection';
-import { UiState } from '@/app/logic/UiState.ts';
 
 import { ModalControlRef } from '../types';
 import { addPath, useAlreadyPathsState } from '../helpers';
 import { ModalFooter } from '../ModalFooter';
-import styles from './share.module.scss';
-import { useUiUpdate } from '@/app/logic/hook.ts';
-import { UiUpdateType } from '@/app/logic/types.ts';
 
 type Props = {
   uiState: UiState;

@@ -5,7 +5,7 @@ import type { ResearchId } from '@/game/types';
 import { researches, researchTranslations } from '@/game/research';
 import { UiState } from '@/app/logic/UiState';
 import { ModalModeType, UiUpdateType } from '@/app/logic/types';
-import { useUiUpdate } from '@/app/logic/hook.ts';
+import { useUiUpdate } from '@/app/logic/hook';
 
 import styles from './CurrentResearchIcon.module.scss';
 

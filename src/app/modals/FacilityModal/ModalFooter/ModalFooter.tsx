@@ -1,6 +1,6 @@
 import { removeFacility } from '@/game/gameState';
 import { FacilityLike } from '@/game/types';
-import { UiState } from '@/app/logic/UiState.ts';
+import { UiState } from '@/app/logic/UiState';
 
 import styles from './ModalFooter.module.scss';
 

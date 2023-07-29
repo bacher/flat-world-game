@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 
 import styles from './ResourceChooseModal.module.scss';
 import { resourceLocalization, ResourceType } from '@/game/resources';
-import { UiState } from '@/app/logic/UiState.ts';
-import { useUiUpdate } from '@/app/logic/hook.ts';
-import { UiUpdateType } from '@/app/logic/types.ts';
+import { UiState } from '@/app/logic/UiState';
+import { useUiUpdate } from '@/app/logic/hook';
+import { UiUpdateType } from '@/app/logic/types';
 
 import { ModalCloseButton } from '../ModalCloseButton';
 

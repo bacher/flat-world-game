@@ -12,9 +12,9 @@ import {
 
 import type { ModalRef } from '../types';
 import { ModalCloseButton } from '../ModalCloseButton';
-import { useUiUpdate } from '@/app/logic/hook.ts';
-import { UiUpdateType } from '@/app/logic/types.ts';
-import { UiState } from '@/app/logic/UiState.ts';
+import { useUiUpdate } from '@/app/logic/hook';
+import { UiUpdateType } from '@/app/logic/types';
+import { UiState } from '@/app/logic/UiState';
 
 // Enum should stay numerical because of sorting
 enum ResearchStatus {

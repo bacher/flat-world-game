@@ -1,7 +1,7 @@
 import { UiState } from '@/app/logic/UiState';
 import { visualStateMoveToCell } from '@/game/visualState';
-import { UiUpdateType } from '@/app/logic/types.ts';
-import { useUiUpdate } from '@/app/logic/hook.ts';
+import { UiUpdateType } from '@/app/logic/types';
+import { useUiUpdate } from '@/app/logic/hook';
 
 import styles from './CitiesPanel.module.scss';
 
