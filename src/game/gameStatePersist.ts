@@ -68,7 +68,7 @@ export function getNewGameSave({ gameId }: { gameId: string }): GameSave {
     gameState: getGameStateSnapshot(getNewGame({ gameId })),
     viewportState: {
       center: { i: 0, j: 0 },
-      zoom: 1,
+      scale: 1,
     },
   };
 }
@@ -312,13 +312,15 @@ export function loadGame(
   }
 
   let viewportState: ViewportState;
+  // TODO: Backward compability (remove later)
   if (
     gameSave.viewportState &&
-    gameSave.viewportState.center?.i !== undefined
+    gameSave.viewportState.center?.i !== undefined &&
+    gameSave.viewportState.scale !== undefined
   ) {
     viewportState = gameSave.viewportState;
   } else {
-    viewportState = { center: { i: 0, j: 0 }, zoom: 1 };
+    viewportState = { center: { i: 0, j: 0 }, scale: 1 };
   }
 
   return {

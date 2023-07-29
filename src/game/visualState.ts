@@ -42,7 +42,7 @@ export type VisualState = {
   cellSize: Size;
   offset: Point;
   viewportCenter: CellCoordinates;
-  zoom: number;
+  scale: number;
   viewportBounds: CellRect;
   pointerScreenPosition: Point | undefined;
   hoverCell: CellPosition | undefined;
@@ -97,7 +97,7 @@ export function createVisualState(
     cellSize: { width: DEFAULT_CELL_SIZE, height: DEFAULT_CELL_SIZE },
     offset: { x: 0, y: 0 },
     viewportCenter: { i: 0, j: 0 },
-    zoom: 1,
+    scale: 1,
     viewportBounds: {
       start: { i: 0, j: 0 },
       end: { i: 0, j: 0 },
@@ -259,7 +259,7 @@ export function visualStateApplyViewportState(
   visualState: VisualState,
   viewportState: ViewportState,
 ): void {
-  updateZoom(visualState, viewportState.zoom);
+  updateScale(visualState, viewportState.scale);
   updateViewportCenter(visualState, viewportState.center);
 
   actualizeViewportBounds(visualState);
@@ -272,17 +272,17 @@ export function visualStateGetViewportState(
 ): ViewportState {
   return {
     center: visualState.viewportCenter,
-    zoom: visualState.zoom,
+    scale: visualState.scale,
   };
 }
 
-export function updateZoom(visualState: VisualState, zoom: number): void {
-  const prevZoom = visualState.zoom;
+export function updateScale(visualState: VisualState, scale: number): void {
+  const prevZoom = visualState.scale;
 
-  visualState.zoom = zoom;
+  visualState.scale = scale;
 
-  visualState.cellSize.width = DEFAULT_CELL_SIZE * zoom;
-  visualState.cellSize.height = DEFAULT_CELL_SIZE * zoom;
+  visualState.cellSize.width = DEFAULT_CELL_SIZE * scale;
+  visualState.cellSize.height = DEFAULT_CELL_SIZE * scale;
 
   const cursor = visualState.pointerScreenPosition;
 
@@ -292,7 +292,7 @@ export function updateZoom(visualState: VisualState, zoom: number): void {
     const px = (cursor.x - canvas.halfSize.width) / cellSize.width;
     const py = (cursor.y - canvas.halfSize.height) / cellSize.height;
 
-    const inv = (zoom - prevZoom) / prevZoom;
+    const inv = (scale - prevZoom) / prevZoom;
 
     updateViewportCenter(visualState, {
       i: viewportCenter.i + px * inv,
@@ -301,11 +301,11 @@ export function updateZoom(visualState: VisualState, zoom: number): void {
   }
 }
 
-export function visualStateUpdateZoom(
+export function visualStateUpdateScale(
   visualState: VisualState,
-  zoom: number,
+  scale: number,
 ): void {
-  updateZoom(visualState, zoom);
+  updateScale(visualState, scale);
 
   actualizeViewportBounds(visualState);
   actualizeHoverCell(visualState);

@@ -155,7 +155,7 @@ export type WorldParams = {
 
 export type ViewportState = {
   center: CellCoordinates;
-  zoom: number;
+  scale: number;
 };
 
 export type CityId = Branded<number, 'cityId'>;

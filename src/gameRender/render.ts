@@ -58,6 +58,8 @@ import { neverCall } from '@/utils/typeUtils';
 const DRAW_RESOURCE_NAMES = false;
 const RESOURCE_LINE_HEIGHT = 16;
 const RESOURCE_COMPACT_LINE_HEIGHT = 12;
+const DRAW_ONLY_ICONS_ON = 0.55;
+const DRAW_PLACEHOLDERS_ON = 0.4;
 
 export function renderGameToCanvas(visualState: VisualState): void {
   const { ctx, canvas } = visualState;
@@ -182,21 +184,21 @@ export function isValidCarrierPlanningTarget(
 }
 
 function drawGrid(visualState: VisualState): void {
-  const { ctx, cellSize, zoom } = visualState;
+  const { ctx, cellSize, scale } = visualState;
   const { start, end } = visualState.viewportBounds;
 
   ctx.save();
 
   ctx.translate(-cellSize.width / 2, -cellSize.height / 2);
 
-  if (zoom >= 0.3) {
+  if (scale >= 0.3) {
     ctx.beginPath();
     schemeGrid(ctx, cellSize, start, start, end, 1);
-    ctx.strokeStyle = makeAlphaBlackColor((zoom - 0.3) * 3);
+    ctx.strokeStyle = makeAlphaBlackColor((scale - 0.3) * 3);
     ctx.stroke();
   }
 
-  if (zoom < 1.3) {
+  if (scale < 1.3) {
     const globalStart = {
       i: Math.ceil(start.i * 0.1) * 10,
       j: Math.ceil(start.j * 0.1) * 10,
@@ -490,13 +492,13 @@ function drawObjectDraft(
   facilityType: CompleteFacilityType,
   position: CellPosition,
 ): void {
-  const { ctx, zoom } = visualState;
+  const { ctx, scale } = visualState;
 
   ctx.save();
   const cellCenter = getCellCenter(visualState, position);
   ctx.translate(cellCenter.x, cellCenter.y);
 
-  if (zoom >= 0.5) {
+  if (scale >= DRAW_PLACEHOLDERS_ON) {
     drawStructureIcon(visualState, facilityType);
   } else {
     drawStructurePlaceholder(visualState, facilityType);
@@ -507,16 +509,19 @@ function drawObjectDraft(
 
 function drawObject(visualState: VisualState, facility: Structure): void {
   if (isCellInRectInclusive(visualState.viewportBounds, facility.position)) {
-    const { ctx, zoom } = visualState;
+    const { ctx, scale } = visualState;
 
     ctx.save();
     const cellCenter = getCellCenter(visualState, facility.position);
     ctx.translate(cellCenter.x, cellCenter.y);
 
-    if (zoom >= 0.5) {
+    if (scale >= DRAW_PLACEHOLDERS_ON) {
       drawStructureObject(visualState, facility);
-      drawStructureInfo(visualState, facility);
-      drawFacilityStorage(visualState, facility);
+
+      if (scale >= DRAW_ONLY_ICONS_ON) {
+        drawStructureInfo(visualState, facility);
+        drawFacilityStorage(visualState, facility);
+      }
     } else {
       drawStructurePlaceholder(visualState, facility.type);
     }
@@ -561,7 +566,7 @@ function getCarrierPathPoints(
 ): [Point, Point] {
   const fromCenter = getCellCenter(visualState, path.from);
   const toCenter = getCellCenter(visualState, path.to);
-  return addGap(fromCenter, toCenter, visualState.zoom * 30);
+  return addGap(fromCenter, toCenter, visualState.scale * 30);
 }
 
 function drawCarrierPath(
@@ -569,9 +574,9 @@ function drawCarrierPath(
   path: CellPath,
   { color, text }: { color: string; text?: string },
 ): void {
-  const { ctx, zoom } = visualState;
+  const { ctx, scale } = visualState;
   const [fromGapped, toGapped] = getCarrierPathPoints(visualState, path);
-  const distance = calculateDistance(path.from, path.to) * zoom;
+  const distance = calculateDistance(path.from, path.to) * scale;
 
   const center = {
     x: (fromGapped.x + toGapped.x) / 2,
@@ -770,9 +775,9 @@ function drawStorage(
   storage: StorageItem[],
   align: 'left' | 'right',
 ): void {
-  const { ctx, zoom } = visualState;
+  const { ctx, scale } = visualState;
   const center = (storage.length - 1) / 2;
-  const isCompactMode = zoom < 1;
+  const isCompactMode = scale < 1;
 
   const resourceLineHeight = isCompactMode
     ? RESOURCE_COMPACT_LINE_HEIGHT

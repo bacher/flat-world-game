@@ -13,7 +13,7 @@ import {
   visualStateApplyViewportState,
   visualStateGetViewportState,
   visualStateOnMouseMove,
-  visualStateUpdateZoom,
+  visualStateUpdateScale,
 } from '@/game/visualState';
 import {
   CarrierPathType,
@@ -363,12 +363,12 @@ export class UiState {
   }
 
   onCanvasZoom(delta: number): void {
-    const zoom = clamp(
-      this.visualState.zoom * (1 - delta / 100),
+    const scale = clamp(
+      this.visualState.scale * (1 - delta / 100),
       MINIMUM_ZOOM,
       MAXIMUM_ZOOM,
     );
-    visualStateUpdateZoom(this.visualState, zoom);
+    visualStateUpdateScale(this.visualState, scale);
   }
 
   cancelCurrentAction(): boolean {
