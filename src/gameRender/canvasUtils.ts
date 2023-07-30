@@ -10,23 +10,24 @@ export function drawText(
     align,
     baseline,
     color = 'black',
-    lineWidth = 1,
+    shadowThickness = 1,
     fontSize,
   }: {
     align: CanvasTextAlign;
     baseline: CanvasTextBaseline;
     color?: 'white' | 'black';
     fontSize?: number;
-    lineWidth?: number;
+    shadowThickness?: number;
   },
 ) {
   ctx.strokeStyle = color === 'black' ? 'white' : 'black';
   ctx.fillStyle = color;
   ctx.textAlign = align;
   ctx.textBaseline = baseline;
+  ctx.lineJoin = 'round';
 
-  if (lineWidth !== 1) {
-    ctx.lineWidth = lineWidth;
+  if (shadowThickness !== 1) {
+    ctx.lineWidth = shadowThickness;
   }
 
   if (fontSize) {
@@ -36,7 +37,9 @@ export function drawText(
   ctx.strokeText(text, x, y);
   ctx.fillText(text, x, y);
 
-  if (lineWidth !== 1) {
+  ctx.lineJoin = 'miter';
+
+  if (shadowThickness !== 1) {
     ctx.lineWidth = 1;
   }
 

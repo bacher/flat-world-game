@@ -86,6 +86,9 @@ export function renderGameToCanvas(visualState: VisualState): void {
   }
 
   ctx.restore();
+
+  // Clear current path
+  ctx.beginPath();
 }
 
 function setupCanvas(visualState: VisualState): void {
@@ -195,7 +198,8 @@ function drawGrid(visualState: VisualState): void {
   if (scale >= 0.3) {
     ctx.beginPath();
     schemeGrid(ctx, cellSize, start, start, end, 1);
-    ctx.strokeStyle = makeAlphaBlackColor((scale - 0.3) * 3);
+    ctx.globalAlpha = alpha((scale - 0.3) * 3);
+    ctx.strokeStyle = '#000';
     ctx.stroke();
   }
 
@@ -206,16 +210,16 @@ function drawGrid(visualState: VisualState): void {
     };
     ctx.beginPath();
     schemeGrid(ctx, cellSize, globalStart, start, end, 10);
-    ctx.strokeStyle = makeAlphaBlackColor(scale * 3);
+    ctx.globalAlpha = alpha(scale * 3);
+    ctx.strokeStyle = '#000';
     ctx.stroke();
   }
 
   ctx.restore();
 }
 
-function makeAlphaBlackColor(intense: number): string {
-  const alpha = clamp(intense, 0, 1);
-  return `rgba(0,0,0,${alpha})`;
+function alpha(intense: number): number {
+  return clamp(intense, 0, 1);
 }
 
 function schemeGrid(
@@ -501,6 +505,8 @@ function drawObjectDraft(
   const cellCenter = getCellCenter(visualState, position);
   ctx.translate(cellCenter.x, cellCenter.y);
 
+  ctx.globalAlpha = 0.6;
+
   if (scale >= DRAW_PLACEHOLDERS_ON) {
     drawStructureIcon(visualState, facilityType);
   } else {
@@ -617,7 +623,7 @@ function drawCarrierPath(
     drawText(ctx, text, textCenter, {
       align: 'center',
       baseline: 'middle',
-      lineWidth: 2,
+      shadowThickness: 2,
     });
   }
 }
@@ -714,6 +720,7 @@ function drawStructureInfo(
           align: 'right',
           baseline: 'middle',
           color: 'black',
+          shadowThickness: 2,
         },
       );
     }
@@ -816,7 +823,7 @@ function drawStorage(
         {
           align,
           baseline: 'middle',
-          lineWidth: 3,
+          shadowThickness: 3,
         },
       );
     }

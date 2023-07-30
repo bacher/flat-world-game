@@ -6,6 +6,7 @@ import {
 } from '@/game/types';
 import { VisualState } from '@/game/visualState';
 import { neverCall } from '@/utils/typeUtils';
+import { drawText } from '@/gameRender/canvasUtils.ts';
 
 const SQRT2 = Math.sqrt(2);
 const SQRT2_R = 1 / SQRT2;
@@ -242,33 +243,44 @@ export function drawStructureObject(
   if (structure.type === FacilityType.CITY) {
     const city = structure;
 
-    ctx.textAlign = 'center';
+    drawText(
+      ctx,
+      city.name,
+      { x: 0, y: 28 },
+      {
+        align: 'center',
+        baseline: 'alphabetic',
+        shadowThickness: 4,
+      },
+    );
+
+    ctx.textAlign = 'right';
     ctx.textBaseline = 'alphabetic';
     ctx.strokeStyle = 'white';
     ctx.fillStyle = 'black';
-    ctx.lineWidth = 3;
-
-    ctx.strokeText(city.name, 0, 28);
-    ctx.fillText(city.name, 0, 28);
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
 
     const populationText = Math.floor(city.population).toString();
     const needPopulationText = city.cityReport.population.lastTick.toString();
     const rest = `/${populationText}`;
-    const text = `${needPopulationText}${rest}`;
+
+    const box = ctx.measureText(rest);
+
     if (city.population >= city.cityReport.population.lastTick) {
       ctx.fillStyle = 'green';
     } else {
       ctx.fillStyle = 'red';
     }
-    ctx.textAlign = 'right';
-    ctx.strokeText(text, 18, 14);
-    ctx.fillText(text, 18, 14);
+    ctx.strokeText(needPopulationText, 18 - box.width - 1, 14);
+    ctx.fillText(needPopulationText, 18 - box.width - 1, 14);
 
     ctx.fillStyle = '#000';
     ctx.strokeText(rest, 18, 14);
     ctx.fillText(rest, 18, 14);
 
     ctx.lineWidth = 1;
+    ctx.lineJoin = 'miter';
   }
 }
 
