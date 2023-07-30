@@ -15,5 +15,14 @@
   flex-direction: column;
 }
 
+.carrierPathsHeader {
+  display: flex;
+  align-items: center;
+}
+
+.carrierPathsTitle {
+  flex-grow: 1;
+}
+
 .carrierPathLine {
 }

@@ -12,18 +12,16 @@ import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { UiState } from '@/app/logic/UiState';
 import { useUiUpdate } from '@/app/logic/hook';
 import { UiUpdateType } from '@/app/logic/types';
-import { useForceUpdate } from '@hooks/forceUpdate';
 import { StorateType, SupplySection } from '@components/SupplySection';
 
 import { ModalControlRef } from '../types';
-import { addPath, useAlreadyPathsState } from '../helpers';
+import { useAlreadyPathsState } from '../helpers';
 import { ModalFooter } from '../ModalFooter';
 
 type Props = {
   uiState: UiState;
   facility: Facility;
   controlRef: ModalControlRef;
-  onCloseClick: () => void;
   closeWithoutApplying: () => void;
 };
 
@@ -31,12 +29,10 @@ export function FacilityContent({
   uiState,
   facility,
   controlRef,
-  onCloseClick,
   closeWithoutApplying,
 }: Props) {
-  const { gameState, visualState } = uiState;
+  const { gameState } = uiState;
 
-  const forceUpdate = useForceUpdate();
   useUiUpdate(uiState, UiUpdateType.CANVAS);
 
   const [workersCountString, setWorkersCountString] = useState(
@@ -111,22 +107,12 @@ export function FacilityContent({
           storageType={StorateType.INPUT}
           storage={facility.input}
           alreadyPaths={alreadyToPaths}
-          onAddPathClick={(resourceType) => {
-            addPath(visualState, facility, 'to', resourceType);
-            onCloseClick();
-          }}
-          forceUpdate={forceUpdate}
         />
         <SupplySection
           title="Output"
           storageType={StorateType.OUTPUT}
           storage={facility.output}
           alreadyPaths={alreadyFromPaths}
-          onAddPathClick={(resourceType) => {
-            addPath(visualState, facility, 'from', resourceType);
-            onCloseClick();
-          }}
-          forceUpdate={forceUpdate}
         />
       </div>
       <ModalFooter

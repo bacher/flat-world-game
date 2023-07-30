@@ -27,7 +27,7 @@ import {
   facilitiesConstructionInfo,
   workAreaMap,
 } from './facilityConstruction';
-import { isCellInsideCityBorder } from '@/game/gameState.ts';
+import { isCellInsideCityBorder } from '@/game/gameState';
 
 export const DEFAULT_CELL_SIZE = 90;
 

@@ -3,18 +3,16 @@ import { useMemo } from 'react';
 import { Construction, GameState } from '@/game/types';
 import { removeFacility } from '@/game/gameState';
 import type { VisualState } from '@/game/visualState';
-import { useForceUpdate } from '@hooks/forceUpdate';
 import { facilitiesConstructionInfo } from '@/game/facilityConstruction';
 import { StorateType, SupplySection } from '@components/SupplySection';
 
-import { addPath, useAlreadyPathsState } from '../helpers';
+import { useAlreadyPathsState } from '../helpers';
 import styles from './share.module.scss';
 
 export function ConstructionContent({
   gameState,
   visualState,
   construction,
-  onCloseClick,
   closeWithoutApplying,
 }: {
   gameState: GameState;
@@ -23,8 +21,6 @@ export function ConstructionContent({
   onCloseClick: () => void;
   closeWithoutApplying: () => void;
 }) {
-  const forceUpdate = useForceUpdate();
-
   const iterationInfo = useMemo(
     () => facilitiesConstructionInfo[construction.buildingFacilityType],
     [construction.buildingFacilityType],
@@ -46,11 +42,6 @@ export function ConstructionContent({
           storageType={StorateType.INPUT}
           storage={construction.input}
           alreadyPaths={alreadyToPaths}
-          onAddPathClick={(resourceType) => {
-            addPath(visualState, construction, 'to', resourceType);
-            onCloseClick();
-          }}
-          forceUpdate={forceUpdate}
         />
       </div>
       <div className={styles.footer}>

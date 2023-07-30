@@ -1,7 +1,6 @@
-import { StorageFacility } from '@/game/types';
+import { FacilityType, StorageFacility } from '@/game/types';
 import { facilitiesDescription } from '@/game/facilities';
 import { StorateType, SupplySection } from '@components/SupplySection';
-import { useForceUpdate } from '@hooks/forceUpdate';
 import { UiState } from '@/app/logic/UiState';
 
 import { ModalFooter } from '../ModalFooter';
@@ -19,7 +18,6 @@ export function StorageContent({
   storageFacility,
   onCloseClick,
 }: Props) {
-  const forceUpdate = useForceUpdate();
   const { gameState, visualState } = uiState;
 
   const alreadyToPaths = useAlreadyPathsState({
@@ -44,22 +42,28 @@ export function StorageContent({
           storageType={StorateType.INPUT}
           storage={storageFacility.input}
           alreadyPaths={alreadyToPaths}
-          onAddPathClick={(resourceType) => {
-            addPath(visualState, storageFacility, 'to', resourceType);
-            onCloseClick();
-          }}
-          forceUpdate={forceUpdate}
+          onAddPathClick={
+            storageFacility.type === FacilityType.INTERCITY_RECEIVER
+              ? (resourceType) => {
+                  addPath(visualState, storageFacility, 'to', resourceType);
+                  onCloseClick();
+                }
+              : undefined
+          }
         />
         <SupplySection
           title="Output"
           storageType={StorateType.OUTPUT}
           storage={storageFacility.output}
           alreadyPaths={alreadyFromPaths}
-          onAddPathClick={(resourceType) => {
-            addPath(visualState, storageFacility, 'from', resourceType);
-            onCloseClick();
-          }}
-          forceUpdate={forceUpdate}
+          onAddPathClick={
+            storageFacility.type === FacilityType.INTERCITY_SENDER
+              ? (resourceType) => {
+                  addPath(visualState, storageFacility, 'from', resourceType);
+                  onCloseClick();
+                }
+              : undefined
+          }
         />
       </div>
       <ModalFooter

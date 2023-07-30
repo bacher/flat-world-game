@@ -16,14 +16,12 @@ export function SupplySection({
   storage,
   alreadyPaths,
   onAddPathClick,
-  forceUpdate,
 }: {
   title: string;
   storageType: StorateType;
   storage: StorageItem[];
   alreadyPaths: ActualPathState;
-  onAddPathClick: (resourceType: ResourceType) => void;
-  forceUpdate: () => void;
+  onAddPathClick?: (resourceType: ResourceType) => void;
 }) {
   return (
     <div>
@@ -41,32 +39,28 @@ export function SupplySection({
                   {resourceLocalization[resourceType]}:{' '}
                   <span>{humanFormat(storageResource?.quantity ?? 0)}</span>
                 </div>
-                <button
-                  type="button"
-                  className={styles.addCarrierPathButton}
-                  onClick={() => onAddPathClick(resourceType)}
-                >
-                  Add carrier path
-                </button>
               </div>
               <div className={styles.carrierPaths}>
+                <div className={styles.carrierPathsHeader}>
+                  <h4 className={styles.carrierPathsTitle}>Carrier paths:</h4>
+                  {onAddPathClick && (
+                    <button
+                      type="button"
+                      className={styles.addCarrierPathButton}
+                      onClick={() => onAddPathClick(resourceType)}
+                    >
+                      Add carrier path
+                    </button>
+                  )}
+                </div>
                 {resourcePaths.map((resourcePath, i) => (
                   <label key={i} className={styles.carrierPathLine}>
-                    {'Carriers: '}
-                    <input
-                      type="number"
-                      value={resourcePath.inputValue}
-                      onChange={(event) => {
-                        resourcePath.inputValue = event.target.value;
-                        resourcePath.changed = true;
-                        forceUpdate();
-                      }}
-                    />
                     {storageType === StorateType.INPUT
                       ? ` from ${formatCell(resourcePath.path.path.from)}`
                       : ` to ${formatCell(resourcePath.path.path.to)}`}
                   </label>
                 ))}
+                {!resourcePaths.length && <div>None</div>}
               </div>
             </div>
           );

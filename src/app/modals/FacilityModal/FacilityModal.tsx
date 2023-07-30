@@ -96,7 +96,6 @@ function Content({
       uiState={uiState}
       facility={facility}
       controlRef={controlRef}
-      onCloseClick={onCloseClick}
       closeWithoutApplying={closeWithoutApplying}
     />
   );

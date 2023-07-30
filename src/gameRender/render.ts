@@ -54,7 +54,7 @@ import { clearCanvas, drawText } from './canvasUtils';
 import { getChunkDeposits } from '@/game/spawning';
 import { DepositType } from '@/game/depositType';
 import { neverCall } from '@/utils/typeUtils';
-import { INTERACTION_MIN_SCALE } from '@/game/consts.ts';
+import { INTERACTION_MIN_SCALE } from '@/game/consts';
 
 const DRAW_RESOURCE_NAMES = false;
 const RESOURCE_LINE_HEIGHT = 16;

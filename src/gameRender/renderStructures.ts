@@ -6,7 +6,7 @@ import {
 } from '@/game/types';
 import { VisualState } from '@/game/visualState';
 import { neverCall } from '@/utils/typeUtils';
-import { drawText } from '@/gameRender/canvasUtils.ts';
+import { drawText } from '@/gameRender/canvasUtils';
 
 const SQRT2 = Math.sqrt(2);
 const SQRT2_R = 1 / SQRT2;

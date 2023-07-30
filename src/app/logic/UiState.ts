@@ -41,7 +41,7 @@ import {
   renderGameToCanvas,
 } from '@/gameRender/render';
 import { isSameCellPoints } from '@/game/helpers';
-import { INTERACTION_MIN_SCALE } from '@/game/consts.ts';
+import { INTERACTION_MIN_SCALE } from '@/game/consts';
 
 type Callback = () => void;
 
