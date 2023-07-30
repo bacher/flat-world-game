@@ -18,6 +18,7 @@ import { CitiesPanel } from '@components/CitiesPanel';
 import { CurrentResearchIcon } from '@components/CurrentResearchIcon';
 import { ModalsWrapper } from '@components/ModalsWrapper';
 import { MenuOpener } from '@components/MenuOpener';
+import { CursorLocation } from '@components/CursorLocation';
 
 type Props = {
   gameId: string;
@@ -304,10 +305,9 @@ export function Canvas({ gameId }: Props) {
 
         {uiStateRef.current && (
           <>
-            <div className={styles.researchPanel}>
-              <CurrentResearchIcon uiState={uiStateRef.current} />
-            </div>
+            <CurrentResearchIcon uiState={uiStateRef.current} />
             <StatusText uiState={uiStateRef.current} />
+            <CursorLocation uiState={uiStateRef.current} />
             {uiStateRef.current && (
               <ModalsWrapper uiState={uiStateRef.current} />
             )}

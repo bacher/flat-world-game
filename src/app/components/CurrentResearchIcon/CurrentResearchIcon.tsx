@@ -65,16 +65,18 @@ export function CurrentResearchIcon({ uiState }: Props) {
   }
 
   return (
-    <button
-      className={cn(styles.button, additionalClassName)}
-      type="button"
-      onClick={() => {
-        uiState.openModal({
-          modeType: ModalModeType.RESEARCH,
-        });
-      }}
-    >
-      {content}
-    </button>
+    <div className={styles.wrapper}>
+      <button
+        className={cn(styles.button, additionalClassName)}
+        type="button"
+        onClick={() => {
+          uiState.openModal({
+            modeType: ModalModeType.RESEARCH,
+          });
+        }}
+      >
+        {content}
+      </button>
+    </div>
   );
 }

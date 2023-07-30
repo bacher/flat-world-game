@@ -9,11 +9,13 @@
   grid-template-areas: 'A';
   flex-grow: 1;
   overflow: hidden;
+
+  & > * {
+    grid-area: A;
+  }
 }
 
 .canvas {
-  grid-area: A;
-
   &[data-drag] {
     cursor: move;
   }
@@ -37,11 +39,4 @@
   flex-grow: 1;
   flex-basis: 10px;
   overflow: hidden;
-}
-
-.researchPanel {
-  grid-area: A;
-  align-self: start;
-  justify-self: start;
-  margin: 20px;
 }

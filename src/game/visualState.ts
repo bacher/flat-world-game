@@ -12,6 +12,7 @@ import {
   ViewportState,
 } from './types';
 import {
+  INTERACTION_MIN_SCALE,
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
@@ -191,9 +192,13 @@ export function visualStateSetCanvasActive(
 }
 
 function actualizeHoverCell(visualState: VisualState): void {
-  const { canvas, pointerScreenPosition } = visualState;
+  const { canvas, pointerScreenPosition, scale } = visualState;
 
-  if (!pointerScreenPosition || !canvas.isActive) {
+  if (
+    !pointerScreenPosition ||
+    !canvas.isActive ||
+    scale < INTERACTION_MIN_SCALE
+  ) {
     if (visualState.hoverCell) {
       visualState.hoverCell = undefined;
       visualState.onUpdate();
@@ -279,7 +284,7 @@ export function visualStateGetViewportState(
 }
 
 export function updateScale(visualState: VisualState, scale: number): void {
-  const prevZoom = visualState.scale;
+  const prevScale = visualState.scale;
 
   visualState.scale = scale;
 
@@ -294,7 +299,7 @@ export function updateScale(visualState: VisualState, scale: number): void {
     const px = (cursor.x - canvas.halfSize.width) / cellSize.width;
     const py = (cursor.y - canvas.halfSize.height) / cellSize.height;
 
-    const inv = (scale - prevZoom) / prevZoom;
+    const inv = (scale - prevScale) / prevScale;
 
     updateViewportCenter(visualState, {
       i: viewportCenter.i + px * inv,

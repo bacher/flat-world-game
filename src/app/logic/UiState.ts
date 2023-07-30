@@ -41,11 +41,12 @@ import {
   renderGameToCanvas,
 } from '@/gameRender/render';
 import { isSameCellPoints } from '@/game/helpers';
+import { INTERACTION_MIN_SCALE } from '@/game/consts.ts';
 
 type Callback = () => void;
 
-const MINIMUM_ZOOM = 0.1;
-const MAXIMUM_ZOOM = 1.5;
+const MINIMUM_SCALE = 0.01;
+const MAXIMUM_SCALE = 1.5;
 const AUTOSAVE_EVERY = 60 * 1000;
 
 const allUpdateTypes: UiUpdateType[] = [
@@ -220,7 +221,10 @@ export class UiState {
 
     const facility = gameState.structuresByCellId.get(cell.cellId);
 
-    if (visualState.interactiveAction) {
+    if (
+      visualState.interactiveAction &&
+      visualState.scale >= INTERACTION_MIN_SCALE
+    ) {
       switch (visualState.interactiveAction.actionType) {
         case InteractiveActionType.CONSTRUCTION_PLANNING: {
           const isAllow = isAllowToConstructAtPosition(visualState, cell);
@@ -373,8 +377,8 @@ export class UiState {
   onCanvasZoom(delta: number): void {
     const scale = clamp(
       this.visualState.scale * (1 - delta / 100),
-      MINIMUM_ZOOM,
-      MAXIMUM_ZOOM,
+      MINIMUM_SCALE,
+      MAXIMUM_SCALE,
     );
     visualStateUpdateScale(this.visualState, scale);
   }

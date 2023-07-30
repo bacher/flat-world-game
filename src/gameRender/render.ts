@@ -54,6 +54,7 @@ import { clearCanvas, drawText } from './canvasUtils';
 import { getChunkDeposits } from '@/game/spawning';
 import { DepositType } from '@/game/depositType';
 import { neverCall } from '@/utils/typeUtils';
+import { INTERACTION_MIN_SCALE } from '@/game/consts.ts';
 
 const DRAW_RESOURCE_NAMES = false;
 const RESOURCE_LINE_HEIGHT = 16;
@@ -62,27 +63,27 @@ const DRAW_ONLY_ICONS_ON = 0.55;
 const DRAW_PLACEHOLDERS_ON = 0.4;
 
 export function renderGameToCanvas(visualState: VisualState): void {
-  const { ctx, canvas } = visualState;
+  const { ctx, canvas, scale } = visualState;
 
   ctx.save();
 
   setupCanvas(visualState);
   clearCanvas(ctx, canvas.size);
 
-  ctx.save();
-
   moveViewport(visualState);
 
-  drawViewportHighlights(visualState);
+  if (scale >= INTERACTION_MIN_SCALE) {
+    drawViewportHighlights(visualState);
+  }
   drawDeposits(visualState);
-  drawInteractiveAction(visualState);
+  if (scale >= INTERACTION_MIN_SCALE) {
+    drawInteractiveAction(visualState);
+  }
   drawGrid(visualState);
   drawObjects(visualState);
-  drawCarrierPaths(visualState);
-
-  ctx.restore();
-
-  drawTopOverlay(visualState);
+  if (scale >= INTERACTION_MIN_SCALE) {
+    drawCarrierPaths(visualState);
+  }
 
   ctx.restore();
 }
@@ -205,7 +206,7 @@ function drawGrid(visualState: VisualState): void {
     };
     ctx.beginPath();
     schemeGrid(ctx, cellSize, globalStart, start, end, 10);
-    ctx.strokeStyle = '#000';
+    ctx.strokeStyle = makeAlphaBlackColor(scale * 3);
     ctx.stroke();
   }
 
@@ -474,10 +475,12 @@ function drawObjects(visualState: VisualState): void {
   }
 
   if (
+    visualState.scale >= INTERACTION_MIN_SCALE &&
     visualState.interactiveAction &&
     visualState.interactiveAction.actionType ===
       InteractiveActionType.CONSTRUCTION_PLANNING &&
-    visualState.hoverCell
+    visualState.hoverCell &&
+    !gameState.structuresByCellId.has(visualState.hoverCell.cellId)
   ) {
     drawObjectDraft(
       visualState,
@@ -819,29 +822,6 @@ function drawStorage(
     }
 
     ctx.restore();
-  }
-}
-
-function drawTopOverlay(visualState: VisualState): void {
-  if (visualState.hoverCell) {
-    const { ctx, canvas } = visualState;
-
-    const text = `(${visualState.hoverCell.i},${visualState.hoverCell.j})`;
-
-    drawText(
-      ctx,
-      text,
-      {
-        x: canvas.size.width,
-        y: canvas.size.height,
-      },
-      {
-        align: 'right',
-        baseline: 'bottom',
-        lineWidth: 5,
-        fontSize: 18,
-      },
-    );
   }
 }
 

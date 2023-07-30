@@ -1,5 +1,11 @@
 @import '@/app/mixins.scss';
 
+.wrapper {
+  align-self: start;
+  justify-self: start;
+  margin: 20px;
+}
+
 .button {
   @include button-reset;
   display: flex;
