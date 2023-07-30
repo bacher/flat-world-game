@@ -18,6 +18,10 @@
         work facilities
 16. [x] Setup intercity exchange
 17. [x] Add zoom in/out
-18. [ ] Add retina support
-19. [ ] Add nature resources
+18. [x] Add retina support
+19. [x] Add nature resources
 20. [x] Make food carrying is more privileged
+21. [x] Save on page closing
+22. [ ] Render by chunks
+23. [ ] Add notification system
+24. [ ] Refactor states

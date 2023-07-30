@@ -46,7 +46,7 @@ type Callback = () => void;
 
 const MINIMUM_ZOOM = 0.1;
 const MAXIMUM_ZOOM = 1.5;
-const AUTOSAVE_EVERY = 5000;
+const AUTOSAVE_EVERY = 60 * 1000;
 
 const allUpdateTypes: UiUpdateType[] = [
   UiUpdateType.MODAL,
@@ -55,7 +55,6 @@ const allUpdateTypes: UiUpdateType[] = [
 ];
 
 export class UiState {
-  public gameId: string;
   public visualState: VisualState;
   public gameState: GameState;
   public modalState: ModalMode | undefined;
@@ -93,7 +92,6 @@ export class UiState {
     visualStateApplyViewportState(visualState, viewportState);
     visualStateOnMouseMove(visualState, mousePosition);
 
-    this.gameId = gameId;
     this.visualState = visualState;
     this.gameState = visualState.gameState;
 
@@ -135,6 +133,8 @@ export class UiState {
   }
 
   loadGame(gameId: string, saveName?: string): void {
+    this.autoSaveGame();
+
     const { gameState, viewportState } = loadGame(gameId, saveName);
 
     this.replaceGameState(gameState);
@@ -142,7 +142,15 @@ export class UiState {
     this.onUpdate();
   }
 
-  saveGame({ saveName }: { saveName?: string } = {}): void {
+  autoSaveGame(): void {
+    saveGame(
+      this.gameState,
+      visualStateGetViewportState(this.visualState),
+      undefined,
+    );
+  }
+
+  saveGameAs({ saveName }: { saveName: string }): void {
     saveGame(
       this.gameState,
       visualStateGetViewportState(this.visualState),
@@ -180,14 +188,14 @@ export class UiState {
       this.isInGameLoop = false;
 
       this.disableAutoSave();
-      this.saveGame();
+      this.autoSaveGame();
     }
   }
 
   enableAutoSave() {
     if (!this.autoSaveIntervalId) {
       this.autoSaveIntervalId = window.setInterval(() => {
-        this.saveGame();
+        this.autoSaveGame();
       }, AUTOSAVE_EVERY);
     }
   }

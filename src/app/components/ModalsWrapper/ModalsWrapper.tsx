@@ -20,7 +20,8 @@ type Props = {
 };
 
 export function ModalsWrapper({ uiState }: Props) {
-  const { gameId, visualState, gameState, modalState } = uiState;
+  const { visualState, gameState, modalState } = uiState;
+  const { gameId } = gameState;
 
   useUiUpdate(uiState, UiUpdateType.MODAL);
 
@@ -90,12 +91,11 @@ export function ModalsWrapper({ uiState }: Props) {
                     closeModal();
                   }}
                   onSaveGame={({ saveName }) => {
-                    uiState.saveGame({ saveName });
+                    uiState.saveGameAs({ saveName });
                     uiState.startGameLoop();
                     closeModal();
                   }}
                   onExit={() => {
-                    uiState.saveGame();
                     location.hash = '';
                   }}
                 />

@@ -102,7 +102,7 @@ export function Canvas({ gameId }: Props) {
   useEffect(() => {
     const uiState = uiStateRef.current;
 
-    if (uiState && uiState.gameId !== gameId) {
+    if (uiState && uiState.gameState.gameId !== gameId) {
       uiState.loadGame(gameId);
     }
   }, [gameId]);
@@ -183,6 +183,7 @@ export function Canvas({ gameId }: Props) {
     window.addEventListener('mouseup', actualizeMouseState, { passive: true });
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('beforeunload', onBeforeUnload);
     canvas.addEventListener('wheel', onCanvasWheel);
 
     return () => {
@@ -191,6 +192,7 @@ export function Canvas({ gameId }: Props) {
       window.removeEventListener('mouseup', actualizeMouseState);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('beforeunload', onBeforeUnload);
     };
   }, []);
 
@@ -201,6 +203,10 @@ export function Canvas({ gameId }: Props) {
       visualStateOnResize(uiState.visualState, canvasParams);
       uiState.renderCanvas();
     }
+  }
+
+  function onBeforeUnload() {
+    uiStateRef.current?.autoSaveGame();
   }
 
   function toggleDragStyle(enable: boolean): void {
