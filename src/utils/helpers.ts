@@ -37,3 +37,12 @@ export function addToMapSet<K, V>(
     set.add(item);
   }
 }
+
+export function areSetsIntersect<A>(set1: Set<A>, set2: Set<A>): boolean {
+  for (const key of set1.values()) {
+    if (set2.has(key)) {
+      return true;
+    }
+  }
+  return false;
+}

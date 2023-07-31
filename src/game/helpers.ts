@@ -88,6 +88,22 @@ export function isSameCellPoints(
   return p1.cellId === p2.cellId;
 }
 
+export function makeAreaAroundCell(
+  cell: CellCoordinates,
+  radius: number,
+): CellRect {
+  return {
+    start: {
+      i: cell.i - radius,
+      j: cell.j - radius,
+    },
+    end: {
+      i: cell.i + radius,
+      j: cell.j + radius,
+    },
+  };
+}
+
 export function extendArea(area: CellRect, radius: number): CellRect {
   return {
     start: {
@@ -101,7 +117,7 @@ export function extendArea(area: CellRect, radius: number): CellRect {
   };
 }
 
-export function isRectsCollade(rect1: CellRect, rect2: CellRect): boolean {
+export function areRectsOverlap(rect1: CellRect, rect2: CellRect): boolean {
   const w = rect2.end.i - rect2.start.i;
   const h = rect2.end.j - rect2.start.j;
 
@@ -114,13 +130,20 @@ export function isRectsCollade(rect1: CellRect, rect2: CellRect): boolean {
     j: 2 * rect1.end.j + h,
   };
 
-  return isPointInsideRect(
+  return isCellInRectInclusive(
     { start, end },
     { i: 2 * rect2.start.i + w, j: 2 * rect2.start.j + h },
   );
 }
 
-export function isPointInsideRect(
+export function makeEmptyRect(): CellRect {
+  return {
+    start: { i: 0, j: 0 },
+    end: { i: 0, j: 0 },
+  };
+}
+
+export function isCellInRectInclusive(
   { start, end }: CellRect,
   { i, j }: CellCoordinates,
 ): boolean {

@@ -22,7 +22,7 @@ import {
   ViewportState,
   WorldParams,
 } from './types';
-import { addCity, addPathTo } from './gameState';
+import { addCity, addPathTo, getCityChunksByPosition } from './gameState';
 import { gamesListStorage, gameStateStorage } from './persist';
 import { researches } from './research';
 import { newCellPosition } from './helpers';
@@ -88,6 +88,7 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
 
   const citiesNormalized = [...cities.values()].map((city) => ({
     ...city,
+    chunksIds: undefined,
     carrierPaths: city.carrierPaths.filter(
       (carrierPath) => carrierPath.pathType !== CarrierPathType.AUTOMATIC,
     ),
@@ -130,6 +131,7 @@ function getGameStateBySnapshot(
 
   const cities: City[] = dehydratedCities.map((city) => ({
     ...city,
+    chunksIds: getCityChunksByPosition(worldParams, city.position),
     isNeedUpdateAutomaticPaths: true,
   }));
 

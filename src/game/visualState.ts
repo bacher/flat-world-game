@@ -4,6 +4,7 @@ import {
   CellCoordinates,
   CellPosition,
   CellRect,
+  ChunkId,
   CompleteFacilityType,
   FacilityType,
   GameState,
@@ -12,13 +13,17 @@ import {
   ViewportState,
 } from './types';
 import {
+  CITY_ACTUAL_BORDER_RADIUS,
   INTERACTION_MIN_SCALE,
   MAX_EXPEDITION_DISTANCE_SQUARE,
   MIN_EXPEDITION_DISTANCE_SQUARE,
 } from './consts';
 import {
   calculateDistanceSquare,
+  convertCellToCellId,
+  extendArea,
   isSameCellPoints,
+  makeEmptyRect,
   newCellPosition,
 } from './helpers';
 import { tick } from './gameStateTick';
@@ -27,7 +32,7 @@ import {
   facilitiesConstructionInfo,
   workAreaMap,
 } from './facilityConstruction';
-import { isCellInsideCityBorder } from '@/game/gameState';
+import { getChunkByCell, isCellInsideCityBorder } from '@/game/gameState';
 
 export const DEFAULT_CELL_SIZE = 90;
 
@@ -45,6 +50,8 @@ export type VisualState = {
   viewportCenter: CellCoordinates;
   scale: number;
   viewportBounds: CellRect;
+  viewportBoundsForCities: CellRect;
+  viewportChunksIds: Set<ChunkId>;
   pointerScreenPosition: Point | undefined;
   hoverCell: CellPosition | undefined;
   interactiveAction: InteractiveAction | undefined;
@@ -99,10 +106,9 @@ export function createVisualState(
     offset: { x: 0, y: 0 },
     viewportCenter: { i: 0, j: 0 },
     scale: 1,
-    viewportBounds: {
-      start: { i: 0, j: 0 },
-      end: { i: 0, j: 0 },
-    },
+    viewportBounds: makeEmptyRect(),
+    viewportBoundsForCities: makeEmptyRect(),
+    viewportChunksIds: new Set(),
     pointerScreenPosition: undefined,
     hoverCell: undefined,
     interactiveAction: undefined,
@@ -134,21 +140,53 @@ export function visualStateOnResize(
 }
 
 function actualizeViewportBounds(visualState: VisualState): void {
-  const { cellSize, canvas, viewportCenter } = visualState;
+  const { cellSize, canvas, viewportCenter, gameState } = visualState;
 
   const cellsHorizontaly = canvas.halfSize.width / cellSize.width;
   const cellsVerticaly = canvas.halfSize.height / cellSize.height;
 
-  visualState.viewportBounds = {
-    start: {
-      i: Math.floor(viewportCenter.i + 0.5 - cellsHorizontaly),
-      j: Math.floor(viewportCenter.j + 0.5 - cellsVerticaly),
-    },
-    end: {
-      i: Math.ceil(viewportCenter.i - 0.5 + cellsHorizontaly),
-      j: Math.ceil(viewportCenter.j - 0.5 + cellsVerticaly),
-    },
+  const start = {
+    i: Math.floor(viewportCenter.i + 0.5 - cellsHorizontaly),
+    j: Math.floor(viewportCenter.j + 0.5 - cellsVerticaly),
   };
+
+  const end = {
+    i: Math.ceil(viewportCenter.i - 0.5 + cellsHorizontaly),
+    j: Math.ceil(viewportCenter.j - 0.5 + cellsVerticaly),
+  };
+
+  visualState.viewportBounds = {
+    start,
+    end,
+  };
+
+  visualState.viewportBoundsForCities = extendArea(
+    visualState.viewportBounds,
+    CITY_ACTUAL_BORDER_RADIUS,
+  );
+
+  const { worldParams } = gameState;
+
+  const topLeftChunk = getChunkByCell(worldParams, start);
+  const bottomRightChunk = getChunkByCell(worldParams, end);
+
+  visualState.viewportChunksIds.clear();
+
+  for (
+    let j = topLeftChunk.j;
+    j <= bottomRightChunk.j;
+    j += worldParams.chunkSize
+  ) {
+    for (
+      let i = topLeftChunk.i;
+      i <= bottomRightChunk.i;
+      i += worldParams.chunkSize
+    ) {
+      visualState.viewportChunksIds.add(
+        convertCellToCellId({ i, j }) as number as ChunkId,
+      );
+    }
+  }
 }
 
 export function lookupGridByPoint(

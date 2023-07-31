@@ -25,12 +25,12 @@ import { resourceLocalization, ResourceType } from '@/game/resources';
 import {
   calculateDistance,
   extendArea,
-  isPointInsideRect,
-  isRectsCollade,
+  areRectsOverlap,
   isSameCellPoints,
   isSamePath,
   newCellPosition,
   newChunkIdentity,
+  isCellInRectInclusive,
 } from '@/game/helpers';
 import {
   InteractActionCarrierPlanning,
@@ -43,6 +43,10 @@ import {
   facilitiesConstructionInfo,
   workAreaMap,
 } from '@/game/facilityConstruction';
+import { getChunkDeposits } from '@/game/spawning';
+import { DepositType } from '@/game/depositType';
+import { neverCall } from '@/utils/typeUtils';
+import { INTERACTION_MIN_SCALE } from '@/game/consts';
 
 import {
   drawStructureIcon,
@@ -51,10 +55,7 @@ import {
 } from './renderStructures';
 import { drawResourceIcon } from './renderResource';
 import { clearCanvas, drawText } from './canvasUtils';
-import { getChunkDeposits } from '@/game/spawning';
-import { DepositType } from '@/game/depositType';
-import { neverCall } from '@/utils/typeUtils';
-import { INTERACTION_MIN_SCALE } from '@/game/consts';
+import { cityTerritory } from './cityTerritory';
 
 const DRAW_RESOURCE_NAMES = false;
 const RESOURCE_LINE_HEIGHT = 16;
@@ -71,6 +72,8 @@ export function renderGameToCanvas(visualState: VisualState): void {
   clearCanvas(ctx, canvas.size);
 
   moveViewport(visualState);
+
+  drawCityTerritory(visualState);
 
   if (scale >= INTERACTION_MIN_SCALE) {
     drawViewportHighlights(visualState);
@@ -106,6 +109,42 @@ function moveViewport(visualState: VisualState): void {
     -viewportCenter.i * cellSize.width + canvas.halfSize.width,
     -viewportCenter.j * cellSize.height + canvas.halfSize.height,
   );
+}
+
+function drawCityTerritory(visualState: VisualState): void {
+  const { gameState } = visualState;
+
+  for (const city of gameState.cities.values()) {
+    if (isCityVisible(visualState, city.position)) {
+      highlightCityTerritory(visualState, city.position, '#fff1d6');
+    }
+  }
+}
+
+function highlightCityTerritory(
+  visualState: VisualState,
+  cell: CellPosition,
+  color: string,
+) {
+  const { ctx, cellSize } = visualState;
+
+  ctx.beginPath();
+
+  let isFirst = true;
+  for (const point of cityTerritory) {
+    const x = (cell.i + point.i - 0.5) * cellSize.width;
+    const y = (cell.j + point.j - 0.5) * cellSize.height;
+
+    if (isFirst) {
+      ctx.moveTo(x, y);
+      isFirst = false;
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+
+  ctx.fillStyle = color;
+  ctx.fill();
 }
 
 function drawInteractiveAction(visualState: VisualState): void {
@@ -339,12 +378,6 @@ function drawViewportHighlights(visualState: VisualState): void {
         break;
       }
     }
-  } else {
-    iterateOverViewportCells(visualState, (cell) => {
-      if (isCellInsideSomeCity(gameState, cell)) {
-        highlightCell(visualState, cell, '#fff1d6');
-      }
-    });
   }
 }
 
@@ -418,8 +451,7 @@ function highlightCell(
   cellPosition: CellPosition,
   cellColor: string,
 ): void {
-  const { ctx } = visualState;
-  const { cellSize } = visualState;
+  const { ctx, cellSize } = visualState;
   const { i, j } = cellPosition;
 
   ctx.beginPath();
@@ -469,12 +501,14 @@ function drawObjects(visualState: VisualState): void {
   const { gameState } = visualState;
 
   for (const city of gameState.cities.values()) {
-    drawObject(visualState, city);
-  }
+    if (isCityVisible(visualState, city.position)) {
+      drawObject(visualState, city);
 
-  for (const facilities of gameState.facilitiesByCityId.values()) {
-    for (const facility of facilities) {
-      drawObject(visualState, facility);
+      const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
+
+      for (const facility of facilities) {
+        drawObject(visualState, facility);
+      }
     }
   }
 
@@ -492,6 +526,12 @@ function drawObjects(visualState: VisualState): void {
       visualState.hoverCell,
     );
   }
+}
+
+function isCityVisible(visualState: VisualState, cell: CellPosition): boolean {
+  const { viewportBoundsForCities } = visualState;
+
+  return isCellInRectInclusive(viewportBoundsForCities, cell);
 }
 
 function drawObjectDraft(
@@ -544,15 +584,6 @@ function getCellCenter({ cellSize }: VisualState, cell: CellPosition): Point {
     x: cell.i * cellSize.width,
     y: cell.j * cellSize.height,
   };
-}
-
-function isCellInRectInclusive(rect: CellRect, point: CellPosition): boolean {
-  return !(
-    point.i < rect.start.i ||
-    point.i > rect.end.i ||
-    point.j < rect.start.j ||
-    point.j > rect.end.j
-  );
 }
 
 function addGap(point1: Point, point2: Point, gap: number): [Point, Point] {
@@ -835,11 +866,12 @@ function drawStorage(
 function drawDeposits(visualState: VisualState): void {
   const { gameState, viewportBounds } = visualState;
 
+  // TODO: use visualState.viewportChunksIds
   for (const chunk of getBoundedChunks(gameState, visualState.viewportBounds)) {
     const depositsInfo = getChunkDeposits(gameState, chunk);
 
     for (const deposit of depositsInfo.deposits) {
-      if (isRectsCollade(viewportBounds, deposit.boundingRect)) {
+      if (areRectsOverlap(viewportBounds, deposit.boundingRect)) {
         for (const cellPosition of deposit.shape.cells) {
           drawDepositCell(visualState, cellPosition, deposit.depositType);
         }
@@ -855,7 +887,7 @@ function drawDepositCell(
 ): void {
   const { ctx, viewportBounds, cellSize } = visualState;
 
-  if (isPointInsideRect(viewportBounds, position)) {
+  if (isCellInRectInclusive(viewportBounds, position)) {
     ctx.save();
     const cellCenter = getCellCenter(visualState, position);
     ctx.translate(cellCenter.x, cellCenter.y);

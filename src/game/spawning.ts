@@ -11,7 +11,7 @@ import {
 import { mulberry32 } from './pseudoRandom';
 import {
   extendArea,
-  isRectsCollade,
+  areRectsOverlap,
   newCellPosition,
   newChunkIdentity,
 } from './helpers';
@@ -77,7 +77,7 @@ function isColladeWithDeposits(
 ): boolean {
   for (let i = startFrom; i < deposits.length; i += 1) {
     const deposit = deposits[i];
-    if (isRectsCollade(area, deposit.boundingRect)) {
+    if (areRectsOverlap(area, deposit.boundingRect)) {
       return true;
     }
   }

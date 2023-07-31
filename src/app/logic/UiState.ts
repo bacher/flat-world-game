@@ -248,7 +248,7 @@ export class UiState {
                 const facilityInfo = facilitiesIterationInfo[facilityType];
 
                 if (facilityType === FacilityType.QUARRY) {
-                  const chunk = getChunkByCell(gameState, cell);
+                  const chunk = getChunkByCell(gameState.worldParams, cell);
                   const depositType = gameState.depositsMapCache
                     .get(chunk.chunkId)!
                     .map.get(cell.cellId);

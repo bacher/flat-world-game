@@ -1,6 +1,6 @@
 import type { Size } from '@/game/types';
 
-export const DEFAULT_FONT = `11px sans-serif`;
+export const DEFAULT_FONT = '11px sans-serif';
 
 export function drawText(
   ctx: CanvasRenderingContext2D,

@@ -7,6 +7,7 @@ import {
   BASE_PEOPLE_DAY_PER_CELL,
   BASE_PEOPLE_WORK_MODIFIER,
   BASE_WEIGHT_PER_PEOPLE_DAY,
+  CITY_ACTUAL_BORDER_RADIUS,
   CITY_BORDER_RADIUS_SQUARE,
   CITY_POPULATION_STATISTICS_LENGTH,
   MINIMAL_CITY_PEOPLE,
@@ -16,10 +17,12 @@ import {
   CarrierPath,
   CarrierPathsCellIdMap,
   CarrierPathType,
+  CellCoordinates,
   CellId,
   CellPath,
   CellPosition,
   CellRect,
+  ChunkId,
   ChunkIdentity,
   City,
   CityId,
@@ -36,6 +39,7 @@ import {
   StorageFacility,
   StorageItem,
   Structure,
+  WorldParams,
 } from './types';
 
 import {
@@ -334,6 +338,7 @@ export function addCity(
     type: FacilityType.CITY,
     name: generateNewCityName(gameState.alreadyCityNames, true),
     position,
+    chunksIds: getCityChunksByPosition(gameState.worldParams, position),
     population: MINIMAL_CITY_PEOPLE,
     carrierPaths: [],
     isNeedUpdateAutomaticPaths: false,
@@ -350,6 +355,28 @@ export function addCity(
   gameState.structuresByCellId.set(city.position.cellId, city);
 
   return city;
+}
+
+export function getCityChunksByPosition(
+  worldParams: WorldParams,
+  { i, j }: CellPosition,
+): Set<ChunkId> {
+  const r = CITY_ACTUAL_BORDER_RADIUS;
+
+  const chunksIds = [
+    { i: -r, j: -r },
+    { i: r, j: -r },
+    { i: r, j: r },
+    { i: -r, j: r },
+  ].map(
+    (coord) =>
+      getChunkByCell(worldParams, {
+        i: i + coord.i,
+        j: j + coord.j,
+      }).chunkId,
+  );
+
+  return new Set(chunksIds);
 }
 
 function addCityFacility(
@@ -692,10 +719,10 @@ export function getCityResourceSubstitute(resourceType: ResourceType): {
 }
 
 export function getChunkByCell(
-  gameState: GameState,
-  cell: CellPosition,
+  worldParams: WorldParams,
+  cell: CellCoordinates,
 ): ChunkIdentity {
-  const { chunkSize } = gameState.worldParams;
+  const { chunkSize } = worldParams;
   return newChunkIdentity({
     i: Math.floor(cell.i / chunkSize) * chunkSize,
     j: Math.floor(cell.j / chunkSize) * chunkSize,

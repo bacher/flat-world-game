@@ -140,7 +140,7 @@ export type GameStateSnapshot = {
   gameSeed: number;
   tickNumber: number;
   worldParams: WorldParams;
-  cities: Omit<City, 'isNeedUpdateAutomaticPaths'>[];
+  cities: Omit<City, 'isNeedUpdateAutomaticPaths' | 'chunksIds'>[];
   facilities: (Facility | StorageFacility | Construction)[];
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
@@ -172,6 +172,7 @@ export type City = StructureBase & {
   type: FacilityType.CITY;
   name: string;
   population: number;
+  chunksIds: Set<ChunkId>;
   carrierPaths: CarrierPath[];
   isNeedUpdateAutomaticPaths: boolean;
   peopleDayPerCell: number;
