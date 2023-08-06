@@ -27,7 +27,7 @@ import {
 } from '@/game/gameState';
 import { facilitiesIterationInfo } from '@/game/facilities';
 import { getCarrierPathDistance } from '@/game/helpers';
-import { boosterByResourceType } from '@/game/boosters';
+import { cityBoosterByResourceType } from '@/game/boosters';
 import { shuffledTraversalMulberry } from '@/game/pseudoRandom';
 import { privilegedResourcesTypes } from '@/game/resources';
 
@@ -314,7 +314,7 @@ function getCarrierPathBaseWorkDays(
   let needCount = 0;
 
   if (to.type === FacilityType.CITY) {
-    const booster = boosterByResourceType[carrierPath.resourceType];
+    const booster = cityBoosterByResourceType[carrierPath.resourceType];
 
     if (booster) {
       const { resourceType, modifier } = getCityResourceSubstitute(

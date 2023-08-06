@@ -184,6 +184,7 @@ export function multiplyResourceStorage(
   }));
 }
 
+// TODO!
 const cityInput = cityResourcesInput.map((resourceType) => ({
   resourceType,
   quantity: 0,

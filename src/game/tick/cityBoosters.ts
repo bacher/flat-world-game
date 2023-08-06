@@ -74,7 +74,7 @@ function applyCityModifier(
   city: City,
   {
     workDaysSummary: { exclusiveWorkDays, privilegedWorkDays, restWorkDays },
-    booster: { resourceTypes, perWorker, boost },
+    booster: { resourceTypes, perWorker },
   }: {
     workDaysSummary: WorkDaysSummary;
     booster: Booster;
@@ -84,7 +84,7 @@ function applyCityModifier(
   const resourceType = resourceTypes[0];
 
   const haveResourceCount = getResourceCount(city.input, resourceType);
-  const totalBoost = 1 + boost;
+  const totalBoost = 2;
 
   const totalWorkDays = exclusiveWorkDays + privilegedWorkDays + restWorkDays;
 

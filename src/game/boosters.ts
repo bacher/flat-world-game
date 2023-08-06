@@ -7,52 +7,50 @@ import {
 export type Booster = {
   resourceTypes: ResourceType[];
   perWorker: number;
-  boost: number;
 };
 
-export const boosters: Record<
-  'population' | 'housing' | 'carrier' | 'worker' | 'research',
-  Booster
-> = {
+export const boosters = {
   population: {
     resourceTypes: [...foodResourceTypes],
     perWorker: 0.15,
-    boost: 1,
   },
   housing: {
     resourceTypes: [...houseResourceTypes],
     perWorker: 0.01,
-    boost: 1,
   },
   carrier: {
     resourceTypes: [ResourceType.HORSE],
     perWorker: 0.01,
-    boost: 1,
   },
   worker: {
     resourceTypes: [ResourceType.TEA],
     perWorker: 0.3,
-    boost: 0.2,
   },
   research: {
     resourceTypes: [ResourceType.PAPYRUS],
     perWorker: 0.1,
-    boost: 0.2,
   },
 };
 
-export const boosterByResourceType: Record<ResourceType, Booster | undefined> =
-  (Object.keys(boosters) as (keyof typeof boosters)[]).reduce(
-    (acc, boosterCategoryName) => {
-      const booster = boosters[boosterCategoryName];
-      for (const resourceType of booster.resourceTypes) {
-        acc[resourceType] = booster;
-      }
-      return acc;
-    },
-    {} as Record<ResourceType, Booster | undefined>,
-  );
+boosters satisfies Record<string, Booster>;
+
+type BoostersByResourceType = Partial<
+  Record<ResourceType, Booster | undefined>
+>;
+
+export const cityBoosterByResourceType: BoostersByResourceType = (() => {
+  const acc: BoostersByResourceType = {};
+
+  for (const resourceType of boosters.population.resourceTypes) {
+    acc[resourceType] = boosters.population;
+  }
+  for (const resourceType of boosters.housing.resourceTypes) {
+    acc[resourceType] = boosters.housing;
+  }
+
+  return acc;
+})();
 
 export const cityResourcesInput: ResourceType[] = Object.keys(
-  boosterByResourceType,
+  cityBoosterByResourceType,
 ) as ResourceType[];
