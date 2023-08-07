@@ -123,6 +123,7 @@ export function drawStructureIcon(
       ctx.fillStyle = 'orange';
       ctx.fill();
       break;
+    case FacilityType.RANCH:
     case FacilityType.STABLE:
       ctx.rect(-10, -5, 20, 9);
       ctx.rect(-12, -12, 5, 7);
@@ -133,6 +134,17 @@ export function drawStructureIcon(
       ctx.rect(10, -5, 4, 2);
       ctx.fillStyle = 'brown';
       ctx.fill();
+
+      if (facilityType === FacilityType.STABLE) {
+        ctx.beginPath();
+        ctx.moveTo(-10, -6);
+        ctx.lineTo(0, -10);
+        ctx.lineTo(10, -6);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'brown';
+        ctx.stroke();
+        ctx.lineWidth = 1;
+      }
       break;
     case FacilityType.ANCIENT_FACTORY:
     case FacilityType.HOUSING_FACTORY:

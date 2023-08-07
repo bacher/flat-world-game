@@ -440,7 +440,7 @@ export const facilitiesIterationInfo: Record<
       },
     ],
   },
-  [FacilityType.STABLE]: {
+  [FacilityType.RANCH]: {
     iterationInfoType: ItrationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
@@ -457,6 +457,24 @@ export const facilitiesIterationInfo: Record<
           quantity: 1,
         },
       ],
+    }),
+  },
+  [FacilityType.STABLE]: {
+    iterationInfoType: ItrationInfoType.FACILITY,
+    maximumPeopleAtWork: 1,
+    productionVariants: singleProductionVariant({
+      iterationPeopleDays: 1,
+      input: [
+        {
+          resourceType: ResourceType.HORSE,
+          quantity: 1,
+        },
+        {
+          resourceType: ResourceType.HORSE_WITH_CART,
+          quantity: 1,
+        },
+      ],
+      output: [],
     }),
   },
   [FacilityType.ANCIENT_FACTORY]: {
@@ -606,6 +624,7 @@ export const facilitiesDescription: Record<FacilityType, string> = {
   [FacilityType.FIELD]: 'Field',
   [FacilityType.WORK_SHOP]: 'Work shop',
   [FacilityType.WORK_SHOP_2]: 'Work shop II',
+  [FacilityType.RANCH]: 'Ranch',
   [FacilityType.STABLE]: 'Stable',
   [FacilityType.ANCIENT_FACTORY]: 'Ancient factory',
   [FacilityType.HOUSING_FACTORY]: 'Housing factory',

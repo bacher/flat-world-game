@@ -14,6 +14,7 @@ export enum ResourceType {
   AGRICULTURAL_TOOLS_STONE = 'AGRICULTURAL_TOOLS_STONE',
   HAY = 'HAY',
   HORSE = 'HORSE',
+  HORSE_WITH_CART = 'HORSE_WITH_CART',
   REED = 'REED',
   PAPYRUS = 'PAPYRUS',
   TEA_LEAVES = 'TEA_LEAVES',
@@ -76,6 +77,15 @@ export function isHouseResourceType(
   return houseResourceTypes.has(resourceType);
 }
 
+export type CarrierBoosterResourceType =
+  | ResourceType.HORSE
+  | ResourceType.HORSE_WITH_CART;
+
+export const carrierBoosters: Record<CarrierBoosterResourceType, number> = {
+  [ResourceType.HORSE]: 1,
+  [ResourceType.HORSE_WITH_CART]: 2,
+};
+
 export const privilegedResourcesTypes = new Set<ResourceType>([
   ...foodResourceTypes,
   ...houseResourceTypes,
@@ -94,6 +104,7 @@ export const resourceLocalization: Record<ResourceType, string> = {
   [ResourceType.AGRICULTURAL_TOOLS_STONE]: 'Stone agricultural tools',
   [ResourceType.HAY]: 'Hay',
   [ResourceType.HORSE]: 'Horse',
+  [ResourceType.HORSE_WITH_CART]: 'Horse with cart',
   [ResourceType.REED]: 'Reed',
   [ResourceType.PAPYRUS]: 'Papyrus',
   [ResourceType.TEA_LEAVES]: 'Tea leaves',

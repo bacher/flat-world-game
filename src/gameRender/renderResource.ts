@@ -138,6 +138,7 @@ export function drawResourceIcon(
       ctx.fill();
       break;
     case ResourceType.HORSE:
+    case ResourceType.HORSE_WITH_CART:
       ctx.moveTo(-5, -4);
       ctx.lineTo(5, -4);
       ctx.lineTo(3, 2);

@@ -275,8 +275,9 @@ export class UiState {
                   });
                 } else if (
                   facilityInfo.productionVariants.length > 1 ||
-                  (facilityInfo.productionVariants[0].id !==
-                    ProductVariantId.BASIC &&
+                  (facilityInfo.productionVariants.length === 1 &&
+                    facilityInfo.productionVariants[0].id !==
+                      ProductVariantId.BASIC &&
                     !gameState.unlockedProductionVariants
                       .get(facilityType)
                       ?.has(facilityInfo.productionVariants[0].id))

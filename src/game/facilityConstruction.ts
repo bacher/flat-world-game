@@ -184,6 +184,17 @@ export const facilitiesConstructionInfo: Record<
       },
     ],
   },
+  [FacilityType.RANCH]: {
+    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationPeopleDays: 3,
+    maximumPeopleAtWork: 3,
+    input: [
+      {
+        resourceType: ResourceType.LOG,
+        quantity: 20,
+      },
+    ],
+  },
   [FacilityType.STABLE]: {
     iterationInfoType: ItrationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
