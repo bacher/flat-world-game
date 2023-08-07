@@ -1,9 +1,9 @@
 import { ExactFacilityType, FacilityType, StorageItem } from '@/game/types';
-import { ItrationInfoType } from '@/game/facilities';
+import { IterationInfoType } from '@/game/facilities';
 import { ResourceType } from '@/game/resources';
 
 export type FacilityConstructionInfo = {
-  iterationInfoType: ItrationInfoType.CONSTRUCTION;
+  iterationInfoType: IterationInfoType.CONSTRUCTION;
   iterationPeopleDays: number;
   maximumPeopleAtWork: number;
   workArea?: WorkArea;
@@ -36,7 +36,7 @@ export const facilitiesConstructionInfo: Record<
   FacilityConstructionInfo
 > = {
   [FacilityType.LOGGING]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workArea: {
@@ -46,7 +46,7 @@ export const facilitiesConstructionInfo: Record<
     input: [],
   },
   [FacilityType.LOGGING_2]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workArea: {
@@ -56,7 +56,7 @@ export const facilitiesConstructionInfo: Record<
     input: [],
   },
   [FacilityType.GATHERING]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workArea: {
@@ -66,7 +66,7 @@ export const facilitiesConstructionInfo: Record<
     input: [],
   },
   [FacilityType.GATHERING_2]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workArea: {
@@ -81,7 +81,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.HUNTERS_BOOTH]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workArea: {
@@ -96,7 +96,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.HUNTERS_BOOTH_2]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     workArea: {
@@ -111,7 +111,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.KITCHEN]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -122,7 +122,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.SAWMILL]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -133,7 +133,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.SAWMILL_2]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -148,7 +148,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.WORK_SHOP]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -159,7 +159,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.WORK_SHOP_2]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -174,7 +174,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.FIELD]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -185,7 +185,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.RANCH]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -196,7 +196,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.STABLE]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -207,7 +207,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.ANCIENT_FACTORY]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -222,7 +222,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.HOUSING_FACTORY]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 3,
     maximumPeopleAtWork: 3,
     input: [
@@ -237,7 +237,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.INTERCITY_SENDER]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 2,
     maximumPeopleAtWork: 3,
     input: [
@@ -248,7 +248,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.INTERCITY_RECEIVER]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 2,
     maximumPeopleAtWork: 3,
     input: [
@@ -259,7 +259,7 @@ export const facilitiesConstructionInfo: Record<
     ],
   },
   [FacilityType.QUARRY]: {
-    iterationInfoType: ItrationInfoType.CONSTRUCTION,
+    iterationInfoType: IterationInfoType.CONSTRUCTION,
     iterationPeopleDays: 2,
     maximumPeopleAtWork: 3,
     input: [

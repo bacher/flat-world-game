@@ -13,6 +13,7 @@ import {
   Facility,
   FacilityType,
   GameState,
+  isBoosterFacility,
   isExactFacility,
   isStorageFacility,
   StorageItem,
@@ -25,11 +26,16 @@ import {
   getResourceCount,
   getStructureIterationStorageInfo,
 } from '@/game/gameState';
-import { facilitiesIterationInfo } from '@/game/facilities';
+import { facilitiesIterationInfo, IterationInfoType } from '@/game/facilities';
 import { getCarrierPathDistance } from '@/game/helpers';
 import { cityBoosterByResourceType } from '@/game/boosters';
 import { shuffledTraversalMulberry } from '@/game/pseudoRandom';
-import { privilegedResourcesTypes } from '@/game/resources';
+import {
+  CarrierBoosterResourceType,
+  carrierBoosters,
+  privilegedResourcesTypes,
+} from '@/game/resources';
+import { neverCall } from '@/utils/typeUtils';
 
 import { applyCityModifiers } from './cityBoosters';
 
@@ -263,7 +269,6 @@ function createEmptyWorkDaysSummary(): WorkDaysSummary {
 }
 
 function getIterationsCountUntilCap(facility: Facility): number {
-  const info = facilitiesIterationInfo[facility.type];
   const iterationInfo = getStructureIterationStorageInfo(facility);
 
   const alreadyIterations = getMaxIterationsCountByStorage(
@@ -272,7 +277,7 @@ function getIterationsCountUntilCap(facility: Facility): number {
   );
 
   const oneIterationWorkDays =
-    iterationInfo.iterationPeopleDays / info.maximumPeopleAtWork;
+    iterationInfo.iterationPeopleDays / facility.assignedWorkersCount;
 
   const days = alreadyIterations * oneIterationWorkDays;
 
@@ -336,6 +341,22 @@ function getCarrierPathBaseWorkDays(
       const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
       needCount = STORAGE_MAX_CAPACITY - alreadyCount;
     }
+  } else if (isBoosterFacility(to)) {
+    const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
+
+    switch (to.type) {
+      case FacilityType.STABLE: {
+        const city = gameState.cities.get(to.assignedCityId)!;
+        const booster =
+          carrierBoosters[
+            carrierPath.resourceType as CarrierBoosterResourceType
+          ];
+        needCount = city.population * booster.perWorker - alreadyCount;
+        break;
+      }
+      default:
+        neverCall(to);
+    }
   } else {
     const alreadyCount = getResourceCount(to.input, carrierPath.resourceType);
     const maximumPeopleAtWork = getMaximumPeopleAtWork(to);
@@ -376,7 +397,13 @@ function getMaximumPeopleAtWork(structure: Facility | Construction): number {
     return info.maximumPeopleAtWork;
   }
 
-  return facilitiesIterationInfo[structure.type].maximumPeopleAtWork;
+  const iterationInfo = facilitiesIterationInfo[structure.type];
+
+  if (iterationInfo.iterationInfoType !== IterationInfoType.FACILITY) {
+    throw new Error();
+  }
+
+  return iterationInfo.maximumPeopleAtWork;
 }
 
 function getMaxIterationsCountByStorage(

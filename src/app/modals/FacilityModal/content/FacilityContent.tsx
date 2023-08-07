@@ -7,6 +7,7 @@ import { Facility } from '@/game/types';
 import {
   facilitiesDescription,
   facilitiesIterationInfo,
+  IterationInfoType,
 } from '@/game/facilities';
 import { getStructureIterationStorageInfo } from '@/game/gameState';
 import { UiState } from '@/app/logic/UiState';
@@ -59,14 +60,18 @@ export function FacilityContent({
     actualPaths: gameState.carrierPathsFromCellId.get(facility.position.cellId),
   });
 
-  const max = facilityInfo.maximumPeopleAtWork;
-
   useImperativeHandle(controlRef, () => ({
     applyChanges: () => {
-      const workersCount = parseInt(workersCountString, 10);
+      if (facilityInfo.iterationInfoType === IterationInfoType.FACILITY) {
+        const workersCount = parseInt(workersCountString, 10);
 
-      if (workersCount !== facility.assignedWorkersCount) {
-        facility.assignedWorkersCount = clamp(workersCount, 0, max);
+        if (workersCount !== facility.assignedWorkersCount) {
+          facility.assignedWorkersCount = clamp(
+            workersCount,
+            0,
+            facilityInfo.maximumPeopleAtWork,
+          );
+        }
       }
 
       for (const resourcePaths of [
@@ -92,16 +97,18 @@ export function FacilityContent({
     <div className={styles.contentBlock}>
       <h2>{facilitiesDescription[facility.type]}</h2>
       <div className={styles.content}>
-        <label>
-          Assigned Workers (max={max}):{' '}
-          <input
-            type="number"
-            value={workersCountString}
-            onChange={(event) => {
-              setWorkersCountString(event.target.value);
-            }}
-          />
-        </label>
+        {facilityInfo.iterationInfoType === IterationInfoType.FACILITY && (
+          <label>
+            Assigned Workers (max={facilityInfo.maximumPeopleAtWork}):{' '}
+            <input
+              type="number"
+              value={workersCountString}
+              onChange={(event) => {
+                setWorkersCountString(event.target.value);
+              }}
+            />
+          </label>
+        )}
         <SupplySection
           title="Input"
           storageType={StorateType.INPUT}

@@ -6,11 +6,12 @@ import {
   StorageItem,
 } from './types';
 import { resourceLocalization, ResourceType } from './resources';
-import { DepositType } from '@/game/depositType';
+import { DepositType } from './depositType';
 
-export enum ItrationInfoType {
-  FACILITY,
-  CONSTRUCTION,
+export const enum IterationInfoType {
+  FACILITY = 'FACILITY',
+  BOOSTER = 'BOOSTER',
+  CONSTRUCTION = 'CONSTRUCTION',
 }
 
 export type ProductionVariantInfo = {
@@ -20,24 +21,66 @@ export type ProductionVariantInfo = {
   output: StorageItem[];
 };
 
+export type DynamicProductionVariantInfo = {
+  id: ProductVariantId;
+  input: DynamicStorageItem[];
+};
+
+export type DynamicStorageItem = {
+  resourceType: ResourceType;
+};
+
+export function isStaticProductionVariant(
+  productionVariant: ProductionVariantInfo | DynamicProductionVariantInfo,
+): productionVariant is ProductionVariantInfo {
+  return (productionVariant as any).output !== undefined;
+}
+
+export function isStaticStorageItem(
+  storageItem: StorageItem | DynamicStorageItem,
+): storageItem is StorageItem {
+  return (storageItem as any).quantity !== undefined;
+}
+
 export type FacilityIterationInfo = {
-  iterationInfoType: ItrationInfoType.FACILITY;
+  iterationInfoType: IterationInfoType.FACILITY;
   maximumPeopleAtWork: number;
   productionVariants: ProductionVariantInfo[];
+};
+
+export type BoosterIterationInfo = {
+  iterationInfoType: IterationInfoType.BOOSTER;
+  productionVariants: DynamicProductionVariantInfo[];
 };
 
 function singleProductionVariant(
   info: Omit<ProductionVariantInfo, 'id'>,
 ): ProductionVariantInfo[] {
-  return [{ id: ProductVariantId.BASIC, ...info }];
+  return [
+    {
+      id: ProductVariantId.BASIC,
+      ...info,
+    },
+  ];
+}
+
+function singleDynamicProductionVariant(
+  info: Omit<DynamicProductionVariantInfo, 'id'>,
+): DynamicProductionVariantInfo[] {
+  return [
+    {
+      id: ProductVariantId.BASIC,
+      ...info,
+    },
+  ];
 }
 
 export const facilitiesIterationInfo: Record<
   ExactFacilityType,
-  FacilityIterationInfo
+  FacilityIterationInfo | BoosterIterationInfo
 > = {
   [FacilityType.GATHERING]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 2,
@@ -51,7 +94,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.GATHERING_2]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: [
       {
@@ -105,7 +148,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.HUNTERS_BOOTH]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -119,7 +162,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.HUNTERS_BOOTH_2]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -138,7 +181,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.KITCHEN]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 2,
     productionVariants: [
       {
@@ -196,7 +239,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.LOGGING]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -210,7 +253,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.LOGGING_2]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -229,7 +272,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.SAWMILL]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -248,7 +291,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.SAWMILL_2]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -271,7 +314,7 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.WORK_SHOP]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: [
       {
@@ -325,7 +368,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.WORK_SHOP_2]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: [
       {
@@ -387,7 +430,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.FIELD]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: [
       {
@@ -441,7 +484,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.RANCH]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: singleProductionVariant({
       iterationPeopleDays: 1,
@@ -460,25 +503,20 @@ export const facilitiesIterationInfo: Record<
     }),
   },
   [FacilityType.STABLE]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
-    maximumPeopleAtWork: 1,
-    productionVariants: singleProductionVariant({
-      iterationPeopleDays: 1,
+    iterationInfoType: IterationInfoType.BOOSTER,
+    productionVariants: singleDynamicProductionVariant({
       input: [
         {
           resourceType: ResourceType.HORSE,
-          quantity: 1,
         },
         {
           resourceType: ResourceType.HORSE_WITH_CART,
-          quantity: 1,
         },
       ],
-      output: [],
     }),
   },
   [FacilityType.ANCIENT_FACTORY]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: [
       {
@@ -500,7 +538,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.HOUSING_FACTORY]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
     productionVariants: [
       {
@@ -566,7 +604,7 @@ export const facilitiesIterationInfo: Record<
     ],
   },
   [FacilityType.QUARRY]: {
-    iterationInfoType: ItrationInfoType.FACILITY,
+    iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 3,
     productionVariants: [
       {

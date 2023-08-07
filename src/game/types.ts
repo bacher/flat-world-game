@@ -40,9 +40,8 @@ export enum FacilityType {
   WORK_SHOP = 'WORK_SHOP',
   WORK_SHOP_2 = 'WORK_SHOP_2',
   FIELD = 'FIELD',
-  // TODO: Rename
-  RANCH = 'STABLE',
-  STABLE = 'STABLE_',
+  RANCH = 'RANCH',
+  STABLE = 'STABLE',
   ANCIENT_FACTORY = 'ANCIENT_FACTORY',
   HUNTERS_BOOTH = 'HUNTERS_BOOTH',
   HUNTERS_BOOTH_2 = 'HUNTERS_BOOTH_2',
@@ -80,6 +79,8 @@ export type ExactFacilityType = Exclude<
   FacilityType,
   | FacilityType.CITY
   | FacilityType.CONSTRUCTION
+  // TODO:
+  //  | FacilityType.STABLE
   | FacilityType.INTERCITY_SENDER
   | FacilityType.INTERCITY_RECEIVER
 >;
@@ -92,6 +93,8 @@ export type StorageFacilityType =
   | FacilityType.INTERCITY_SENDER
   | FacilityType.INTERCITY_RECEIVER;
 
+export type BoosterFacilityType = FacilityType.STABLE;
+
 export type CompleteFacilityType = Exclude<
   FacilityType,
   FacilityType.CONSTRUCTION
@@ -99,7 +102,7 @@ export type CompleteFacilityType = Exclude<
 
 export type FacilitiesByCityId = Map<
   CityId,
-  (Construction | Facility | StorageFacility)[]
+  (Construction | Facility | StorageFacility | BoosterFacility)[]
 >;
 export type StructuresByCellId = Map<CellId, Structure>;
 
@@ -143,7 +146,7 @@ export type GameStateSnapshot = {
   tickNumber: number;
   worldParams: WorldParams;
   cities: Omit<City, 'isNeedUpdateAutomaticPaths' | 'chunksIds'>[];
-  facilities: (Facility | StorageFacility | Construction)[];
+  facilities: (Facility | StorageFacility | BoosterFacility | Construction)[];
   completedResearches: ResearchId[];
   currentResearchId: ResearchId | undefined;
   inProgressResearches: [ResearchId, { points: number }][];
@@ -211,7 +214,7 @@ export type Facility = StructureBase & {
   assignedCityId: CityId;
   assignedWorkersCount: number;
   inProcess: number;
-  productionVariantId: ProductVariantId | ResourceType;
+  productionVariantId: ProductVariantId;
   isPaused: boolean;
 };
 
@@ -219,6 +222,13 @@ export type StorageFacility = StructureBase & {
   type: FacilityType.INTERCITY_SENDER | FacilityType.INTERCITY_RECEIVER;
   assignedCityId: CityId;
   resourceType: ResourceType;
+  isPaused: boolean;
+};
+
+export type BoosterFacility = StructureBase & {
+  type: FacilityType.STABLE;
+  assignedCityId: CityId;
+  productionVariantId: ProductVariantId;
   isPaused: boolean;
 };
 
@@ -232,6 +242,7 @@ export function isExactFacilityType(
   return (
     type !== FacilityType.CITY &&
     type !== FacilityType.CONSTRUCTION &&
+    !isBoosterFacilityType(type) &&
     !isStorageFacilityType(type)
   );
 }
@@ -251,15 +262,34 @@ export function isStorageFacility(
   return isStorageFacilityType(structure.type);
 }
 
+export function isBoosterFacilityType(
+  facilityType: FacilityType,
+): facilityType is BoosterFacilityType {
+  return facilityType === FacilityType.STABLE;
+}
+
+export function isBoosterFacility(
+  structure: Structure,
+): structure is BoosterFacility {
+  return isBoosterFacilityType(structure.type);
+}
+
 export function isFacilityLike(
   structure: Structure,
 ): structure is FacilityLike {
   return (
-    isExactFacilityType(structure.type) || isStorageFacilityType(structure.type)
+    isExactFacilityType(structure.type) ||
+    isBoosterFacilityType(structure.type) ||
+    isStorageFacilityType(structure.type)
   );
 }
 
-export type Structure = City | Construction | Facility | StorageFacility;
+export type Structure =
+  | City
+  | Construction
+  | Facility
+  | StorageFacility
+  | BoosterFacility;
 
 export type CellPath = {
   from: CellPosition;

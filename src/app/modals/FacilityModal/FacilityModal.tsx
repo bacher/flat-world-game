@@ -2,7 +2,12 @@ import { RefObject, useImperativeHandle, useRef } from 'react';
 
 import styles from './FacilityModal.module.scss';
 
-import { FacilityType, isStorageFacility, Structure } from '@/game/types';
+import {
+  FacilityType,
+  isBoosterFacility,
+  isStorageFacility,
+  Structure,
+} from '@/game/types';
 import { UiState } from '@/app/logic/UiState';
 
 import type { ModalRef } from '../types';
@@ -89,6 +94,11 @@ function Content({
         onCloseClick={onCloseClick}
       />
     );
+  }
+
+  // TODO: Implement
+  if (isBoosterFacility(facility)) {
+    return <div>Booster</div>;
   }
 
   return (

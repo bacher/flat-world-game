@@ -14,6 +14,7 @@ import {
   OUTPUT_BUFFER_DAYS,
 } from './consts';
 import {
+  BoosterFacility,
   CarrierPath,
   CarrierPathsCellIdMap,
   CarrierPathType,
@@ -33,6 +34,7 @@ import {
   FacilityLikeType,
   FacilityType,
   GameState,
+  isBoosterFacilityType,
   isStorageFacility,
   isStorageFacilityType,
   ProductVariantId,
@@ -49,7 +51,7 @@ import {
   isHouseResourceType,
   ResourceType,
 } from './resources';
-import { facilitiesIterationInfo } from './facilities';
+import { facilitiesIterationInfo, IterationInfoType } from './facilities';
 import { facilitiesConstructionInfo } from './facilityConstruction';
 import { generateNewCityName } from './cityNameGenerator';
 import { cityResourcesInput } from './boosters';
@@ -250,6 +252,21 @@ export function getStructureIterationStorageInfo(structure: Structure): {
 
   const iterationInfo = facilitiesIterationInfo[structure.type];
 
+  if (iterationInfo.iterationInfoType === IterationInfoType.BOOSTER) {
+    const variant = iterationInfo.productionVariants.find(
+      (variant) => variant.id === structure.productionVariantId,
+    )!;
+
+    return {
+      iterationPeopleDays: 0,
+      input: variant.input.map(({ resourceType }) => ({
+        resourceType,
+        quantity: 0,
+      })),
+      output: [],
+    };
+  }
+
   return iterationInfo.productionVariants.find(
     (variant) => variant.id === structure.productionVariantId,
   )!;
@@ -434,8 +451,8 @@ export function addConstructionStructure(
 export function completeConstruction(
   gameState: GameState,
   construction: Construction,
-): Facility | StorageFacility {
-  let facility: Facility | StorageFacility;
+): Facility | StorageFacility | BoosterFacility {
+  let facility: Facility | StorageFacility | BoosterFacility;
 
   if (isStorageFacilityType(construction.buildingFacilityType)) {
     facility = {
@@ -448,15 +465,30 @@ export function completeConstruction(
       resourceType: construction.productionVariantId as ResourceType,
       isPaused: false,
     };
-  } else {
+  } else if (isBoosterFacilityType(construction.buildingFacilityType)) {
     facility = {
       type: construction.buildingFacilityType,
       assignedCityId: construction.assignedCityId,
       position: construction.position,
-      assignedWorkersCount:
-        facilitiesIterationInfo[construction.buildingFacilityType]
-          .maximumPeopleAtWork,
-      productionVariantId: construction.productionVariantId,
+      productionVariantId: construction.productionVariantId as ProductVariantId,
+      input: [],
+      output: [],
+      isPaused: false,
+    };
+  } else {
+    const iterationInfo =
+      facilitiesIterationInfo[construction.buildingFacilityType];
+
+    if (iterationInfo.iterationInfoType !== IterationInfoType.FACILITY) {
+      throw new Error();
+    }
+
+    facility = {
+      type: construction.buildingFacilityType,
+      assignedCityId: construction.assignedCityId,
+      position: construction.position,
+      assignedWorkersCount: iterationInfo.maximumPeopleAtWork,
+      productionVariantId: construction.productionVariantId as ProductVariantId,
       input: [],
       output: [],
       inProcess: 0,
@@ -477,7 +509,7 @@ export function completeConstruction(
 function replaceCunstructionByFacility(
   gameState: GameState,
   construction: Construction,
-  facility: Facility | StorageFacility,
+  facility: Facility | StorageFacility | BoosterFacility,
 ): void {
   const city = gameState.cities.get(facility.assignedCityId)!;
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;

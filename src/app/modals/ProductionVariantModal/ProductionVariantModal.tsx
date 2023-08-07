@@ -8,7 +8,14 @@ import type {
   ProductVariantId,
   StorageItem,
 } from '@/game/types';
-import { facilitiesIterationInfo } from '@/game/facilities';
+import {
+  DynamicProductionVariantInfo,
+  DynamicStorageItem,
+  facilitiesIterationInfo,
+  isStaticProductionVariant,
+  isStaticStorageItem,
+  ProductionVariantInfo,
+} from '@/game/facilities';
 import { resourceLocalization } from '@/game/resources';
 import { UiState } from '@/app/logic/UiState';
 import { useUiUpdate } from '@/app/logic/hook';
@@ -37,7 +44,9 @@ export function ProductionVariantModal({
   const unlockedVariants =
     gameState.unlockedProductionVariants.get(facilityType);
 
-  const items = useMemo(() => {
+  const items = useMemo<
+    DynamicProductionVariantInfo[] | ProductionVariantInfo[]
+  >(() => {
     if (!unlockedVariants) {
       return iterationInfo.productionVariants;
     }
@@ -65,10 +74,12 @@ export function ProductionVariantModal({
                 <h3>Input:</h3>
                 <StorageList storage={variant.input} />
               </div>
-              <div className={styles.resourcesList}>
-                <h3>Output:</h3>
-                <StorageList storage={variant.output} />
-              </div>
+              {isStaticProductionVariant(variant) && (
+                <div className={styles.resourcesList}>
+                  <h3>Output:</h3>
+                  <StorageList storage={variant.output} />
+                </div>
+              )}
             </button>
           </li>
         ))}
@@ -78,7 +89,11 @@ export function ProductionVariantModal({
   );
 }
 
-function StorageList({ storage }: { storage: StorageItem[] }) {
+function StorageList({
+  storage,
+}: {
+  storage: (StorageItem | DynamicStorageItem)[];
+}) {
   if (storage.length === 0) {
     return <div>None</div>;
   }
@@ -87,7 +102,8 @@ function StorageList({ storage }: { storage: StorageItem[] }) {
     <ul>
       {storage.map((item) => (
         <li key={item.resourceType}>
-          {resourceLocalization[item.resourceType]} x {item.quantity}
+          {resourceLocalization[item.resourceType]}
+          {isStaticStorageItem(item) && `x ${item.quantity}`}
         </li>
       ))}
     </ul>
