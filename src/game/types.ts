@@ -331,3 +331,11 @@ export type WorkDaysSummary = {
   privilegedWorkDays: number;
   restWorkDays: number;
 };
+
+export function sumWorkDays(workHours: WorkDaysSummary): number {
+  return (
+    workHours.exclusiveWorkDays +
+    workHours.privilegedWorkDays +
+    workHours.restWorkDays
+  );
+}

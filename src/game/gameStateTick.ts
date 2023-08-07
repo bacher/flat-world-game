@@ -101,6 +101,7 @@ function updateCityNeedPopulation(
   totalNeed: number,
 ): void {
   const need = Math.ceil(totalNeed);
+
   city.cityReport.population.lastTick = need;
   city.cityReport.population.needStatistics[
     gameState.tickNumber % CITY_POPULATION_STATISTICS_LENGTH

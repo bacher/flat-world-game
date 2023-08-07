@@ -78,6 +78,7 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
     gameId,
     gameSeed,
     tickNumber,
+    // TODO: Restore
     //worldParams,
     cities,
     facilitiesByCityId,

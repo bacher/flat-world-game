@@ -156,7 +156,7 @@ export function planCityTickWork(
     summary.restWorkDays += restWorkDays;
   }
 
-  const { ratios, totalNeedPeopleCount } = applyCityModifiers(city, {
+  const { ratios, totalNeedPeopleCount } = applyCityModifiers(gameState, city, {
     needWorkersWorkDays: workDaySummaries[JobType.WORKER],
     needCarriersWorkDays: workDaySummaries[JobType.CARRIER],
   });

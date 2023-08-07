@@ -137,11 +137,11 @@ export function drawStructureIcon(
 
       if (facilityType === FacilityType.STABLE) {
         ctx.beginPath();
-        ctx.moveTo(-10, -6);
-        ctx.lineTo(0, -10);
-        ctx.lineTo(10, -6);
+        ctx.moveTo(-4, -9);
+        ctx.lineTo(3, -15);
+        ctx.lineTo(10, -9);
         ctx.lineWidth = 3;
-        ctx.strokeStyle = 'brown';
+        ctx.strokeStyle = '#000';
         ctx.stroke();
         ctx.lineWidth = 1;
       }
@@ -274,7 +274,9 @@ export function drawStructureObject(
     ctx.lineJoin = 'round';
 
     const populationText = Math.floor(city.population).toString();
-    const needPopulationText = city.cityReport.population.lastTick.toString();
+    const needPopulationText = city.cityReport.population.lastTick
+      ? city.cityReport.population.lastTick.toString()
+      : 'zzz';
     const rest = `/${populationText}`;
 
     const box = ctx.measureText(rest);

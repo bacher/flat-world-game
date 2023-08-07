@@ -81,14 +81,32 @@ export type CarrierBoosterResourceType =
   | ResourceType.HORSE
   | ResourceType.HORSE_WITH_CART;
 
-export const carrierBoosters: Record<CarrierBoosterResourceType, number> = {
-  [ResourceType.HORSE]: 1,
-  [ResourceType.HORSE_WITH_CART]: 2,
+export const carrierBoosters: Record<
+  CarrierBoosterResourceType,
+  { perWorker: number; boost: number }
+> = {
+  [ResourceType.HORSE]: {
+    perWorker: 0.05,
+    boost: 1,
+  },
+  [ResourceType.HORSE_WITH_CART]: {
+    perWorker: 0.05,
+    boost: 2,
+  },
 };
+
+export const carrierBoosterResourceTypes = new Set(
+  Object.keys(carrierBoosters) as CarrierBoosterResourceType[],
+);
+
+export const carrierBoostersByPower: CarrierBoosterResourceType[] = [
+  ...carrierBoosterResourceTypes,
+].sort((a, b) => carrierBoosters[b].boost - carrierBoosters[a].boost);
 
 export const privilegedResourcesTypes = new Set<ResourceType>([
   ...foodResourceTypes,
   ...houseResourceTypes,
+  ...carrierBoosterResourceTypes,
 ]);
 
 export const resourceLocalization: Record<ResourceType, string> = {

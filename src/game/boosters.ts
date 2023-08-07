@@ -18,18 +18,6 @@ export const boosters = {
     resourceTypes: [...houseResourceTypes],
     perWorker: 0.01,
   },
-  carrier: {
-    resourceTypes: [ResourceType.HORSE],
-    perWorker: 0.01,
-  },
-  worker: {
-    resourceTypes: [ResourceType.TEA],
-    perWorker: 0.3,
-  },
-  research: {
-    resourceTypes: [ResourceType.PAPYRUS],
-    perWorker: 0.1,
-  },
 };
 
 boosters satisfies Record<string, Booster>;

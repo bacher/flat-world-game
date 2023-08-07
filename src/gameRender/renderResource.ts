@@ -139,10 +139,10 @@ export function drawResourceIcon(
       break;
     case ResourceType.HORSE:
     case ResourceType.HORSE_WITH_CART:
-      ctx.moveTo(-5, -4);
-      ctx.lineTo(5, -4);
-      ctx.lineTo(3, 2);
-      ctx.lineTo(-3, 2);
+      ctx.moveTo(-5, -3);
+      ctx.lineTo(5, -3);
+      ctx.lineTo(3, 3);
+      ctx.lineTo(-3, 3);
       ctx.fillStyle = 'brown';
       ctx.fill();
       break;

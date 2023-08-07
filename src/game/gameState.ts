@@ -175,13 +175,20 @@ export function getResourceCount(
 }
 
 export function multiplyResourceStorage(
-  resources: StorageItem[],
+  storage: StorageItem[],
   mul: number,
 ): StorageItem[] {
-  return resources.map(({ resourceType, quantity }) => ({
+  return storage.map((item) => multiplyResourceItem(item, mul));
+}
+
+export function multiplyResourceItem(
+  { resourceType, quantity }: StorageItem,
+  mul: number,
+): StorageItem {
+  return {
     resourceType,
     quantity: quantity * mul,
-  }));
+  };
 }
 
 // TODO!
