@@ -4,11 +4,13 @@ import sortBy from 'lodash/sortBy';
 import styles from './ProductionVariantModal.module.scss';
 
 import type {
+  BoosterFacilityType,
   ExactFacilityType,
   ProductVariantId,
   StorageItem,
 } from '@/game/types';
 import {
+  boostersIterationInfo,
   DynamicProductionVariantInfo,
   DynamicStorageItem,
   facilitiesIterationInfo,
@@ -22,10 +24,11 @@ import { useUiUpdate } from '@/app/logic/hook';
 import { UiUpdateType } from '@/app/logic/types';
 
 import { ModalCloseButton } from '../ModalCloseButton';
+import { isBoosterFacilityType } from '@/game/types';
 
 type Props = {
   uiState: UiState;
-  facilityType: ExactFacilityType;
+  facilityType: ExactFacilityType | BoosterFacilityType;
   onProductionVariantChoose: (productionVariantId: ProductVariantId) => void;
   onClose: () => void;
 };
@@ -39,7 +42,9 @@ export function ProductionVariantModal({
   const { gameState } = uiState;
   useUiUpdate(uiState, UiUpdateType.CANVAS);
 
-  const iterationInfo = facilitiesIterationInfo[facilityType];
+  const iterationInfo = isBoosterFacilityType(facilityType)
+    ? boostersIterationInfo[facilityType]
+    : facilitiesIterationInfo[facilityType];
 
   const unlockedVariants =
     gameState.unlockedProductionVariants.get(facilityType);

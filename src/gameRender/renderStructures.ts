@@ -274,9 +274,7 @@ export function drawStructureObject(
     ctx.lineJoin = 'round';
 
     const populationText = Math.floor(city.population).toString();
-    const needPopulationText = city.cityReport.population.lastTick
-      ? city.cityReport.population.lastTick.toString()
-      : 'zzz';
+    const needPopulationText = city.cityReport.population.lastTick.toString();
     const rest = `/${populationText}`;
 
     const box = ctx.measureText(rest);

@@ -1,4 +1,5 @@
 import {
+  BoosterFacilityType,
   CellPosition,
   ExactFacilityType,
   FacilityType,
@@ -23,7 +24,7 @@ export type ModalMode =
     }
   | {
       modeType: ModalModeType.PRODUCTION_VARIANT_CHOOSE;
-      facilityType: ExactFacilityType;
+      facilityType: ExactFacilityType | BoosterFacilityType;
       position: CellPosition;
     }
   | {

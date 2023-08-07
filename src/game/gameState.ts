@@ -34,6 +34,7 @@ import {
   FacilityLikeType,
   FacilityType,
   GameState,
+  isBoosterFacility,
   isBoosterFacilityType,
   isStorageFacility,
   isStorageFacilityType,
@@ -51,7 +52,11 @@ import {
   isHouseResourceType,
   ResourceType,
 } from './resources';
-import { facilitiesIterationInfo, IterationInfoType } from './facilities';
+import {
+  boostersIterationInfo,
+  facilitiesIterationInfo,
+  IterationInfoType,
+} from './facilities';
 import { facilitiesConstructionInfo } from './facilityConstruction';
 import { generateNewCityName } from './cityNameGenerator';
 import { cityResourcesInput } from './boosters';
@@ -250,9 +255,9 @@ export function getStructureIterationStorageInfo(structure: Structure): {
     }
   }
 
-  const iterationInfo = facilitiesIterationInfo[structure.type];
+  if (isBoosterFacility(structure)) {
+    const iterationInfo = boostersIterationInfo[structure.type];
 
-  if (iterationInfo.iterationInfoType === IterationInfoType.BOOSTER) {
     const variant = iterationInfo.productionVariants.find(
       (variant) => variant.id === structure.productionVariantId,
     )!;
@@ -266,6 +271,8 @@ export function getStructureIterationStorageInfo(structure: Structure): {
       output: [],
     };
   }
+
+  const iterationInfo = facilitiesIterationInfo[structure.type];
 
   return iterationInfo.productionVariants.find(
     (variant) => variant.id === structure.productionVariantId,
@@ -655,7 +662,7 @@ export function getFacilityBindedCity(
 
 export function removeFacility(
   gameState: GameState,
-  facility: Facility | StorageFacility | Construction,
+  facility: Facility | BoosterFacility | StorageFacility | Construction,
 ): void {
   const city = gameState.cities.get(facility.assignedCityId)!;
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;

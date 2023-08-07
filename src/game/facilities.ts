@@ -77,7 +77,7 @@ function singleDynamicProductionVariant(
 
 export const facilitiesIterationInfo: Record<
   ExactFacilityType,
-  FacilityIterationInfo | BoosterIterationInfo
+  FacilityIterationInfo
 > = {
   [FacilityType.GATHERING]: {
     iterationInfoType: IterationInfoType.FACILITY,
@@ -502,19 +502,6 @@ export const facilitiesIterationInfo: Record<
       ],
     }),
   },
-  [FacilityType.STABLE]: {
-    iterationInfoType: IterationInfoType.BOOSTER,
-    productionVariants: singleDynamicProductionVariant({
-      input: [
-        {
-          resourceType: ResourceType.HORSE,
-        },
-        {
-          resourceType: ResourceType.HORSE_WITH_CART,
-        },
-      ],
-    }),
-  },
   [FacilityType.ANCIENT_FACTORY]: {
     iterationInfoType: IterationInfoType.FACILITY,
     maximumPeopleAtWork: 4,
@@ -630,6 +617,22 @@ export const facilitiesIterationInfo: Record<
         ],
       },
     ],
+  },
+};
+
+export const boostersIterationInfo = {
+  [FacilityType.STABLE]: {
+    iterationInfoType: IterationInfoType.BOOSTER,
+    productionVariants: singleDynamicProductionVariant({
+      input: [
+        {
+          resourceType: ResourceType.HORSE,
+        },
+        {
+          resourceType: ResourceType.HORSE_WITH_CART,
+        },
+      ],
+    }),
   },
 };
 

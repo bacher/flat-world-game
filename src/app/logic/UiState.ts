@@ -20,6 +20,7 @@ import {
   Facility,
   FacilityType,
   GameState,
+  isBoosterFacilityType,
   Point,
   ProductVariantId,
 } from '@/game/types';
@@ -33,6 +34,7 @@ import {
   getFacilityBindedCity,
 } from '@/game/gameState';
 import {
+  boostersIterationInfo,
   depositToProductVariant,
   facilitiesIterationInfo,
 } from '@/game/facilities';
@@ -245,7 +247,9 @@ export class UiState {
                   position: cell,
                 });
               } else {
-                const facilityInfo = facilitiesIterationInfo[facilityType];
+                const facilityInfo = isBoosterFacilityType(facilityType)
+                  ? boostersIterationInfo[facilityType]
+                  : facilitiesIterationInfo[facilityType];
 
                 if (facilityType === FacilityType.QUARRY) {
                   const chunk = getChunkByCell(gameState.worldParams, cell);

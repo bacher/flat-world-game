@@ -31,6 +31,7 @@ export type WorkAreaMap = Record<
 
 export const facilitiesConstructionInfo: Record<
   | ExactFacilityType
+  | FacilityType.STABLE
   | FacilityType.INTERCITY_SENDER
   | FacilityType.INTERCITY_RECEIVER,
   FacilityConstructionInfo

@@ -79,15 +79,27 @@ export type ExactFacilityType = Exclude<
   FacilityType,
   | FacilityType.CITY
   | FacilityType.CONSTRUCTION
-  // TODO:
-  //  | FacilityType.STABLE
+  | FacilityType.STABLE
   | FacilityType.INTERCITY_SENDER
   | FacilityType.INTERCITY_RECEIVER
 >;
 
-export type FacilityLikeType = ExactFacilityType | StorageFacilityType;
+export type FacilityLikeType =
+  | ExactFacilityType
+  | BoosterFacilityType
+  | StorageFacilityType;
 
-export type FacilityLike = Facility | StorageFacility;
+export type FacilityLike = Facility | BoosterFacility | StorageFacility;
+
+export function isFacilityLike(
+  structure: Structure,
+): structure is FacilityLike {
+  return (
+    isExactFacilityType(structure.type) ||
+    isBoosterFacilityType(structure.type) ||
+    isStorageFacilityType(structure.type)
+  );
+}
 
 export type StorageFacilityType =
   | FacilityType.INTERCITY_SENDER
@@ -272,16 +284,6 @@ export function isBoosterFacility(
   structure: Structure,
 ): structure is BoosterFacility {
   return isBoosterFacilityType(structure.type);
-}
-
-export function isFacilityLike(
-  structure: Structure,
-): structure is FacilityLike {
-  return (
-    isExactFacilityType(structure.type) ||
-    isBoosterFacilityType(structure.type) ||
-    isStorageFacilityType(structure.type)
-  );
 }
 
 export type Structure =
