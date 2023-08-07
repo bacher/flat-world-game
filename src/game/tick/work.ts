@@ -15,6 +15,7 @@ import {
   getCityResourceSubstitute,
   getConstructionMaximumAddingLimit,
   getStructureIterationStorageInfo,
+  getStructureStorageInfo,
   grabResource,
   grabResourcesStrict,
   multiplyResourceStorage,
@@ -121,7 +122,7 @@ function grabIterationsResources(
   facility: Facility | Construction,
   iterationsCount: number,
 ): void {
-  const iterationInfo = getStructureIterationStorageInfo(facility);
+  const iterationInfo = getStructureStorageInfo(facility);
 
   const grabResources = multiplyResourceStorage(
     iterationInfo.input,
@@ -135,7 +136,7 @@ function addIterationsResources(
   facility: Facility,
   iterationsCount: number,
 ): void {
-  const iterationInfo = getStructureIterationStorageInfo(facility);
+  const iterationInfo = getStructureStorageInfo(facility);
 
   const totalOutputResources = multiplyResourceStorage(
     iterationInfo.output,

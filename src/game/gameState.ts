@@ -11,7 +11,6 @@ import {
   CITY_BORDER_RADIUS_SQUARE,
   CITY_POPULATION_STATISTICS_LENGTH,
   MINIMAL_CITY_PEOPLE,
-  OUTPUT_BUFFER_DAYS,
 } from './consts';
 import {
   BoosterFacility,
@@ -204,23 +203,12 @@ const cityInput = cityResourcesInput.map((resourceType) => ({
   quantity: 0,
 }));
 
-export function getStructureIterationStorageInfo(structure: Structure): {
-  iterationPeopleDays: number;
+export function getStructureStorageInfo(structure: Structure): {
   input: StorageItem[];
   output: StorageItem[];
 } {
-  if (structure.type === FacilityType.CONSTRUCTION) {
-    const info = facilitiesConstructionInfo[structure.buildingFacilityType];
-    return {
-      iterationPeopleDays: info.iterationPeopleDays,
-      input: info.input,
-      output: [],
-    };
-  }
-
   if (structure.type === FacilityType.CITY) {
     return {
-      iterationPeopleDays: 0,
       input: cityInput,
       output: [],
     };
@@ -230,7 +218,6 @@ export function getStructureIterationStorageInfo(structure: Structure): {
     switch (structure.type) {
       case FacilityType.INTERCITY_SENDER:
         return {
-          iterationPeopleDays: 0,
           input: [
             {
               resourceType: structure.resourceType,
@@ -241,7 +228,6 @@ export function getStructureIterationStorageInfo(structure: Structure): {
         };
       case FacilityType.INTERCITY_RECEIVER:
         return {
-          iterationPeopleDays: 0,
           input: [],
           output: [
             {
@@ -263,7 +249,6 @@ export function getStructureIterationStorageInfo(structure: Structure): {
     )!;
 
     return {
-      iterationPeopleDays: 0,
       input: variant.input.map(({ resourceType }) => ({
         resourceType,
         quantity: 0,
@@ -272,10 +257,29 @@ export function getStructureIterationStorageInfo(structure: Structure): {
     };
   }
 
-  const iterationInfo = facilitiesIterationInfo[structure.type];
+  return getStructureIterationStorageInfo(structure);
+}
+
+export function getStructureIterationStorageInfo(
+  facility: Facility | Construction,
+): {
+  input: StorageItem[];
+  output: StorageItem[];
+  iterationPeopleDays: number;
+} {
+  if (facility.type === FacilityType.CONSTRUCTION) {
+    const info = facilitiesConstructionInfo[facility.buildingFacilityType];
+    return {
+      iterationPeopleDays: info.iterationPeopleDays,
+      input: info.input,
+      output: [],
+    };
+  }
+
+  const iterationInfo = facilitiesIterationInfo[facility.type];
 
   return iterationInfo.productionVariants.find(
-    (variant) => variant.id === structure.productionVariantId,
+    (variant) => variant.id === facility.productionVariantId,
   )!;
 }
 
@@ -284,7 +288,7 @@ export function getMaximumIterationsByResources(
 ): number {
   let minIterations = Infinity;
 
-  for (const resource of getStructureIterationStorageInfo(facility).input) {
+  for (const resource of getStructureStorageInfo(facility).input) {
     const iterations = Math.floor(
       getResourceCount(facility.input, resource.resourceType) /
         resource.quantity,
@@ -296,69 +300,6 @@ export function getMaximumIterationsByResources(
   }
 
   return minIterations;
-}
-
-export function getIterationsUntilOverDone(
-  facility: Facility,
-  city: City,
-): number {
-  let minIterations = Infinity;
-
-  const info = getStructureIterationStorageInfo(facility);
-
-  for (const resource of info.output) {
-    const maxPerDay =
-      resource.quantity *
-      (facility.assignedWorkersCount /
-        info.iterationPeopleDays /
-        city.peopleWorkModifier);
-
-    const iterations = Math.ceil(
-      (maxPerDay * OUTPUT_BUFFER_DAYS -
-        getResourceCount(facility.output, resource.resourceType)) /
-        resource.quantity,
-    );
-
-    if (iterations < minIterations) {
-      minIterations = iterations;
-    }
-  }
-
-  return Math.max(0, minIterations);
-}
-
-export function removeIterationInput(
-  facility: Facility | Construction,
-  iterationCount: number,
-): void {
-  const info = getStructureIterationStorageInfo(facility);
-
-  for (const resource of info.input) {
-    const quantity = iterationCount * resource.quantity;
-
-    const grabbedResource = grabResource(facility.input, {
-      resourceType: resource.resourceType,
-      quantity,
-    });
-
-    if (grabbedResource.quantity !== quantity) {
-      throw new Error();
-    }
-  }
-}
-
-export function addIterationOutput(
-  facility: Facility,
-  iterationCount: number,
-): void {
-  const iterationInfo = getStructureIterationStorageInfo(facility);
-
-  for (const resource of iterationInfo.output) {
-    addResource(facility.output, {
-      resourceType: resource.resourceType,
-      quantity: iterationCount * resource.quantity,
-    });
-  }
 }
 
 export function addCity(

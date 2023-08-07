@@ -18,7 +18,7 @@ import {
 } from '@/game/types';
 import {
   getAllStructuresInArea,
-  getStructureIterationStorageInfo,
+  getStructureStorageInfo,
   isCellInsideCityBorder,
 } from '@/game/gameState';
 import { resourceLocalization, ResourceType } from '@/game/resources';
@@ -779,7 +779,7 @@ function drawFacilityStorage(
   if (isCity(facility)) {
     planInput = cityDefaultInput;
   } else {
-    const iterationInfo = getStructureIterationStorageInfo(facility);
+    const iterationInfo = getStructureStorageInfo(facility);
     planInput = iterationInfo.input;
     planOutput = iterationInfo.output;
   }

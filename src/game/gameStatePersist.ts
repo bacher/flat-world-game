@@ -20,7 +20,6 @@ import {
   ResearchId,
   StructuresByCellId,
   ViewportState,
-  WorldParams,
 } from './types';
 import { addCity, addPathTo, getCityChunksByPosition } from './gameState';
 import { gamesListStorage, gameStateStorage } from './persist';
@@ -79,7 +78,7 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
     gameSeed,
     tickNumber,
     // TODO: Restore
-    //worldParams,
+    worldParams,
     cities,
     facilitiesByCityId,
     completedResearches,
@@ -90,17 +89,20 @@ function getGameStateSnapshot(gameState: GameState): GameStateSnapshot {
   const citiesNormalized = [...cities.values()].map((city) => ({
     ...city,
     chunksIds: undefined,
+    //    population: 10,
     carrierPaths: city.carrierPaths.filter(
       (carrierPath) => carrierPath.pathType !== CarrierPathType.AUTOMATIC,
     ),
   }));
 
+  /*
   const worldParams: WorldParams = {
     chunkSize: DEFAULT_CHUNK_SIZE,
     ignoreDepositsInCenterRadius: DEFAULT_IGNORE_DEPOSIT_RADIUS,
     maxDepositRadius: DEFAULT_MAX_DEPOSIT_RADIUS,
     maxChunkDeposits: DEFAULT_MAX_CHUNK_DEPOSITS,
   };
+  */
 
   return {
     gameId,

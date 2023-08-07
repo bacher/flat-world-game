@@ -9,7 +9,7 @@ import {
   facilitiesIterationInfo,
   IterationInfoType,
 } from '@/game/facilities';
-import { getStructureIterationStorageInfo } from '@/game/gameState';
+import { getStructureStorageInfo } from '@/game/gameState';
 import { UiState } from '@/app/logic/UiState';
 import { useUiUpdate } from '@/app/logic/hook';
 import { UiUpdateType } from '@/app/logic/types';
@@ -46,7 +46,7 @@ export function FacilityContent({
   );
 
   const iterationInfo = useMemo(
-    () => getStructureIterationStorageInfo(facility),
+    () => getStructureStorageInfo(facility),
     [facility],
   );
 

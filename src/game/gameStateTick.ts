@@ -12,7 +12,7 @@ import {
 import {
   addCarrierPath,
   createEmptyLastTickCityReport,
-  getStructureIterationStorageInfo,
+  getStructureStorageInfo,
   removeAllCarrierPathsTo,
 } from './gameState';
 import { isSamePath } from './helpers';
@@ -160,13 +160,13 @@ function addAutomaticInputPaths(
     CarrierPathType.AUTOMATIC,
   );
 
-  const constructionIterationInfo = getStructureIterationStorageInfo(structure);
+  const constructionIterationInfo = getStructureStorageInfo(structure);
 
   const facilities = gameState.facilitiesByCityId.get(city.cityId)!;
 
   for (const facility of facilities) {
     if (isFacilityLike(facility)) {
-      const iterationInfo = getStructureIterationStorageInfo(facility);
+      const iterationInfo = getStructureStorageInfo(facility);
 
       for (const { resourceType } of constructionIterationInfo.input) {
         for (const {
